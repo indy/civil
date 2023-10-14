@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::interop::decks::{Arrival, DeckKind, SlimDeck, SlimEvent};
+use crate::interop::decks::{Arrival, DeckKind, SlimDeck};
 use crate::interop::font::Font;
 use crate::interop::notes::Note;
 use crate::interop::points::Point;
@@ -41,7 +41,6 @@ pub struct Person {
     // what was happening during their lifetime
     //
     pub points: Vec<Point>,
-    pub events: Vec<SlimEvent>,
 
     pub notes: Vec<Note>,
     pub arrivals: Vec<Arrival>,
@@ -63,7 +62,6 @@ impl From<crate::db::decks::DeckBase> for Person {
             sort_date: None,
 
             points: vec![],
-            events: vec![],
 
             notes: vec![],
             arrivals: vec![],

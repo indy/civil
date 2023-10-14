@@ -130,7 +130,6 @@ pub(crate) fn pagination(
 ) -> crate::Result<interop::Pagination<interop::SlimDeck>> {
     let conn = sqlite_pool.get()?;
 
-    // TODO: sort this by the event date in event_extras
     let stmt = "SELECT id, name, kind, created_at, graph_terminator, insignia, font, impact
                 FROM decks
                 WHERE user_id = ?1 AND kind = ?2

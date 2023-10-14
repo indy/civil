@@ -15,7 +15,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::db::events as events_db;
 use crate::db::notes as notes_db;
 use crate::db::people as db;
 use crate::db::points as points_db;
@@ -231,7 +230,6 @@ fn sqlite_augment(
     person_id: Key,
     user_id: Key,
 ) -> crate::Result<()> {
-    person.events = events_db::all_events_during_life(sqlite_pool, user_id, person_id)?;
     person.points = points_db::all_points_during_life(sqlite_pool, user_id, person_id)?;
     person.notes = notes_db::notes_for_deck(sqlite_pool, person_id)?;
     person.arrivals = notes_db::arrivals_for_deck(sqlite_pool, person_id)?;

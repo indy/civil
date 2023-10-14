@@ -17,7 +17,7 @@
 
 use crate::db::decks::{self, DeckBase, DeckBaseOrigin};
 use crate::db::sqlite::{self, FromRow, SqlitePool};
-use crate::interop::decks::{DeckKind, SlimDeck, SlimEvent};
+use crate::interop::decks::{DeckKind, SlimDeck};
 use crate::interop::events::{Event, ProtoEvent};
 use crate::interop::font::Font;
 use crate::interop::Key;
@@ -119,26 +119,6 @@ impl FromRow for Event {
     }
 }
 
-impl FromRow for SlimEvent {
-    fn from_row(row: &Row) -> crate::Result<SlimEvent> {
-        Ok(SlimEvent {
-            id: row.get(0)?,
-            title: row.get(1)?,
-            deck_kind: DeckKind::Event,
-            created_at: row.get(3)?,
-            graph_terminator: row.get(4)?,
-            insignia: row.get(5)?,
-            font: row.get(6)?,
-            impact: row.get(7)?,
-
-            location_textual: row.get(8)?,
-
-            date_textual: row.get(9)?,
-            date: row.get(10)?,
-        })
-    }
-}
-
 pub(crate) fn get_or_create(
     sqlite_pool: &SqlitePool,
     user_id: Key,
@@ -149,6 +129,7 @@ pub(crate) fn get_or_create(
     let mut conn = sqlite_pool.get()?;
     let tx = conn.transaction()?;
 
+    let default_font = Font::DeWalpergens;
     let (deck, origin) = decks::deckbase_get_or_create(
         &tx,
         user_id,
@@ -156,26 +137,27 @@ pub(crate) fn get_or_create(
         title,
         false,
         0,
-        Font::DeWalpergens,
+        default_font,
         0,
     )?;
 
+    let point_kind = String::from("point");
     let event_extras = match origin {
         DeckBaseOrigin::Created => sqlite::one(
             &tx,
-            "INSERT INTO event_extras(deck_id)
-                 VALUES (?1)
+            "INSERT INTO points(deck_id, title, kind, font)
+                 VALUES (?1, ?2, ?3, ?4)
                  RETURNING location_textual, longitude, latitude, location_fuzz,
                            date_textual, exact_realdate, lower_realdate,
                            upper_realdate, date_fuzz",
-            params![&deck.id],
+            params![&deck.id, title, &point_kind, &i32::from(default_font)],
         )?,
         DeckBaseOrigin::PreExisting => sqlite::one(
             &tx,
             "SELECT location_textual, longitude, latitude, location_fuzz, date_textual,
                         date(exact_realdate), date(lower_realdate), date(upper_realdate),
                         date_fuzz
-                 FROM event_extras
+                 FROM points
                  WHERE deck_id=?1",
             params![&deck.id],
         )?,
@@ -202,13 +184,13 @@ pub(crate) fn get(sqlite_pool: &SqlitePool, user_id: Key, event_id: Key) -> crat
     let conn = sqlite_pool.get()?;
 
     let stmt = "SELECT decks.id, decks.name, decks.kind, decks.created_at, decks.graph_terminator, decks.insignia, decks.font, decks.impact,
-                       event_extras.location_textual, event_extras.longitude,
-                       event_extras.latitude, event_extras.location_fuzz,
-                       event_extras.date_textual, date(event_extras.exact_realdate),
-                       date(event_extras.lower_realdate), date(event_extras.upper_realdate),
-                       event_extras.date_fuzz
-                FROM decks LEFT JOIN event_extras ON event_extras.deck_id = decks.id
-                WHERE user_id = ?1 AND id = ?2";
+                       points.location_textual, points.longitude,
+                       points.latitude, points.location_fuzz,
+                       points.date_textual, date(points.exact_realdate),
+                       date(points.lower_realdate), date(points.upper_realdate),
+                       points.date_fuzz
+                FROM decks LEFT JOIN points ON points.deck_id = decks.id
+                WHERE user_id = ?1 AND decks.id = ?2";
     let res = sqlite::one(&conn, stmt, params![&user_id, &event_id])?;
 
     decks::hit(&conn, event_id)?;
@@ -238,7 +220,7 @@ pub(crate) fn edit(
     )?;
 
     let sql_query = "
-             UPDATE event_extras
+             UPDATE points
              SET location_textual = ?2, longitude = ?3, latitude = ?4, location_fuzz = ?5,
                  date_textual = ?6, exact_realdate = julianday(?7), lower_realdate = julianday(?8),
                  upper_realdate = julianday(?9), date_fuzz = ?10
@@ -271,42 +253,4 @@ pub(crate) fn edit(
 
 pub(crate) fn delete(sqlite_pool: &SqlitePool, user_id: Key, event_id: Key) -> crate::Result<()> {
     decks::delete(sqlite_pool, user_id, event_id)
-}
-
-pub(crate) fn all_events_during_life(
-    sqlite_pool: &SqlitePool,
-    user_id: Key,
-    deck_id: Key,
-) -> crate::Result<Vec<SlimEvent>> {
-    let conn = sqlite_pool.get()?;
-
-    sqlite::many(
-        &conn,
-        "SELECT d.id,
-                d.name as title,
-                d.kind as deck_kind,
-                d.created_at,
-                d.graph_terminator,
-                d.insignia,
-                d.font,
-                d.impact,
-                ee.location_textual,
-                ee.date_textual,
-                coalesce(date(ee.exact_realdate), date(ee.lower_realdate)) AS date,
-                coalesce(ee.exact_realdate, ee.lower_realdate) AS sortdate
-         FROM   event_extras ee, decks d
-         WHERE  COALESCE(ee.exact_realdate, ee.upper_realdate) >= (
-                    SELECT COALESCE(point_born.exact_realdate, point_born.lower_realdate) AS born
-                    FROM   points point_born
-                    WHERE  point_born.deck_id = ?2 AND point_born.kind = 'point_begin'
-                ) AND coalesce(ee.exact_realdate, ee.lower_realdate) <= COALESCE((
-                    SELECT COALESCE(point_died.exact_realdate, point_died.upper_realdate) AS died
-                    FROM   points point_died
-                    WHERE  point_died.deck_id = ?2 AND point_died.kind = 'point_end'), CURRENT_DATE)
-                AND ee.deck_id = d.id
-                AND d.impact > 0
-                AND d.user_id = ?1
-         ORDER BY sortdate",
-        params![&user_id, &deck_id],
-    )
 }

@@ -60,17 +60,6 @@ export type SlimDeck = ProtoSlimDeck & {
     createdAt: string;
 };
 
-export type SlimEvent = SlimDeck & {
-    locationTextual?: string;
-    dateTextual?: string;
-    date?: string;
-
-    // generated client side with data from server
-    //
-    age?: number;
-    compDate: Date;
-};
-
 export type Hit = {
     createdAt: string;
 };
@@ -80,7 +69,6 @@ export type FatDeck = SlimDeck & {
     //
     flashcards: Array<FlashCard>;
     points?: Array<Point>;
-    events?: Array<SlimEvent>;
 
     // received from server and then modified by the client
     //

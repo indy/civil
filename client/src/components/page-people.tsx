@@ -15,7 +15,6 @@ import type {
     Point,
     ProtoPoint,
     SlimDeck,
-    SlimEvent,
 } from "../types";
 
 import { AppStateChange, getAppState, immutableState } from "../app-state";
@@ -29,7 +28,6 @@ import CivilButton from "./civil-button";
 import CivilButtonCreateDeck from "./civil-button-create-deck";
 import { CivContainer, CivLeft, CivMain } from "./civil-layout";
 import CivilTabButton from "./civil-tab-button";
-import DeckLink from "./deck-link";
 import DeckUpdater from "./deck-updater";
 import DeleteDeckConfirmation from "./delete-deck-confirmation";
 import { HeadedSegment } from "./headed-segment";
@@ -317,7 +315,7 @@ function preCacheFn(person: DeckPerson): DeckPerson {
         return compDate;
     }
 
-    if (person.points && person.events) {
+    if (person.points) {
         let born: [number, number, number] | undefined = getBirthDateFromPoints(
             person.points,
         );
@@ -329,32 +327,9 @@ function preCacheFn(person: DeckPerson): DeckPerson {
                 }
             }
         });
-        person.events.forEach((e) => {
-            if (e.date) {
-                e.compDate = calcCompDate(e.date);
-                if (born) {
-                    e.age = calcAge(e.date, born);
-                }
-            }
-        });
     }
 
     return person;
-}
-
-// display an event within a person's timeline
-//
-function PersonSlimEvent({ event }: { event: SlimEvent }) {
-    let ageText = event.age! > 0 ? `${event.age}` : "";
-    let klass = fontClass(event.font, RenderingDeckPart.Heading);
-
-    return (
-        <li class={klass}>
-            <span class="point-age">{ageText}</span>
-            <span>{svgBlank()}</span>
-            <DeckLink slimDeck={event} /> <span>{event.dateTextual}</span>
-        </li>
-    );
 }
 
 function PersonPoint({
@@ -498,59 +473,13 @@ function SegmentPoints({
         }
     }
 
-    let filteredEvents = person.events || [];
-    if (onlyThisPerson) {
-        filteredEvents = [];
-    }
-
-    // points and events should be rendered in chronological order
-    const dps: Array<any> = [];
-    while (true) {
-        if (filteredPoints.length === 0) {
-            break;
-        }
-        if (filteredEvents.length === 0) {
-            break;
-        }
-
-        if (filteredPoints[0]!.compDate < filteredEvents[0]!.compDate) {
-            let dp = filteredPoints[0]!;
-            dps.push(
-                <PersonPoint
-                    key={dp.id}
-                    passage={deckManager.passageForPoint(dp)}
-                    hasNotes={deckManager.pointHasNotes(dp)}
-                    deckId={deckId}
-                    point={dp}
-                />,
-            );
-            filteredPoints = filteredPoints.slice(1);
-        } else {
-            const fe = filteredEvents[0]!;
-            dps.push(<PersonSlimEvent event={fe} />);
-            filteredEvents = filteredEvents.slice(1);
-        }
-    }
-
-    if (filteredPoints.length > 0) {
-        filteredPoints.forEach((dp) => {
-            dps.push(
-                <PersonPoint
-                    key={dp.id}
-                    passage={deckManager.passageForPoint(dp)}
-                    hasNotes={deckManager.pointHasNotes(dp)}
-                    deckId={deckId}
-                    point={dp}
-                />,
-            );
-        });
-    }
-
-    if (filteredEvents.length > 0) {
-        filteredEvents.forEach((fe) => {
-            dps.push(<PersonSlimEvent event={fe} />);
-        });
-    }
+    const dps: Array<any> = filteredPoints.map(dp => <PersonPoint
+            key={dp.id}
+            passage={deckManager.passageForPoint(dp)}
+            hasNotes={deckManager.pointHasNotes(dp)}
+            deckId={deckId}
+            point={dp}
+        />);
 
     const formSidebarText = showAddPointForm
         ? "Hide Form"

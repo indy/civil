@@ -142,25 +142,6 @@ CREATE TABLE IF NOT EXISTS quote_extras (
        FOREIGN KEY (deck_id) REFERENCES decks (id) ON DELETE CASCADE ON UPDATE NO ACTION
 );
 
-
-CREATE TABLE IF NOT EXISTS event_extras (
-       deck_id INTEGER NOT NULL,
-
-       location_textual TEXT,
-       longitude REAL,
-       latitude REAL,
-       location_fuzz REAL DEFAULT 0.0,
-
-       date_textual TEXT,
-       exact_realdate REAL,
-       lower_realdate REAL,
-       upper_realdate REAL,
-       date_fuzz REAL DEFAULT 1.0,
-
-       FOREIGN KEY (deck_id) REFERENCES decks (id) ON DELETE CASCADE ON UPDATE NO ACTION
-);
-
-
 CREATE TABLE IF NOT EXISTS dialogue_extras (
        deck_id INTEGER NOT NULL,
 
@@ -850,6 +831,21 @@ pub fn migration_check(db_name: &str) -> crate::Result<()> {
         ///////////////////
         M::up("ALTER TABLE article_extras DROP COLUMN rating;
                ALTER TABLE event_extras DROP COLUMN importance;"),
+
+        ///////////////////
+        // user_version 25: replace event_extras with existing points table
+        ///////////////////
+        M::up("INSERT INTO points(deck_id, title, kind, font, location_textual,
+                                  longitude, latitude, location_fuzz,
+                                  date_textual, exact_realdate, lower_realdate,
+                                  upper_realdate, date_fuzz)
+               SELECT d.id, d.name, 'point', d.font, e.location_textual,
+                      e.longitude, e.latitude, e.location_fuzz,
+                      e.date_textual, e.exact_realdate, e.lower_realdate,
+                      e.upper_realdate, e.date_fuzz
+               FROM event_extras e, decks d
+               WHERE d.id = e.deck_id;
+               DROP TABLE event_extras;"),
     ]);
 
     let mut conn = Connection::open(db_name)?;

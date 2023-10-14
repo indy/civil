@@ -160,24 +160,6 @@ pub struct SlimDeck {
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct SlimEvent {
-    pub id: Key,
-    pub title: String,
-    pub deck_kind: DeckKind,
-    pub created_at: chrono::NaiveDateTime,
-    pub graph_terminator: bool,
-    pub insignia: i32,
-    pub font: Font,
-    pub impact: i32,
-
-    pub location_textual: Option<String>,
-
-    pub date_textual: Option<String>,
-    pub date: Option<chrono::NaiveDate>,
-}
-
-#[derive(Debug, serde::Deserialize, serde::Serialize)]
-#[serde(rename_all = "camelCase")]
 pub struct Hit {
     pub created_at: chrono::NaiveDateTime,
 }

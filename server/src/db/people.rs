@@ -40,7 +40,6 @@ impl FromRow for Person {
             impact: row.get(7)?,
             sort_date: row.get(8)?,
             points: vec![],
-            events: vec![],
             notes: vec![],
             arrivals: vec![],
         })
