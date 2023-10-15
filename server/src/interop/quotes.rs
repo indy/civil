@@ -33,6 +33,7 @@ pub struct Quote {
     pub font: Font,
     pub impact: i32,
 
+    pub text: String, // this will be the same as the single note
     pub attribution: String,
 
     // will always be a single note

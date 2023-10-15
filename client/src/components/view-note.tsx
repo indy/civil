@@ -9,10 +9,12 @@ import type {
     Notes,
     Reference,
     ReferencesDiff,
+    ReferencesApplied,
 } from "../types";
 
 import { AppStateChange, getAppState } from "../app-state";
 import { addToolbarSelectableClasses } from "../shared/css";
+import Net from "../shared/net";
 
 import buildMarkup from "./build-markup";
 import CivilButton from "./civil-button";
@@ -264,11 +266,8 @@ type Props<T extends FatDeck> = {
     note: Note;
     nextNote?: Note; // used for the 'copy below' functionality of refs
     parentDeck: T;
-    onDelete: (id: Key) => void;
-    onEdited: (id: Key, n: Note) => void;
     onRefsChanged: (note: Note, refsInNote: Array<Reference>) => void;
     onUpdateDeck: (d: T) => void;
-    onCopyRefBelow: (r: Reference, nextNote: Note) => void;
     noDelete?: boolean;
 };
 
@@ -276,14 +275,71 @@ const ViewNote = <T extends FatDeck>({
     note,
     nextNote,
     parentDeck,
-    onDelete,
-    onEdited,
     onRefsChanged,
     onUpdateDeck,
-    onCopyRefBelow,
     noDelete,
 }: Props<T>) => {
     const appState = getAppState();
+
+
+    function onEdited(id: Key, updatedNote: Note) {
+        // note: currently this will only update the content and the font
+        //
+        Net.put<Note, Note>("/api/notes/" + id.toString(), updatedNote).then(newNote => {
+            let newDeck: T = {...parentDeck};
+            let index = newDeck.notes.findIndex(n => n.id === id);
+            if (index !== -1) {
+                newDeck.notes[index] = newNote;
+            }
+            onUpdateDeck(newDeck);
+        });
+    }
+
+    function onDelete(id: Key) {
+        type Data = {};
+        let empty: Data = {};
+        Net.delete<Data, Notes>("/api/notes/" + id.toString(), empty).then(
+            (allRemainingNotes) => {
+                let notes = allRemainingNotes;
+                onUpdateDeck({ ...parentDeck, notes });
+            },
+        );
+    }
+
+    // copy the given ref onto the note (if it doesn't already exist)
+    function onCopyRefBelow(ref: Reference, note: Note) {
+        // check if the note already contains the ref
+        const found = note.refs.find((r) => r.id === ref.id);
+        if (found) {
+            console.log("already has ref");
+        } else {
+            const addedRef: Reference = {
+                id: ref.id,
+                title: ref.title,
+                deckKind: ref.deckKind,
+                createdAt: ref.createdAt,
+                graphTerminator: ref.graphTerminator,
+                insignia: ref.insignia,
+                font: ref.font,
+                impact: ref.impact,
+                noteId: note.id,
+                refKind: ref.refKind,
+            };
+            let changeData: ReferencesDiff = {
+                referencesChanged: [],
+                referencesRemoved: [],
+                referencesAdded: [addedRef],
+                referencesCreated: [],
+            };
+
+            Net.put<ReferencesDiff, ReferencesApplied>(
+                `/api/notes/${note.id}/references`,
+                changeData,
+            ).then((response) => {
+                onRefsChanged(note, response.refs);
+            });
+        }
+    }
 
     const initialState: LocalState = {
         addDeckReferencesUI: false,

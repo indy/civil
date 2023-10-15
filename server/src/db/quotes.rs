@@ -60,6 +60,7 @@ impl From<(decks::DeckBase, QuoteExtra)> for Quote {
             font: deck.font,
             impact: deck.impact,
 
+            text: "".to_string(),
             attribution,
 
             notes: vec![],
@@ -80,6 +81,7 @@ impl FromRow for Quote {
             font: row.get(6)?,
             impact: row.get(7)?,
 
+            text: "".to_string(),
             attribution: row.get(8)?,
 
             notes: vec![],

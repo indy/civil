@@ -20,6 +20,7 @@ use crate::db::quotes as db;
 use crate::handler::decks;
 use crate::handler::PaginationQuery;
 use crate::interop::decks::DeckKind;
+use crate::interop::notes::NoteKind;
 use crate::interop::quotes as interop;
 use crate::interop::{IdParam, Key};
 use crate::session;
@@ -156,6 +157,10 @@ fn sqlite_augment(sqlite_pool: &Data<SqlitePool>, quote: &mut interop::Quote) ->
 
     quote.notes = notes_db::notes_for_deck(sqlite_pool, quote_id)?;
     quote.arrivals = notes_db::arrivals_for_deck(sqlite_pool, quote_id)?;
+
+    if let Some(n) = quote.notes.iter().find(|&n| n.kind == NoteKind::Note) {
+        quote.text = String::from(&n.content);
+    };
 
     Ok(())
 }

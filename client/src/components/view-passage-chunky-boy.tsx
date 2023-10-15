@@ -2,18 +2,13 @@ import { NoteKind } from "../enums";
 
 import type {
     FatDeck,
-    Key,
     Note,
     Notes,
     Point,
-    ReferencesDiff,
     Reference,
-    ReferencesApplied,
 } from "../types";
 
 import { AppStateChange, getAppState } from "../app-state";
-
-import Net from "../shared/net";
 
 import { CivContainer, CivLeft } from "./civil-layout";
 import NoteForm from "./note-form";
@@ -48,56 +43,6 @@ const ViewPassageChunkyBoy = <T extends FatDeck>({
 }: ViewPassageChunkyBoyProps<T>) => {
     const appState = getAppState();
 
-    function onEditedNote(id: Key, updatedNote: Note) {
-        Net.put<Note, Note>("/api/notes/" + id.toString(), updatedNote);
-    }
-
-    function onDeleteNote(id: Key) {
-        type Data = {};
-        let empty: Data = {};
-        Net.delete<Data, Notes>("/api/notes/" + id.toString(), empty).then(
-            (allRemainingNotes) => {
-                let notes = allRemainingNotes;
-                onUpdateDeck({ ...deck, notes });
-            },
-        );
-    }
-
-    // copy the given ref onto the note (if it doesn't already exist)
-    function onCopyRefBelow(ref: Reference, note: Note) {
-        // check if the note already contains the ref
-        const found = note.refs.find((r) => r.id === ref.id);
-        if (found) {
-            console.log("already has ref");
-        } else {
-            const addedRef: Reference = {
-                id: ref.id,
-                title: ref.title,
-                deckKind: ref.deckKind,
-                createdAt: ref.createdAt,
-                graphTerminator: ref.graphTerminator,
-                insignia: ref.insignia,
-                font: ref.font,
-                impact: ref.impact,
-                noteId: note.id,
-                refKind: ref.refKind,
-            };
-            let changeData: ReferencesDiff = {
-                referencesChanged: [],
-                referencesRemoved: [],
-                referencesAdded: [addedRef],
-                referencesCreated: [],
-            };
-
-            Net.put<ReferencesDiff, ReferencesApplied>(
-                `/api/notes/${note.id}/references`,
-                changeData,
-            ).then((response) => {
-                onRefsChanged(note, response.refs);
-            });
-        }
-    }
-
     function buildNoteComponent(note: Note, nextNote?: Note) {
         return (
             <ViewNote
@@ -105,11 +50,8 @@ const ViewPassageChunkyBoy = <T extends FatDeck>({
                 note={note}
                 nextNote={nextNote}
                 parentDeck={deck}
-                onDelete={onDeleteNote}
-                onEdited={onEditedNote}
                 onRefsChanged={onRefsChanged}
                 onUpdateDeck={onUpdateDeck}
-                onCopyRefBelow={onCopyRefBelow}
                 noDelete={noDelete}
             />
         );

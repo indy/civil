@@ -6,7 +6,7 @@ import type { DeckQuote, DM, Key, ProtoQuote, SearchResults } from "../types";
 
 import { AppStateChange, immutableState } from "../app-state";
 
-import { deckKindToHeadingString } from "../shared/deck";
+import { deckKindToHeadingString, deckKindToResourceString } from "../shared/deck";
 import Net from "../shared/net";
 import { sanitize } from "../shared/search";
 
@@ -119,20 +119,15 @@ function QuotesModule({}) {
     }
 
     function clickedSave() {
-        type ProtoQuote = {
-            title: string;
-            text: string;
-            attribution: string;
-            insignia: number;
-            font: Font;
-        };
-
         const data: ProtoQuote = {
             title: titleFromQuoteText(local.quoteText),
+            insignia: 0,
+            deckKind: DeckKind.Quote,
+            font: Font.English,
+            graphTerminator: false,
+            impact: 0,
             text: local.quoteText,
             attribution: local.attribution,
-            insignia: 0,
-            font: Font.English,
         };
 
         Net.post<ProtoQuote, DeckQuote>("/api/quotes", data).then((quote) => {
@@ -294,7 +289,7 @@ function Quote({ path, id }: { path?: string; id?: string }) {
         }
     });
 
-    function onEditedAttributeFn(deckId: Key) {
+    function onEditedAttributionFn(deckId: Key) {
         return function (attribution: string) {
             let deckQuote: DeckQuote = deck! as DeckQuote;
             let note = deckQuote.notes.find((n) => n.kind === NoteKind.Note);
@@ -306,8 +301,9 @@ function Quote({ path, id }: { path?: string; id?: string }) {
                     deckKind: DeckKind.Quote,
                     font: deckQuote.font,
                     graphTerminator: false,
-                    attribution: attribution,
                     impact: 0, // isg fix this
+                    text: deckQuote.text,
+                    attribution: attribution,
                 };
 
                 // as the title could have changed, we need to post the updated quote to the server
@@ -329,6 +325,29 @@ function Quote({ path, id }: { path?: string; id?: string }) {
         };
     }
 
+    function onUpdatedDeck(deck: DeckQuote) {
+        // re-title the quote now that the content may have changed
+        let n = deck.notes.find(n => n.kind === NoteKind.Note);
+        if (n) {
+            const data: ProtoQuote = {
+                title: titleFromQuoteText(n.content),
+                deckKind: deck.deckKind,
+                graphTerminator: deck.graphTerminator,
+                insignia: deck.insignia,
+                font: deck.font,
+                impact: deck.impact,
+                text: n.content,
+                attribution: deck.attribution,
+            };
+            const resource = deckKindToResourceString(deck.deckKind);
+            Net.put<ProtoQuote, DeckQuote>(`/api/${resource}/${deck.id}`, data).then(
+                (newDeck) => {
+                    deckManager.update(newDeck);
+                },
+            );
+        }
+    }
+
     const deck: DeckQuote | undefined = deckManager.getDeck();
     if (deck) {
         deckManager.complyWithAppStateRequestToShowUpdateForm();
@@ -341,13 +360,14 @@ function Quote({ path, id }: { path?: string; id?: string }) {
                     canShowPassage={deckManager.canShowPassage}
                     onRefsChanged={deckManager.onRefsChanged}
                     deckKind={deckManager.getDeckKind()}
-                    onUpdateDeck={deckManager.update}
+                    onUpdateDeck={onUpdatedDeck}
                     noAppend
+                    noDelete
                 />
 
                 <Attribution
                     attribution={deck.attribution}
-                    onEdited={onEditedAttributeFn(deck.id)}
+                    onEdited={onEditedAttributionFn(deck.id)}
                     onDelete={onDeleteFn(deck.id)}
                 />
 
