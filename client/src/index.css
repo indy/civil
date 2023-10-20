@@ -1205,10 +1205,12 @@ textarea {
 
 .stripe-a .c-deck-link {
     margin-left: 1rem;
+    display: block;
 }
 
 .stripe-b .c-deck-link {
     margin-left: 1rem;
+    display: block;
 }
 
 .stripe-a {
