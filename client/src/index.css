@@ -2152,9 +2152,11 @@ input:required {
 
 /* hand-written text on left margin and in listings */
 .descriptive-scribble {
+    display: block;
     font-family: var(--font-cursive);
     color: var(--scribble-neutral);
     margin-left: 1rem;
+    margin-right: 1rem;
     font-size: 1.4rem;
 }
 .top-scribble {

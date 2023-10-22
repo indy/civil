@@ -18,10 +18,9 @@
 use crate::db::articles as db;
 use crate::db::notes as notes_db;
 use crate::db::sqlite::SqlitePool;
-use crate::handler::decks;
 use crate::handler::PaginationQuery;
 use crate::interop::articles as interop;
-use crate::interop::decks::{DeckKind, ProtoDeck};
+use crate::interop::decks::ProtoDeck;
 use crate::interop::{IdParam, Key};
 use crate::session;
 use actix_web::web::{Data, Json, Path, Query};
@@ -60,15 +59,10 @@ pub async fn get_all(
 pub async fn pagination(
     sqlite_pool: Data<SqlitePool>,
     session: actix_session::Session,
-    Query(query): Query<PaginationQuery>,
+    query: Query<PaginationQuery>,
 ) -> crate::Result<HttpResponse> {
-    decks::pagination(
-        sqlite_pool,
-        query,
-        session::user_id(&session)?,
-        DeckKind::Article,
-    )
-    .await
+    // can't use the decks::pagination since we require additional information
+    recent(sqlite_pool, session, query).await
 }
 
 pub async fn recent(
