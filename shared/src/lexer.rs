@@ -22,8 +22,8 @@ use strum_macros::EnumDiscriminants;
 #[strum_discriminants(name(TokenIdent))]
 pub enum Token<'a> {
     BackTick(usize),
-    BlockquoteBegin(usize),
-    BlockquoteEnd(usize),
+    BlockQuoteBegin(usize),
+    BlockQuoteEnd(usize),
     BracketBegin(usize),
     BracketEnd(usize),
     Colon(usize),
@@ -42,8 +42,8 @@ pub enum Token<'a> {
 pub(crate) fn get_token_value<'a>(token: &'a Token) -> &'a str {
     match token {
         Token::BackTick(_) => "`",
-        Token::BlockquoteBegin(_) => ">>>",
-        Token::BlockquoteEnd(_) => "<<<",
+        Token::BlockQuoteBegin(_) => ">>>",
+        Token::BlockQuoteEnd(_) => "<<<",
         Token::BracketEnd(_) => "]",
         Token::BracketBegin(_) => "[",
         Token::Colon(_) => ":",
@@ -63,8 +63,8 @@ pub(crate) fn get_token_value<'a>(token: &'a Token) -> &'a str {
 pub(crate) fn get_token_pos(token: &Token) -> usize {
     match token {
         Token::BackTick(pos) => *pos,
-        Token::BlockquoteBegin(pos) => *pos,
-        Token::BlockquoteEnd(pos) => *pos,
+        Token::BlockQuoteBegin(pos) => *pos,
+        Token::BlockQuoteEnd(pos) => *pos,
         Token::BracketEnd(pos) => *pos,
         Token::BracketBegin(pos) => *pos,
         Token::Colon(pos) => *pos,
@@ -136,7 +136,7 @@ fn eat_blockquote_begin_or_greater_than_character(index: usize, input: &str) -> 
     let count = input.chars().count();
     let mut chars = input.chars();
     if count >= 3 && chars.next() == Some('>') && chars.next() == Some('>') && chars.next() == Some('>') {
-        Ok((Token::BlockquoteBegin(index), 3, 3))
+        Ok((Token::BlockQuoteBegin(index), 3, 3))
     } else {
         // we know that the first character is definitely a >
         Ok((Token::Text(index, &input[..1]), 1, 1))
@@ -148,7 +148,7 @@ fn eat_blockquote_end_or_less_than_character(index: usize, input: &str) -> crate
     let count = input.chars().count();
     let mut chars = input.chars();
     if count >= 3 && chars.next() == Some('<') && chars.next() == Some('<') && chars.next() == Some('<') {
-        Ok((Token::BlockquoteEnd(index), 3, 3))
+        Ok((Token::BlockQuoteEnd(index), 3, 3))
     } else {
         // we know that the first character is definitely a <
         Ok((Token::Text(index, &input[..1]), 1, 1))
@@ -279,10 +279,10 @@ mod tests {
             tok(
                 ">>> only a blockquote <<<",
                 &[
-                    Token::BlockquoteBegin(0),
+                    Token::BlockQuoteBegin(0),
                     Token::Whitespace(3, " "),
                     Token::Text(4, "only a blockquote "),
-                    Token::BlockquoteEnd(22),
+                    Token::BlockQuoteEnd(22),
                     Token::Eos(25),
                 ],
             );
@@ -305,10 +305,10 @@ mod tests {
                 "prefix words >>> blockquote <<< suffix words",
                 &[
                     Token::Text(0, "prefix words "),
-                    Token::BlockquoteBegin(13),
+                    Token::BlockQuoteBegin(13),
                     Token::Whitespace(16, " "),
                     Token::Text(17, "blockquote "),
-                    Token::BlockquoteEnd(28),
+                    Token::BlockQuoteEnd(28),
                     Token::Whitespace(31, " "),
                     Token::Text(32, "suffix words"),
                     Token::Eos(44),
