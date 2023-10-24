@@ -139,10 +139,10 @@ fn is_img(tokens: &'_ [Token]) -> bool {
 }
 
 fn is_blockquote_start<'a>(tokens: &'a [Token<'a>]) -> bool {
-    is_token_at_index(tokens, 0, TokenIdent::BlockquoteBegin)
+    is_token_at_index(tokens, 0, TokenIdent::BlockQuoteBegin)
 }
 
-// need: parse until a terminator token (Eos, BlockquoteEnd) is reached
+// need: parse until a terminator token (Eos, BlockQuoteEnd) is reached
 //
 pub fn parse<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Vec<Node>> {
     let mut tokens: &[Token] = tokens;
@@ -397,6 +397,11 @@ fn eat_disagree<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
     Ok((tokens, Node::MarginDisagree(pos, parsed_content)))
 }
 
+fn eat_code<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
+    let (tokens, (pos, code)) = eat_basic_colon_command_as_string(tokens)?;
+    Ok((tokens, Node::Codeblock(pos, String::from(""), code)))
+}
+
 fn eat_colon<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Node> {
     // either a horizontal line or more likely a colon command
 
@@ -431,6 +436,7 @@ fn eat_colon<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Node> {
             Token::Text(_, "h7") => eat_header(7, tokens),
             Token::Text(_, "h8") => eat_header(8, tokens),
             Token::Text(_, "h9") => eat_header(9, tokens),
+            Token::Text(_, "code") => eat_code(tokens),
             Token::Text(_, "comment") => eat_comment(tokens),
             Token::Text(_, "deleted") => eat_deleted(tokens),
             Token::Text(_, "disagree") => eat_disagree(tokens),
@@ -545,6 +551,18 @@ fn eat_colon_command_content<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Ve
     }
 
     Ok((tokens, content))
+}
+
+fn eat_basic_colon_command_as_string<'a>(tokens: &'a [Token<'a>]) -> ParserResult<(usize, String)> {
+    let pos = get_token_pos(&tokens[0]);
+    let (tokens, content) = eat_colon_command_content(tokens)?;
+
+    let mut text = String::from("");
+    for c in &content {
+        text.push_str(get_token_value(c));
+    }
+
+    Ok((tokens, (pos, text)))
 }
 
 fn eat_basic_colon_command<'a>(tokens: &'a [Token<'a>]) -> ParserResult<(usize, Vec<Node>)> {
@@ -688,11 +706,11 @@ fn eat_as_image_description_pair<'a>(tokens: &'a [Token<'a>]) -> ParserResult<(S
 fn eat_blockquote<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Node> {
     let pos = get_token_pos(&tokens[0]);
 
-    tokens = &tokens[1..]; // skip past the BlockquoteBegin token
+    tokens = &tokens[1..]; // skip past the BlockQuoteBegin token
 
     let (remaining, nodes) = parse(tokens)?;
 
-    let remaining = &remaining[1..]; // skip past the BlockquoteEnd token
+    let remaining = &remaining[1..]; // skip past the BlockQuoteEnd token
 
     let rem = skip_leading_whitespace_and_newlines(remaining)?;
 
@@ -781,7 +799,7 @@ fn skip_leading<'a>(tokens: &'a [Token], token_ident: TokenIdent) -> crate::Resu
 }
 
 fn is_terminator<'a>(tokens: &'a [Token<'a>]) -> bool {
-    is_token_at_index(tokens, 0, TokenIdent::Eos) || is_token_at_index(tokens, 0, TokenIdent::BlockquoteEnd)
+    is_token_at_index(tokens, 0, TokenIdent::Eos) || is_token_at_index(tokens, 0, TokenIdent::BlockQuoteEnd)
 }
 
 fn is_head<'a>(tokens: &'a [Token<'a>], token_ident: TokenIdent) -> bool {
