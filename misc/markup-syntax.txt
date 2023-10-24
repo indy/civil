@@ -1,21 +1,22 @@
 
-highlight: certain words :h(can be highlighted) in a sentence
-underline: this is an :u(important) word
-bold:    this is a :b(bold) word
-italic:    this is an :i(italic) word
+certain words :h(can be highlighted) in a sentence
+this is an :u(important) word
+this is a :b(bold) word
+this is an :i(italic) word
 
-obsolete syntax:
-codeblock: ` codeblocks are surrounded by backticks `
-highlight: certain words ^can be highlighted^ in a sentence
-underline: this is an _important_ word
-strong:    this is a *strong* word
+:comment(a comment in the right hand margin)
+:disagree(a criticism in the right hand margin)
 
---------------------------------------------------------------------------------
+:side(content that goes on the right hand margin)
+:nside(content labelled with a number that goes on the right hand margin)
 
-hyperlinks: :url(https://indy.io everything after the space is descriptive text)
-images:     :img(a21.png Golden Retriever)
+:url(https://indy.io everything after the space is descriptive text)
+:img(a21.png Golden Retriever)
 
---------------------------------------------------------------------------------
+:red(this text is red)
+:green(this text is green)
+
+:code(print "hello world")
 
 :h2(this is a heading)
 :h3(this is a h3 heading)
@@ -23,8 +24,6 @@ images:     :img(a21.png Golden Retriever)
 :h9(this is the smallest heading allowed)
 
 :- this line is a <hr/> tag, the rest of the line is ignored
-
---------------------------------------------------------------------------------
 
 list items are here:
 1. one
@@ -37,42 +36,10 @@ or
 - second
 - third
 
---------------------------------------------------------------------------------
-
 blockquotes start with 3 greater-thans and end with 3 less-thans:
 
 >>>
-
 this is inside a blockquote
-
 <<<
 
 this is now outside a blockquote
-
---------------------------------------------------------------------------------
-
-content in the right hand margin is marked by surrounding it in pipe (|) characters:
-
-
-by default margin notes are not numbered:
-
-once upon|this is text on the right-hand margin| a time
-
-----------
-
-numbered margin notes have colon, hash after the first pipe:
-
-once upon|:# this is numbered text on the right-hand margin| a time
-
-----------
-
-scribbled margin notes have a colon, plus after the first pipe:
-
-once upon|:+ this is my opinion/summary on the right-hand margin| a time
-
-if you want a scribbled disagreement/criticism then use colon, minus:
-once upon|:- this is my objection/criticism on the right-hand margin| a time
-
-----------
-
-links, highlights, underlines etc can be included within margin notes

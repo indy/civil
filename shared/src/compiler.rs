@@ -33,13 +33,12 @@ pub fn compile_to_struct(nodes: &[Node], note_id: usize) -> crate::Result<Vec<El
 fn compile_node_to_struct(node: &Node, key: usize, note_id: usize) -> crate::Result<Vec<Element>> {
     let res = match node {
         Node::BlockQuote(_, ns) => element("blockquote", key, note_id, ns)?,
-        Node::Codeblock(_, lang, code) => {
+        Node::Codeblock(_, code) => {
             vec![Element {
                 name: String::from("pre"),
                 key: Some(key),
                 children: vec![Element {
                     name: String::from("code"),
-                    class_name: Some(String::from(lang)),
                     children: vec![Element {
                         name: String::from("text"),
                         text: Some(String::from(code)),

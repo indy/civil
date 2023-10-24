@@ -21,7 +21,6 @@ use strum_macros::EnumDiscriminants;
 #[derive(Copy, Clone, Debug, Eq, PartialEq, EnumDiscriminants)]
 #[strum_discriminants(name(TokenIdent))]
 pub enum Token<'a> {
-    BackTick(usize),
     BlockQuoteBegin(usize),
     BlockQuoteEnd(usize),
     BracketBegin(usize),
@@ -41,7 +40,6 @@ pub enum Token<'a> {
 
 pub(crate) fn get_token_value<'a>(token: &'a Token) -> &'a str {
     match token {
-        Token::BackTick(_) => "`",
         Token::BlockQuoteBegin(_) => ">>>",
         Token::BlockQuoteEnd(_) => "<<<",
         Token::BracketEnd(_) => "]",
@@ -62,7 +60,6 @@ pub(crate) fn get_token_value<'a>(token: &'a Token) -> &'a str {
 
 pub(crate) fn get_token_pos(token: &Token) -> usize {
     match token {
-        Token::BackTick(pos) => *pos,
         Token::BlockQuoteBegin(pos) => *pos,
         Token::BlockQuoteEnd(pos) => *pos,
         Token::BracketEnd(pos) => *pos,
@@ -89,7 +86,6 @@ pub fn tokenize(s: &str) -> crate::Result<Vec<Token>> {
     while !input.is_empty() {
         if let Some(ch) = input.chars().next() {
             let (token, characters, bytes) = match ch {
-                '`' => (Token::BackTick(index), 1, 1),
                 '[' => (Token::BracketBegin(index), 1, 1),
                 ']' => (Token::BracketEnd(index), 1, 1),
                 ':' => (Token::Colon(index), 1, 1),
@@ -191,7 +187,7 @@ fn eat_text(index: usize, input: &str) -> crate::Result<(Token, usize, usize)> {
 
 fn is_text(ch: char) -> bool {
     match ch {
-        '\n' | '[' | ']' | '(' | ')' | '`' | '"' | '“' | '”' | ':' | '>' | '<' => false,
+        '\n' | '[' | ']' | '(' | ')' | '"' | '“' | '”' | ':' | '>' | '<' => false,
         _ => true,
     }
 }

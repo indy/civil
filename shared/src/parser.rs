@@ -35,7 +35,7 @@ pub enum MarginTextLabel {
 #[strum_discriminants(name(NodeIdent))]
 pub enum Node {
     BlockQuote(usize, Vec<Node>),
-    Codeblock(usize, String, String),
+    Codeblock(usize, String),
     Deleted(usize, Vec<Node>),
     Green(usize, Vec<Node>),
     Header(usize, u32, Vec<Node>),
@@ -65,7 +65,7 @@ pub enum Node {
 fn get_node_pos(node: &Node) -> usize {
     match node {
         Node::BlockQuote(pos, _) => *pos,
-        Node::Codeblock(pos, _, _) => *pos,
+        Node::Codeblock(pos, _) => *pos,
         Node::Deleted(pos, _) => *pos,
         Node::Green(pos, _) => *pos,
         Node::Header(pos, _, _) => *pos,
@@ -101,16 +101,6 @@ fn is_numbered_list_item(tokens: &'_ [Token]) -> bool {
 
 fn is_unordered_list_item(tokens: &'_ [Token]) -> bool {
     is_token_at_index(tokens, 0, TokenIdent::Hyphen) && is_token_at_index(tokens, 1, TokenIdent::Whitespace)
-}
-
-fn is_codeblock(tokens: &'_ [Token]) -> bool {
-    let len = tokens.len();
-    is_token_at_index(tokens, 0, TokenIdent::BackTick)
-        && is_token_at_index(tokens, 1, TokenIdent::BackTick)
-        && is_token_at_index(tokens, 2, TokenIdent::BackTick)
-        && is_token_at_index(tokens, len - 3, TokenIdent::BackTick)
-        && is_token_at_index(tokens, len - 2, TokenIdent::BackTick)
-        && is_token_at_index(tokens, len - 1, TokenIdent::BackTick)
 }
 
 fn is_horizontal_rule(tokens: &'_ [Token]) -> bool {
@@ -154,8 +144,6 @@ pub fn parse<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Vec<Node>> {
             eat_ordered_list(tokens, None)?
         } else if is_unordered_list_item(tokens) {
             eat_unordered_list(tokens, None)?
-        } else if is_codeblock(tokens) {
-            eat_codeblock(tokens)?
         } else if is_horizontal_rule(tokens) || is_heading(tokens) {
             eat_colon(tokens)?
         } else if is_img(tokens) {
@@ -283,7 +271,6 @@ fn inside_pair<'a>(tokens: &'a [Token]) -> ParserResult<'a, Vec<Node>> {
 
 fn eat_item<'a>(tokens: &'a [Token]) -> ParserResult<'a, Node> {
     match tokens[0] {
-        Token::BackTick(_) => eat_codeblock(tokens),
         Token::BracketBegin(_) => eat_text_including(tokens),
         Token::BracketEnd(_) => eat_text_including(tokens),
         Token::Colon(_) => eat_colon(tokens),
@@ -399,7 +386,7 @@ fn eat_disagree<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
 
 fn eat_code<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
     let (tokens, (pos, code)) = eat_basic_colon_command_as_string(tokens)?;
-    Ok((tokens, Node::Codeblock(pos, String::from(""), code)))
+    Ok((tokens, Node::Codeblock(pos, code)))
 }
 
 fn eat_colon<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Node> {
@@ -453,40 +440,6 @@ fn eat_colon<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Node> {
     } else {
         eat_text_including(tokens)
     }
-}
-
-fn eat_codeblock<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Node> {
-    if tokens.len() < 6
-        || !is_token_at_index(tokens, 1, TokenIdent::BackTick)
-        || !is_token_at_index(tokens, 2, TokenIdent::BackTick)
-    {
-        return eat_text_including(tokens);
-    }
-
-    let pos = get_token_pos(&tokens[0]);
-
-    tokens = &tokens[3..]; // opening backticks
-
-    // if theres a word on the same line as the opening backticks, treat it as the descriptor for the code language
-    tokens = skip_leading_whitespace(tokens)?;
-
-    let (toks, language) = eat_text_as_string(tokens)?;
-    tokens = toks;
-
-    let (toks, code) = eat_string(tokens, TokenIdent::BackTick)?;
-    // todo: trim the string
-
-    tokens = toks;
-
-    if tokens.len() >= 3
-        && is_token_at_index(tokens, 0, TokenIdent::BackTick)
-        && is_token_at_index(tokens, 1, TokenIdent::BackTick)
-        && is_token_at_index(tokens, 2, TokenIdent::BackTick)
-    {
-        tokens = &tokens[3..];
-    }
-
-    Ok((tokens, Node::Codeblock(pos, language, code)))
 }
 
 fn is_colon_specifier<'a>(tokens: &'a [Token<'a>]) -> bool {
@@ -717,19 +670,6 @@ fn eat_blockquote<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Node> {
     Ok((rem, Node::BlockQuote(pos, nodes)))
 }
 
-// treat every token as Text until we get to a token of the given type
-fn eat_string<'a>(mut tokens: &'a [Token<'a>], halt_at: TokenIdent) -> ParserResult<String> {
-    let mut value = "".to_string();
-
-    while !tokens.is_empty() && !is_head(tokens, halt_at) {
-        let (toks, s) = eat_token_as_str(tokens)?;
-        tokens = toks;
-        value += s;
-    }
-
-    Ok((tokens, value))
-}
-
 // treat the first token as Text and then append any further Text tokens
 fn eat_text_including<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
     let pos = get_token_pos(&tokens[0]);
@@ -758,10 +698,6 @@ fn skip_leading_whitespace_and_newlines<'a>(tokens: &'a [Token]) -> crate::Resul
 
 fn skip_leading_newlines<'a>(tokens: &'a [Token]) -> crate::Result<&'a [Token<'a>]> {
     skip_leading(tokens, TokenIdent::Newline)
-}
-
-fn skip_leading_whitespace<'a>(tokens: &'a [Token]) -> crate::Result<&'a [Token<'a>]> {
-    skip_leading(tokens, TokenIdent::Whitespace)
 }
 
 fn eat_token_as_str<'a>(tokens: &'a [Token<'a>]) -> crate::Result<(&'a [Token<'a>], &'a str)> {
@@ -935,10 +871,9 @@ mod tests {
         };
     }
 
-    fn assert_code(node: &Node, expected_lang: String, expected: &'static str, loc: usize) {
+    fn assert_code(node: &Node, expected: &'static str, loc: usize) {
         match node {
-            Node::Codeblock(pos, lang, s) => {
-                assert_eq!(lang, &expected_lang);
+            Node::Codeblock(pos, s) => {
                 assert_eq!(s, expected);
                 assert_eq!(*pos, loc);
             }
@@ -1362,32 +1297,14 @@ here is the closing paragraph",
     #[test]
     fn test_code() {
         {
-            let nodes = build(
-                "```
-This is code
-```",
-            );
+            let nodes = build(":code(This is code)");
 
             assert_eq!(1, nodes.len());
             let children = paragraph_children(&nodes[0]).unwrap();
             dbg!(&children);
             assert_eq!(children.len(), 1);
 
-            assert_code(&children[0], "".to_string(), "\nThis is code\n", 0);
-        }
-
-        {
-            let nodes = build(
-                "```rust
-This is code```",
-            );
-
-            assert_eq!(1, nodes.len());
-            let children = paragraph_children(&nodes[0]).unwrap();
-            dbg!(&children);
-            assert_eq!(children.len(), 1);
-
-            assert_code(&children[0], "rust".to_string(), "\nThis is code", 0);
+            assert_code(&children[0], "This is code", 0);
         }
     }
 
