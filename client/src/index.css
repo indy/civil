@@ -357,6 +357,270 @@
     font-family: Libre-Baskerville;
 }
 
+/* -------------------------------------------------------------------------------- */
+
+.svg-fill-colour {
+    fill: var(--fg);
+}
+
+.svg-fill-colour-alt {
+    fill: var(--fg-lighter-1);
+}
+
+a:link {
+    color: var(--fg-lighter-1);
+}
+a:visited {
+    color: var(--fg-lighter-1);
+}
+
+a:link.pigment-inherit,
+a:visited.pigment-inherit {
+    color: inherit;
+}
+
+/* for testing purposes, in practice use more semantic names */
+.clock-01 {
+    color: var(--fg-clock-01) !important;
+    background: var(--bg-clock-01);
+}
+.clock-02 {
+    color: var(--fg-clock-02) !important;
+    background: var(--bg-clock-02);
+}
+.clock-03 {
+    color: var(--fg-clock-03) !important;
+    background: var(--bg-clock-03);
+}
+.clock-04 {
+    color: var(--fg-clock-04) !important;
+    background: var(--bg-clock-04);
+}
+.clock-05 {
+    color: var(--fg-clock-05) !important;
+    background: var(--bg-clock-05);
+}
+.clock-06 {
+    color: var(--fg-clock-06) !important;
+    background: var(--bg-clock-06);
+}
+.clock-07 {
+    color: var(--fg-clock-07) !important;
+    background: var(--bg-clock-07);
+}
+.clock-08 {
+    color: var(--fg-clock-08) !important;
+    background: var(--bg-clock-08);
+}
+.clock-09 {
+    color: var(--fg-clock-09) !important;
+    background: var(--bg-clock-09);
+}
+.clock-10 {
+    color: var(--fg-clock-10) !important;
+    background: var(--bg-clock-10);
+}
+.clock-11 {
+    color: var(--fg-clock-11) !important;
+    background: var(--bg-clock-11);
+}
+.clock-12 {
+    color: var(--fg-clock-12) !important;
+    background: var(--bg-clock-12);
+}
+
+.pigment-ideas {
+    color: var(--fg-ideas) !important;
+    background: var(--bg-ideas);
+}
+.pigment-articles {
+    color: var(--fg-articles) !important;
+    background: var(--bg-articles);
+}
+.pigment-people {
+    color: var(--fg-people) !important;
+    background: var(--bg-people);
+}
+.pigment-timelines {
+    color: var(--fg-timelines) !important;
+    background: var(--bg-timelines);
+}
+.pigment-quotes {
+    color: var(--fg-quotes) !important;
+    background: var(--bg-quotes);
+}
+.pigment-dialogues {
+    color: var(--fg-dialogues) !important;
+    background: var(--bg-dialogues);
+}
+.pigment-events {
+    color: var(--fg-events) !important;
+    background: var(--bg-events);
+}
+
+/* above colours don't work on hyperlinks, have to explicitly specify them  */
+.pigment-ideas a {
+    color: var(--fg-ideas);
+}
+.pigment-articles a {
+    color: var(--fg-articles);
+}
+.pigment-people a {
+    color: var(--fg-people);
+}
+.pigment-timelines a {
+    color: var(--fg-timelines);
+}
+.pigment-quotes a {
+    color: var(--fg-quotes);
+}
+.pigment-dialogues a {
+    color: var(--fg-dialogues);
+}
+.pigment-events a {
+    color: var(--fg-events);
+}
+
+.pigment-fg-ideas {
+    color: var(--fg-ideas) !important;
+}
+.pigment-fg-articles {
+    color: var(--fg-articles) !important;
+}
+.pigment-fg-people {
+    color: var(--fg-people) !important;
+}
+.pigment-fg-timelines {
+    color: var(--fg-timelines) !important;
+}
+.pigment-fg-quotes {
+    color: var(--fg-quotes) !important;
+}
+.pigment-fg-dialogues {
+    color: var(--fg-dialogues) !important;
+}
+.pigment-fg-events {
+    color: var(--fg-events) !important;
+}
+
+.pigment-top-menu-home {
+    color: var(--fg-home) !important;
+    background: var(--bg-home);
+}
+
+.pigment-top-menu-home-active {
+    color: var(--fg-home-active) !important;
+    background: var(--bg-home-active);
+}
+
+.pigment-top-menu-search {
+    color: var(--fg-search) !important;
+    background: var(--bg-search);
+}
+
+.pigment-top-menu-search-active {
+    color: var(--fg-search-active) !important;
+    background: var(--bg-search-active);
+}
+
+.pigment-top-menu-memorise {
+    color: var(--fg-memorise) !important;
+    background: var(--bg-memorise);
+}
+/* used when there are some spaced repetition questions that are scheduled to be answered */
+.pigment-top-menu-memorise-active {
+    color: var(--fg-memorise-active) !important;
+    background: var(--bg-memorise-active);
+}
+
+.pigment-top-menu-stats {
+    color: var(--fg-stats) !important;
+    background: var(--bg-stats);
+}
+
+.pigment-top-menu-stats-active {
+    color: var(--fg-stats-active) !important;
+    background: var(--bg-stats-active);
+}
+
+/* -------------------------------------------------------------------------------- */
+
+.margin-left-auto {
+    margin-left: auto;
+}
+
+.centered {
+    text-align: center;
+}
+
+.spacer {
+    padding: 0.1rem;
+}
+
+.clear-both {
+    clear: both;
+}
+
+.vertical-spacer {
+    padding-top: 3rem;
+}
+
+.inlined-blocked {
+    display: inline-block;
+}
+
+.invisible {
+    display: none;
+}
+
+.underlined {
+    text-decoration: underline;
+}
+
+.width-100 {
+    width: 100%;
+}
+
+.red-text {
+    color: var(--red-text);
+}
+.green-text {
+    color: var(--green-text);
+}
+
+.margin-top-0 {
+    margin-top: 0;
+}
+
+.margin-top-9 {
+    margin-top: 9rem;
+}
+.margin-top-5 {
+    margin-top: 5rem;
+}
+.margin-top-3 {
+    margin-top: 3rem;
+}
+.hack-margin-top-minus-half {
+    margin-top: -0.5rem;
+}
+.hack-margin-top-point-2 {
+    margin-top: 0.2rem;
+}
+.hack-force-space-around {
+    justify-content: space-around !important;
+}
+
+.font-size-2rem {
+    font-size: 2rem;
+}
+
+.font-size-1-point-6 {
+    font-size: 1.6rem;
+}
+
+/* -------------------------------------------------------------------------------- */
+
 .quote-onscreen-buttons {
     font-size: 150%;
     position: fixed;
@@ -413,10 +677,6 @@
     width: 10rem;
 }
 
-.margin-left-auto {
-    margin-left: auto;
-}
-
 .ui {
     font-family: var(--font-ui);
     font-weight: 400;
@@ -434,18 +694,6 @@
 
 .c-civ-form label {
     margin-top: 0;
-}
-
-.spacer {
-    padding: 0.1rem;
-}
-
-.vertical-spacer {
-    padding-top: 3rem;
-}
-
-.inlined-blocked {
-    display: inline-block;
 }
 
 html {
@@ -490,9 +738,6 @@ h6 {
 h1 {
     margin-top: 4rem;
     font-size: 2.6rem;
-}
-
-.module {
 }
 
 .passage-for-point {
@@ -650,10 +895,6 @@ section {
     margin-top: 1rem;
 }
 
-.width-100 {
-    width: 100%;
-}
-
 .display-flex-justify-right {
     display: flex;
     justify-content: right;
@@ -730,8 +971,6 @@ figure.fullwidth figcaption {
     line-height: 1.5rem;
     color: var(--fg-dialogues);
 }
-.role-view {
-}
 
 .rollupable-1000ms {
     transition: max-height 1000ms;
@@ -804,6 +1043,10 @@ figure.fullwidth figcaption {
     width: auto;
 }
 
+.deck-video {
+    border-radius: var(--deck-image-radius);
+}
+
 /* Right-Margin-Numbereds, margin notes, figures, captions */
 
 nav {
@@ -842,9 +1085,6 @@ mark {
 .right-margin-numbered > ol > li {
     /* background: green; */
     margin: 0;
-}
-
-.pseudo-paragraph {
 }
 
 .right-margin-numbered,
@@ -1174,39 +1414,10 @@ textarea {
     padding-left: 0.3rem;
     padding-right: 0.3rem;
 }
-.red-text {
-    color: var(--red-text);
-}
-.green-text {
-    color: var(--green-text);
-}
 
 #elastic-top-menu-items {
     display: flex;
     justify-content: flex-start;
-}
-
-.margin-top-0 {
-    margin-top: 0;
-}
-
-.margin-top-9 {
-    margin-top: 9rem;
-}
-.margin-top-5 {
-    margin-top: 5rem;
-}
-.margin-top-3 {
-    margin-top: 3rem;
-}
-.hack-margin-top-minus-half {
-    margin-top: -0.5rem;
-}
-.hack-margin-top-point-2 {
-    margin-top: 0.2rem;
-}
-.hack-force-space-around {
-    justify-content: space-around !important;
 }
 
 .stripe-a .c-deck-link {
@@ -1236,9 +1447,6 @@ textarea {
 .pagination-ui-row {
     display: flex;
     justify-content: left;
-}
-
-.paginator-item {
 }
 
 .paginator-deck-heading {
@@ -1498,18 +1706,6 @@ textarea {
 .dialogue-save-form {
 }
 
-/* -------------------------------------------------------------------------------- */
-/* -------------------------------------------------------------------------------- */
-/* -------------------------------------------------------------------------------- */
-
-.svg-fill-colour {
-    fill: var(--fg);
-}
-
-.svg-fill-colour-alt {
-    fill: var(--fg-lighter-1);
-}
-
 #root {
     border-left: 0.1rem solid var(--bg-darker-3);
     padding-top: 0;
@@ -1517,191 +1713,8 @@ textarea {
     padding-right: 1rem;
 }
 
-a:link {
-    color: var(--fg-lighter-1);
-}
-a:visited {
-    color: var(--fg-lighter-1);
-}
-
-a:link.pigment-inherit,
-a:visited.pigment-inherit {
-    color: inherit;
-}
-
-/* for testing purposes, in practice use more semantic names */
-.clock-01 {
-    color: var(--fg-clock-01) !important;
-    background: var(--bg-clock-01);
-}
-.clock-02 {
-    color: var(--fg-clock-02) !important;
-    background: var(--bg-clock-02);
-}
-.clock-03 {
-    color: var(--fg-clock-03) !important;
-    background: var(--bg-clock-03);
-}
-.clock-04 {
-    color: var(--fg-clock-04) !important;
-    background: var(--bg-clock-04);
-}
-.clock-05 {
-    color: var(--fg-clock-05) !important;
-    background: var(--bg-clock-05);
-}
-.clock-06 {
-    color: var(--fg-clock-06) !important;
-    background: var(--bg-clock-06);
-}
-.clock-07 {
-    color: var(--fg-clock-07) !important;
-    background: var(--bg-clock-07);
-}
-.clock-08 {
-    color: var(--fg-clock-08) !important;
-    background: var(--bg-clock-08);
-}
-.clock-09 {
-    color: var(--fg-clock-09) !important;
-    background: var(--bg-clock-09);
-}
-.clock-10 {
-    color: var(--fg-clock-10) !important;
-    background: var(--bg-clock-10);
-}
-.clock-11 {
-    color: var(--fg-clock-11) !important;
-    background: var(--bg-clock-11);
-}
-.clock-12 {
-    color: var(--fg-clock-12) !important;
-    background: var(--bg-clock-12);
-}
-
-.pigment-ideas {
-    color: var(--fg-ideas) !important;
-    background: var(--bg-ideas);
-}
-.pigment-articles {
-    color: var(--fg-articles) !important;
-    background: var(--bg-articles);
-}
-.pigment-people {
-    color: var(--fg-people) !important;
-    background: var(--bg-people);
-}
-.pigment-timelines {
-    color: var(--fg-timelines) !important;
-    background: var(--bg-timelines);
-}
-.pigment-quotes {
-    color: var(--fg-quotes) !important;
-    background: var(--bg-quotes);
-}
-.pigment-dialogues {
-    color: var(--fg-dialogues) !important;
-    background: var(--bg-dialogues);
-}
-.pigment-events {
-    color: var(--fg-events) !important;
-    background: var(--bg-events);
-}
-
-/* above colours don't work on hyperlinks, have to explicitly specify them  */
-.pigment-ideas a {
-    color: var(--fg-ideas);
-}
-.pigment-articles a {
-    color: var(--fg-articles);
-}
-.pigment-people a {
-    color: var(--fg-people);
-}
-.pigment-timelines a {
-    color: var(--fg-timelines);
-}
-.pigment-quotes a {
-    color: var(--fg-quotes);
-}
-.pigment-dialogues a {
-    color: var(--fg-dialogues);
-}
-.pigment-events a {
-    color: var(--fg-events);
-}
-
-.pigment-fg-ideas {
-    color: var(--fg-ideas) !important;
-}
-.pigment-fg-articles {
-    color: var(--fg-articles) !important;
-}
-.pigment-fg-people {
-    color: var(--fg-people) !important;
-}
-.pigment-fg-timelines {
-    color: var(--fg-timelines) !important;
-}
-.pigment-fg-quotes {
-    color: var(--fg-quotes) !important;
-}
-.pigment-fg-dialogues {
-    color: var(--fg-dialogues) !important;
-}
-.pigment-fg-events {
-    color: var(--fg-events) !important;
-}
-
-/* ---------------------------------------- */
 .inset-shadow {
     box-shadow: inset 0 0.2rem 0.4rem var(--ui-shadow-2);
-}
-
-.pigment-top-menu-home {
-    color: var(--fg-home) !important;
-    background: var(--bg-home);
-}
-/* used when there are some spaced repetition questions that are scheduled to be answered */
-.pigment-top-menu-home-active {
-    color: var(--fg-home-active) !important;
-    background: var(--bg-home-active);
-}
-
-/* ---- */
-
-.pigment-top-menu-search {
-    color: var(--fg-search) !important;
-    background: var(--bg-search);
-}
-/* used when there are some spaced repetition questions that are scheduled to be answered */
-.pigment-top-menu-search-active {
-    color: var(--fg-search-active) !important;
-    background: var(--bg-search-active);
-}
-
-/* ---- */
-
-.pigment-top-menu-memorise {
-    color: var(--fg-memorise) !important;
-    background: var(--bg-memorise);
-}
-/* used when there are some spaced repetition questions that are scheduled to be answered */
-.pigment-top-menu-memorise-active {
-    color: var(--fg-memorise-active) !important;
-    background: var(--bg-memorise-active);
-}
-
-/* ---- */
-
-.pigment-top-menu-stats {
-    color: var(--fg-stats) !important;
-    background: var(--bg-stats);
-}
-/* used when there are some spaced repetition questions that are scheduled to be answered */
-.pigment-top-menu-stats-active {
-    color: var(--fg-stats-active) !important;
-    background: var(--bg-stats-active);
 }
 
 /* ---------------------------------------- */
@@ -1869,14 +1882,6 @@ label.right-margin-toggle {
     padding: 0.2rem 0 0.2rem 0;
 }
 
-.invisible {
-    display: none;
-}
-
-.underlined {
-    text-decoration: underline;
-}
-
 p.fakelink {
     cursor: pointer;
     text-decoration: underline;
@@ -2012,10 +2017,6 @@ section > form {
     float: right;
 }
 
-.font-size-2rem {
-    font-size: 2rem;
-}
-
 .deck-ref-item > .ref-scribble {
     width: 100%;
 }
@@ -2028,14 +2029,6 @@ section > form {
 }
 .indented {
     padding-left: 2rem;
-}
-
-.clear-both {
-    clear: both;
-}
-
-.font-size-1-point-6 {
-    font-size: 1.6rem;
 }
 
 div.note > textarea {

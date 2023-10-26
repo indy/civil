@@ -84,14 +84,19 @@ function ViewSearchDeck({
     parent?: SlimDeck;
     searchDeck: SearchDeck;
 }) {
-
     function notMeta(note: Note): boolean {
         return note.kind !== NoteKind.NoteDeckMeta;
     }
 
-    const searchNoteEntries = searchDeck.notes.filter(notMeta).map((searchNote) => (
-        <SearchNote parent={parent} deck={searchDeck.deck} note={searchNote} />
-    ));
+    const searchNoteEntries = searchDeck.notes
+        .filter(notMeta)
+        .map((searchNote) => (
+            <SearchNote
+                parent={parent}
+                deck={searchDeck.deck}
+                note={searchNote}
+            />
+        ));
 
     let heading = (
         <span class="font-size-1-point-6">
