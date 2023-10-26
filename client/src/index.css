@@ -471,9 +471,15 @@ h3,
 h4,
 h5,
 h6 {
-    transition: font-size 0.15s, background 0.15s;
-    -moz-transition: font-size 0.15s, background 0.15s; /* Firefox 4 */
-    -webkit-transition: font-size 0.15s, background 0.15s; /* Safari and Chrome */
+    transition:
+        font-size 0.15s,
+        background 0.15s;
+    -moz-transition:
+        font-size 0.15s,
+        background 0.15s; /* Firefox 4 */
+    -webkit-transition:
+        font-size 0.15s,
+        background 0.15s; /* Safari and Chrome */
 
     font-weight: 400;
     margin-top: 2rem;
@@ -1300,8 +1306,10 @@ textarea {
 }
 
 .c-civil-button:hover {
-    box-shadow: inset 0 0.2rem 0.4rem var(--ui-highlight),
-        0 0.2rem 0.4rem var(--ui-shadow), 0 0.2rem 0.4rem var(--ui-shadow-2);
+    box-shadow:
+        inset 0 0.2rem 0.4rem var(--ui-highlight),
+        0 0.2rem 0.4rem var(--ui-shadow),
+        0 0.2rem 0.4rem var(--ui-shadow-2);
 }
 
 .c-civil-button:disabled {
@@ -1396,7 +1404,9 @@ textarea {
     width: var(--command-bar-width);
     z-index: 1000;
 
-    transition: max-width 250ms linear 50ms, opacity 200ms ease-out;
+    transition:
+        max-width 250ms linear 50ms,
+        opacity 200ms ease-out;
 }
 
 .command-bar-invisible {

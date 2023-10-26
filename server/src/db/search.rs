@@ -167,13 +167,12 @@ fn search_at_quote_extras_level(
     // be a shortened version of the actual quote
 
     let stmt = "SELECT quote_extras_fts.rank AS rank,
-                       d.id, d.name, d.kind, d.graph_terminator, d.insignia, d.font,
+                       d.id, d.name, d.kind, d.created_at, d.graph_terminator, d.insignia, d.font, d.impact,
                        n.id, n.prev_note_id, n.kind,
                        n.content,
                        n.point_id, n.font,
-                       r.deck_id, r.kind, r.annotation, d2.name, d2.kind,
-                       d2.created_at, d2.graph_terminator, d2.insignia,
-                       d2.font, d2.impact
+                       r.deck_id, r.kind, r.annotation, d2.name, d2.kind, d2.created_at,
+                       d2.graph_terminator, d2.insignia, d2.font, d2.impact
                FROM quote_extras_fts
                     LEFT JOIN decks d on d.id = quote_extras_fts.rowid
                     LEFT JOIN notes n ON n.deck_id = d.id
@@ -197,6 +196,7 @@ fn search_quotes_at_note_level(
     // be lazy, re-use the search_query fn and then filter for quotes
     //
     let search_deck_note_refs = search_query(sqlite_pool, user_id, query)?;
+
     let mut search_decks = build_search_decks(search_deck_note_refs)?;
 
     let flashcards = db_memorise::all_flashcards_for_search_query(sqlite_pool, user_id, query)?;

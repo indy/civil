@@ -34,9 +34,8 @@ export default function CivilTextArea({
     async function droppedFiles(files: FileList) {
         const numImages = files.length;
         // upload the images
-        const recentImages: Array<UserUploadedImage> = await uploadImages(
-            files,
-        );
+        const recentImages: Array<UserUploadedImage> =
+            await uploadImages(files);
         // update the recent images list
         AppStateChange.setRecentImages({ recentImages });
         // update the markup with the correct image filenames

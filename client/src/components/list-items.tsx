@@ -28,13 +28,18 @@ export function listItemArticle(slimdeck: SlimDeck, i: number) {
     let article: DeckArticle = slimdeck as DeckArticle;
     let klass = i % 2 ? "stripe-a" : "stripe-b";
 
-    const hasDesc = article.shortDescription && article.shortDescription.length > 0;
+    const hasDesc =
+        article.shortDescription && article.shortDescription.length > 0;
 
     return (
         <li class={klass}>
             <StarRatingWithinListing rating={article.impact} />
             <DeckLink slimDeck={article} />
-            {hasDesc && <span class="descriptive-scribble">{article.shortDescription}</span>}
+            {hasDesc && (
+                <span class="descriptive-scribble">
+                    {article.shortDescription}
+                </span>
+            )}
         </li>
     );
 }

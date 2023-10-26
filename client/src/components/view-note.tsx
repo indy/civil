@@ -281,18 +281,19 @@ const ViewNote = <T extends FatDeck>({
 }: Props<T>) => {
     const appState = getAppState();
 
-
     function onEdited(id: Key, updatedNote: Note) {
         // note: currently this will only update the content and the font
         //
-        Net.put<Note, Note>("/api/notes/" + id.toString(), updatedNote).then(newNote => {
-            let newDeck: T = {...parentDeck};
-            let index = newDeck.notes.findIndex(n => n.id === id);
-            if (index !== -1) {
-                newDeck.notes[index] = newNote;
-            }
-            onUpdateDeck(newDeck);
-        });
+        Net.put<Note, Note>("/api/notes/" + id.toString(), updatedNote).then(
+            (newNote) => {
+                let newDeck: T = { ...parentDeck };
+                let index = newDeck.notes.findIndex((n) => n.id === id);
+                if (index !== -1) {
+                    newDeck.notes[index] = newNote;
+                }
+                onUpdateDeck(newDeck);
+            },
+        );
     }
 
     function onDelete(id: Key) {

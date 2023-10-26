@@ -6,14 +6,25 @@ import type { DeckQuote, DM, Key, ProtoQuote, SearchResults } from "../types";
 
 import { AppStateChange, immutableState } from "../app-state";
 
-import { deckKindToHeadingString, deckKindToResourceString } from "../shared/deck";
+import {
+    deckKindToHeadingString,
+    deckKindToResourceString,
+} from "../shared/deck";
 import Net from "../shared/net";
 import { sanitize } from "../shared/search";
 
 import buildMarkup from "./build-markup";
 import CivilButton from "./civil-button";
 import CivilInput from "./civil-input";
-import { CivContainer, CivLeft, CivMain, CivMainUi } from "./civil-layout";
+import {
+    CivContainer,
+    CivForm,
+    CivLeft,
+    CivLeftLabel,
+    CivMain,
+    CivMainUi,
+    CivRight,
+} from "./civil-layout";
 import CivilTextArea from "./civil-text-area";
 import DeleteConfirmation from "./delete-confirmation";
 import ModalKeyboardHelp from "./modal-keyboard-help";
@@ -25,53 +36,8 @@ import useLocalReducer from "./use-local-reducer";
 import useModalKeyboard from "./use-modal-keyboard";
 import ViewSearchResults from "./view-search-results";
 import WhenNoPhysicalKeyboard from "./when-no-physical-keyboard";
-
-enum ActionType {
-    ShowAddForm,
-    HideAddForm,
-    SetAttribution,
-    SetQuoteText,
-}
-
-type Action = {
-    type: ActionType;
-    data?: string;
-};
-
-type QuoteState = {
-    showAddForm: boolean;
-    attribution: string;
-    quoteText: string;
-};
-
-function quotesReducer(state: QuoteState, action: Action): QuoteState {
-    switch (action.type) {
-        case ActionType.ShowAddForm: {
-            return {
-                ...state,
-                showAddForm: true,
-            };
-        }
-        case ActionType.HideAddForm: {
-            return {
-                ...state,
-                showAddForm: false,
-            };
-        }
-        case ActionType.SetAttribution: {
-            return {
-                ...state,
-                attribution: action.data!,
-            };
-        }
-        case ActionType.SetQuoteText: {
-            return {
-                ...state,
-                quoteText: action.data!,
-            };
-        }
-    }
-}
+import FontSelector from "./font-selector";
+import InsigniaSelector from "./insignia-selector";
 
 function titleFromQuoteText(quoteText: string) {
     const title =
@@ -89,19 +55,15 @@ function Quotes({ path }: { path?: string }) {
 }
 
 function QuotesModule({}) {
-    const initialState: QuoteState = {
-        showAddForm: false,
-        attribution: "",
-        quoteText: "",
-    };
+    const [results, setResults] = useState({
+        deckLevel: [],
+        noteLevel: [],
+    } as SearchResults);
 
-    const [local, localDispatch] = useLocalReducer<QuoteState, ActionType>(
-        quotesReducer,
-        initialState,
-    );
+    const [timing, setTiming] = useState(0);
 
     function clickedNewQuoteButton() {
-        localDispatch(ActionType.ShowAddForm);
+        route(`/quotes/new`, false);
     }
 
     function clickedRandomButton() {
@@ -109,90 +71,6 @@ function QuotesModule({}) {
             route(`/quotes/${quote.id}`);
         });
     }
-
-    function handleAttributionChange(content: string) {
-        localDispatch(ActionType.SetAttribution, content);
-    }
-
-    function handleContentChange(content: string) {
-        localDispatch(ActionType.SetQuoteText, content);
-    }
-
-    function clickedSave() {
-        const data: ProtoQuote = {
-            title: titleFromQuoteText(local.quoteText),
-            insignia: 0,
-            deckKind: DeckKind.Quote,
-            font: Font.English,
-            graphTerminator: false,
-            impact: 0,
-            text: local.quoteText,
-            attribution: local.attribution,
-        };
-
-        Net.post<ProtoQuote, DeckQuote>("/api/quotes", data).then((quote) => {
-            route(`/quotes/${quote.id}`);
-        });
-    }
-
-    function clickedCancel() {
-        localDispatch(ActionType.HideAddForm);
-    }
-
-    function renderNewQuoteButton() {
-        return (
-            <CivilButton onClick={clickedNewQuoteButton}>
-                Add Quote...
-            </CivilButton>
-        );
-    }
-
-    function renderRandomButton() {
-        return (
-            <CivilButton onClick={clickedRandomButton}>
-                Random Quote
-            </CivilButton>
-        );
-    }
-
-    function renderAddForm() {
-        return (
-            <form class="civil-form">
-                <label for="attribution">QuoteText:</label>
-                <br />
-                <CivilTextArea
-                    id="quote-text"
-                    value={local.quoteText}
-                    onContentChange={handleContentChange}
-                />
-                <br />
-                <label for="attribution">Attribution:</label>
-                <br />
-                <CivilInput
-                    id="attribution"
-                    value={local.attribution}
-                    onContentChange={handleAttributionChange}
-                />
-                <br />
-                <CivilButton onClick={clickedCancel}>cancel</CivilButton>
-                <CivilButton onClick={clickedSave}>save</CivilButton>
-            </form>
-        );
-    }
-
-    let buttons = (
-        <span>
-            {!local.showAddForm && renderNewQuoteButton()}
-            {!local.showAddForm && renderRandomButton()}
-        </span>
-    );
-
-    const [results, setResults] = useState({
-        deckLevel: [],
-        noteLevel: [],
-    } as SearchResults);
-
-    const [timing, setTiming] = useState(0);
 
     function performQuoteSearch(content: string) {
         let sanitized: string = sanitize(content);
@@ -214,10 +92,16 @@ function QuotesModule({}) {
                     </h3>
                 </CivLeft>
                 <CivMainUi>
-                    {buttons}
-                    {local.showAddForm && renderAddForm()}
+                    <span>
+                        <CivilButton onClick={clickedNewQuoteButton}>
+                            Add Quote...
+                        </CivilButton>
+                        <CivilButton onClick={clickedRandomButton}>
+                            Random Quote
+                        </CivilButton>
+                    </span>
                     <div class="margin-top-3"></div>
-                    <CivilInput onContentChange={performQuoteSearch} />
+                    <CivilInput onReturnPressed={performQuoteSearch} />
                 </CivMainUi>
             </CivContainer>
             <ViewSearchResults searchResults={results} timing={timing} />
@@ -234,6 +118,196 @@ function getQuoteThenRoute(url: string) {
             console.error(`error: fetchDeck for ${url}`);
         }
     });
+}
+
+function QuoteNew({ path }: { path?: string }) {
+    const initialState: ProtoQuote = {
+        title: "",
+        insignia: 0,
+        deckKind: DeckKind.Quote,
+        font: Font.English,
+        graphTerminator: false,
+        impact: 0,
+        text: "",
+        attribution: "",
+    };
+    const [localState, setLocalState] = useState(initialState);
+
+    function handleAttributionChange(content: string) {
+        setLocalState({
+            ...localState,
+            attribution: content,
+        });
+    }
+
+    function handleContentChange(content: string) {
+        setLocalState({
+            ...localState,
+            text: content,
+            title: titleFromQuoteText(content),
+        });
+    }
+
+    function handleSubmit(event: Event) {
+        console.log(localState);
+        Net.post<ProtoQuote, DeckQuote>("/api/quotes", localState).then(
+            (quote) => {
+                route(`/quotes/${quote.id}`);
+            },
+        );
+        event.preventDefault();
+    }
+
+    function handleCheckbox(event: Event) {
+        if (event.target instanceof HTMLInputElement) {
+            if (event.target.id === "graph-terminator") {
+                setLocalState({
+                    ...localState,
+                    graphTerminator: !localState.graphTerminator,
+                });
+            }
+        }
+    }
+
+    function setInsignia(insignia: number) {
+        setLocalState({
+            ...localState,
+            insignia,
+        });
+    }
+
+    function setFont(font: Font) {
+        setLocalState({
+            ...localState,
+            font,
+        });
+    }
+
+    function impactAsText(impact: number): string {
+        switch (impact) {
+            case 0:
+                return "Unimportant";
+            case 1:
+                return "Noteworthy";
+            case 2:
+                return "Important";
+            case 3:
+                return "World Changing";
+            case 4:
+                return "Humanity Changing";
+            default:
+                return "unknown impact value!!!!";
+        }
+    }
+
+    function onImpactChange(event: Event) {
+        if (event.target instanceof HTMLInputElement) {
+            setLocalState({
+                ...localState,
+                impact: event.target.valueAsNumber,
+            });
+        }
+    }
+
+    return (
+        <article class="c-quotes-module module margin-top-9">
+            <CivContainer>
+                <CivLeft>
+                    <h3 class="ui hack-margin-top-minus-half">
+                        {deckKindToHeadingString(DeckKind.Quote)}
+                    </h3>
+                </CivLeft>
+                <CivForm onSubmit={handleSubmit}>
+                    <div class="vertical-spacer"></div>
+
+                    <CivLeftLabel forId="title">Title</CivLeftLabel>
+                    <CivMain>
+                        <CivilInput
+                            id="title"
+                            value={localState.title}
+                            readOnly
+                        />
+                    </CivMain>
+
+                    <CivLeftLabel extraClasses="icon-left-label">
+                        Insignias
+                    </CivLeftLabel>
+                    <CivMain>
+                        <InsigniaSelector
+                            insigniaId={localState.insignia}
+                            onChange={setInsignia}
+                        />
+                    </CivMain>
+
+                    <CivLeftLabel
+                        extraClasses="graph-terminator-form-label"
+                        forId="graph-terminator"
+                    >
+                        Graph Terminator
+                    </CivLeftLabel>
+                    <CivMain>
+                        <input
+                            type="checkbox"
+                            id="graph-terminator"
+                            name="graph-terminator"
+                            onInput={handleCheckbox}
+                            checked={localState.graphTerminator}
+                        />
+                    </CivMain>
+
+                    <CivLeftLabel>Font</CivLeftLabel>
+                    <CivMain>
+                        <FontSelector
+                            font={localState.font}
+                            onChangedFont={setFont}
+                        />
+                    </CivMain>
+
+                    <CivLeftLabel>Impact</CivLeftLabel>
+                    <CivMain>
+                        <input
+                            type="range"
+                            min="0"
+                            max="4"
+                            value={localState.impact}
+                            class="slider"
+                            id="impactSlider"
+                            onInput={onImpactChange}
+                        />
+                        <CivRight>{impactAsText(localState.impact)}</CivRight>
+                    </CivMain>
+
+                    <CivLeftLabel>Text:</CivLeftLabel>
+                    <CivMain>
+                        <CivilTextArea
+                            id="quote-text"
+                            value={localState.text}
+                            onContentChange={handleContentChange}
+                        />
+                    </CivMain>
+
+                    <CivLeftLabel>Attribution:</CivLeftLabel>
+                    <CivMain>
+                        <CivilInput
+                            id="attribution"
+                            value={localState.attribution}
+                            onContentChange={handleAttributionChange}
+                        />
+                    </CivMain>
+
+                    <div class="vertical-spacer"></div>
+
+                    <CivMain>
+                        <input
+                            class="c-civil-button"
+                            type="submit"
+                            value="create"
+                        />
+                    </CivMain>
+                </CivForm>
+            </CivContainer>
+        </article>
+    );
 }
 
 function nextQuote(quoteId: number) {
@@ -327,7 +401,7 @@ function Quote({ path, id }: { path?: string; id?: string }) {
 
     function onUpdatedDeck(deck: DeckQuote) {
         // re-title the quote now that the content may have changed
-        let n = deck.notes.find(n => n.kind === NoteKind.Note);
+        let n = deck.notes.find((n) => n.kind === NoteKind.Note);
         if (n) {
             const data: ProtoQuote = {
                 title: titleFromQuoteText(n.content),
@@ -340,11 +414,12 @@ function Quote({ path, id }: { path?: string; id?: string }) {
                 attribution: deck.attribution,
             };
             const resource = deckKindToResourceString(deck.deckKind);
-            Net.put<ProtoQuote, DeckQuote>(`/api/${resource}/${deck.id}`, data).then(
-                (newDeck) => {
-                    deckManager.update(newDeck);
-                },
-            );
+            Net.put<ProtoQuote, DeckQuote>(
+                `/api/${resource}/${deck.id}`,
+                data,
+            ).then((newDeck) => {
+                deckManager.update(newDeck);
+            });
         }
     }
 
@@ -556,4 +631,4 @@ function Attribution({ attribution, onEdited, onDelete }: AttributionProps) {
     );
 }
 
-export { Quote, Quotes, QuotesModule };
+export { Quote, Quotes, QuotesModule, QuoteNew };

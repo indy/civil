@@ -22,7 +22,7 @@ import { Article, Articles } from "./components/page-articles";
 import { Dialogue, DialogueChat, Dialogues } from "./components/page-dialogues";
 import { Ideas, Idea } from "./components/page-ideas";
 import { Person, People } from "./components/page-people";
-import { Quote, Quotes } from "./components/page-quotes";
+import { Quote, Quotes, QuoteNew } from "./components/page-quotes";
 import { Timeline, Timelines } from "./components/page-timelines";
 import { CivEvent as Event, Events } from "./components/page-events";
 
@@ -121,6 +121,7 @@ const AppUI = () => {
                 <Timeline path="/timelines/:id" />
                 <Quotes path="/quotes" />
                 <Quote path="/quotes/:id" />
+                <QuoteNew path="/quotes/new" />
                 <Dialogues path="/dialogues" />
                 <Dialogue path="/dialogues/:id" />
                 <DialogueChat path="/dialogues/chat" />

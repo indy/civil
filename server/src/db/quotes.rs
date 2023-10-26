@@ -95,25 +95,41 @@ pub(crate) fn get_or_create(
     user_id: Key,
     quote: &ProtoQuote,
 ) -> crate::Result<Quote> {
-    let title = &quote.title;
-    let text = &quote.text;
-    let font = quote.font;
-    let attribution = &quote.attribution;
-
     let mut conn = sqlite_pool.get()?;
     let tx = conn.transaction()?;
 
-    let (deck, origin) =
-        decks::deckbase_get_or_create(&tx, user_id, DeckKind::Quote, title, false, 0, font, 0)?;
+    let (deck, origin) = decks::deckbase_get_or_create(
+        &tx,
+        user_id,
+        DeckKind::Quote,
+        &quote.title,
+        quote.graph_terminator,
+        quote.insignia,
+        quote.font,
+        quote.impact,
+    )?;
+
+    let text = &quote.text;
+    let attribution = &quote.attribution;
 
     let quote_extras: QuoteExtra = match origin {
-        decks::DeckBaseOrigin::Created => sqlite::one(
-            &tx,
-            "INSERT INTO quote_extras(deck_id, attribution)
+        decks::DeckBaseOrigin::Created => {
+            let quote_extra = sqlite::one(
+                &tx,
+                "INSERT INTO quote_extras(deck_id, attribution)
                          VALUES (?1, ?2)
                          RETURNING attribution",
-            params![&deck.id, &attribution],
-        )?,
+                params![&deck.id, &attribution],
+            )?;
+            let kind = i32::from(NoteKind::Note);
+            sqlite::zero(
+                &tx,
+                "INSERT INTO notes(user_id, deck_id, kind, content)
+                  VALUES (?1, ?2, ?3, ?4)",
+                params![&user_id, &deck.id, &kind, &text],
+            )?;
+            quote_extra
+        }
         decks::DeckBaseOrigin::PreExisting => sqlite::one(
             &tx,
             "select attribution
@@ -122,14 +138,6 @@ pub(crate) fn get_or_create(
             params![&deck.id],
         )?,
     };
-
-    let kind = i32::from(NoteKind::Note);
-    sqlite::zero(
-        &tx,
-        "INSERT INTO notes(user_id, deck_id, kind, content)
-                  VALUES (?1, ?2, ?3, ?4)",
-        params![&user_id, &deck.id, &kind, &text],
-    )?;
 
     tx.commit()?;
 

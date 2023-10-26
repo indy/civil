@@ -20,7 +20,7 @@ export default function CivilButtonCreateDeck({
         if (deckKind === DeckKind.Dialogue) {
             route("/dialogues/chat", false);
         } else if (deckKind === DeckKind.Quote) {
-            route("/quotes", false);
+            route("/quotes/new", false);
         } else {
             setShowInput(!showInput);
         }

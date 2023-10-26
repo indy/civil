@@ -1,12 +1,6 @@
 import { NoteKind } from "../enums";
 
-import type {
-    FatDeck,
-    Note,
-    Notes,
-    Point,
-    Reference,
-} from "../types";
+import type { FatDeck, Note, Notes, Point, Reference } from "../types";
 
 import { AppStateChange, getAppState } from "../app-state";
 
