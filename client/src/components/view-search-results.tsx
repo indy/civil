@@ -1,6 +1,6 @@
 import { useState, useRef } from "preact/hooks";
 
-import { CivilMode, RenderingDeckPart, RefKind } from "../enums";
+import { CivilMode, NoteKind, RenderingDeckPart, RefKind } from "../enums";
 import type {
     Note,
     ReferencesApplied,
@@ -84,7 +84,12 @@ function ViewSearchDeck({
     parent?: SlimDeck;
     searchDeck: SearchDeck;
 }) {
-    const searchNoteEntries = searchDeck.notes.map((searchNote) => (
+
+    function notMeta(note: Note): boolean {
+        return note.kind !== NoteKind.NoteDeckMeta;
+    }
+
+    const searchNoteEntries = searchDeck.notes.filter(notMeta).map((searchNote) => (
         <SearchNote parent={parent} deck={searchDeck.deck} note={searchNote} />
     ));
 
