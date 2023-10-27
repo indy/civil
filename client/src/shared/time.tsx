@@ -68,7 +68,9 @@ export function formattedTime(timestamp: string) {
 }
 
 // given a date, return the number of years since that date
-export function deltaInYears(year: number, month: number, day: number) {
+// can get weird with really old dates
+//
+export function deltaInYears(year: number, month: number, day: number): number {
     let earlier: number = new Date(Date.UTC(year, month, day)).valueOf();
     let current = Date.now();
 
@@ -76,6 +78,14 @@ export function deltaInYears(year: number, month: number, day: number) {
 
     // convert ms to years
     return deltaMS / (1000 * 60 * 60 * 24 * 365.25);
+}
+
+export function deltaInYearsRoughly(year: number): number {
+    let currentYear = new Date().getFullYear();
+
+    let deltaYears = currentYear - year;
+
+    return deltaYears;
 }
 
 export function calcAgeInYears(

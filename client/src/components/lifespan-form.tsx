@@ -3,7 +3,7 @@ import { useEffect, useState } from "preact/hooks";
 import { PointKind } from "../enums";
 import type { Key, ProtoPoint } from "../types";
 
-import { deltaInYears, parseDateStringAsTriple } from "../shared/time";
+import { deltaInYearsRoughly, parseDateStringAsTriple } from "../shared/time";
 
 import PointForm from "./point-form";
 
@@ -58,9 +58,9 @@ export default function LifespanForm({
         // otherwise ask the user if the person is still alive
         //
         if (birthPoint.exactDate) {
-            let [year, month, day]: [number, number, number] =
+            let [year, _month, _day]: [number, number, number] =
                 parseDateStringAsTriple(birthPoint.exactDate)!;
-            let ageInYears = deltaInYears(year, month, day);
+            let ageInYears = deltaInYearsRoughly(year);
 
             setLocalState({
                 ...localState,
