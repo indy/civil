@@ -108,7 +108,7 @@ function DialoguesModule() {
 }
 
 function preCacheFn(dialogue: DeckDialogue): DeckDialogue {
-    dialogue.originalChatMessages.forEach((message) => {
+    dialogue.messages.forEach((message) => {
         let note = dialogue.notes.find((n) => n.id === message.noteId);
         if (note) {
             note.chatMessage = message;
@@ -301,7 +301,7 @@ function DialogueChat({ path }: { path?: string }) {
             impact: 0,
             graphTerminator: false,
             aiKind: AiKind.OpenAIGpt35Turbo,
-            originalChatMessages: messages,
+            messages: messages,
         };
 
         Net.post<ProtoDialogue, DeckDialogue>("/api/dialogues", data).then(
@@ -476,7 +476,7 @@ function DialogueUpdater({
             graphTerminator: false,
             impact: 0, // isg fix this
             aiKind: AiKind.OpenAIGpt35Turbo,
-            originalChatMessages: [],
+            messages: [],
         };
 
         const deckKind: DeckKind = DeckKind.Dialogue;

@@ -104,7 +104,7 @@ export type ArticleExtras = {
 
 export type DialogueExtras = {
     aiKind: AiKind;
-    originalChatMessages: Array<ChatMessage>;
+    messages: Array<ChatMessage>;
 };
 
 export type EventExtras = {

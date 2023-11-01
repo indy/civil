@@ -71,7 +71,7 @@ pub struct Dialogue {
     pub arrivals: Vec<Arrival>,
 
     pub ai_kind: AiKind,
-    pub original_chat_messages: Vec<openai_interface::ChatMessage>,
+    pub messages: Vec<openai_interface::ChatMessage>,
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]

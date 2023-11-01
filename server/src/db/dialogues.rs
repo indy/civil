@@ -58,7 +58,7 @@ impl TryFrom<(decks::DeckBase, DialogueExtra)> for interop::Dialogue {
             arrivals: vec![],
 
             ai_kind: extra.ai_kind,
-            original_chat_messages: vec![],
+            messages: vec![],
         })
     }
 }
@@ -79,7 +79,7 @@ impl FromRow for interop::Dialogue {
             arrivals: vec![],
 
             ai_kind: row.get(8)?,
-            original_chat_messages: vec![],
+            messages: vec![],
         })
     }
 }
@@ -128,7 +128,7 @@ pub(crate) fn get(
                 WHERE decks.user_id = ?1 AND decks.id = ?2 AND decks.kind = 'dialogue'";
     let mut res: interop::Dialogue = sqlite::one(&conn, stmt, params![&user_id, &dialogue_id])?;
 
-    res.original_chat_messages = get_original_chat_messages(&conn, user_id, dialogue_id)?;
+    res.messages = get_original_chat_messages(&conn, user_id, dialogue_id)?;
 
     decks::hit(&conn, dialogue_id)?;
 
@@ -194,7 +194,7 @@ pub(crate) fn edit(
     let dialogue_extras: DialogueExtra = sqlite::one(&tx, sql_query, params![&dialogue_id])?;
 
     let mut res: interop::Dialogue = (edited_deck, dialogue_extras).try_into()?;
-    res.original_chat_messages = get_original_chat_messages(&tx, user_id, dialogue_id)?;
+    res.messages = get_original_chat_messages(&tx, user_id, dialogue_id)?;
 
     tx.commit()?;
 
