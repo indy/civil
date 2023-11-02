@@ -321,7 +321,7 @@ export default function PointForm({
     }
 
     return (
-        <div>
+        <div class="c-point-form">
             <form class="civil-form" onSubmit={handleSubmit}>
                 <div class={!!pointKind ? "invisible" : "point-title"}>
                     <fieldset>
@@ -425,9 +425,10 @@ export default function PointForm({
                             Present as Duration
                         </label>
                     </div>
-                    <div class="pointform-space-top">
+                    <div class="pointform-space-bottom">
                         <label for="dateTextual">Displayed Date:</label>
                         <CivilInput
+                            elementClass="pointform-space-top"
                             id="dateTextual"
                             value={localState.dateTextual}
                             size={40}
@@ -439,6 +440,7 @@ export default function PointForm({
                 <fieldset>
                     <legend>{locationLegend}</legend>
                     <CivilInput
+                        elementClass="pointform-space-top"
                         id="locationTextual"
                         value={localState.locationTextual}
                         onContentChange={handleContentChange}
@@ -463,6 +465,7 @@ export default function PointForm({
                     />
                     <label for="longitude">Longitude:</label>
                     <input
+                        class="pointform-space-bottom"
                         id="longitude"
                         type="number"
                         name="longitude"

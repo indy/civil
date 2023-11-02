@@ -581,6 +581,10 @@ a:visited.pigment-inherit {
     width: 100%;
 }
 
+.width-50 {
+    width: 50%;
+}
+
 .red-text {
     color: var(--red-text);
 }
@@ -1821,6 +1825,9 @@ section.rolled-up {
 }
 .pointform-space-top {
     margin-top: 1rem;
+}
+.pointform-space-bottom {
+    margin-bottom: 2rem;
 }
 
 em:before {
