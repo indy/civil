@@ -411,7 +411,21 @@ export default function CommandBar() {
                             modeToggle(appState, CivilMode.Memorise);
                             break;
                         case "KeyS":
-                            navigate("/search");
+                            // can select some text before pressing 's'
+                            // this will then search for that text
+                            //
+                            let navigated = false;
+                            const selection = window!.getSelection();
+                            if (selection) {
+                                const selectedText = selection.toString();
+                                if (selectedText.length > 0) {
+                                    navigated = true;
+                                    navigate(`/search?q=${encodeURI(selectedText)}`);
+                                }
+                            }
+                            if (!navigated) {
+                                navigate("/search");
+                            }
                             break;
                         case "KeyT":
                             if (appState.wantToShowDeckUpdateForm.value) {
