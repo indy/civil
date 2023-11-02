@@ -2200,6 +2200,10 @@ input:required {
     padding: 1rem 1.5rem 1rem 1.5rem;
 }
 
+.c-point-form {
+    width: 50%;
+}
+
 .c-segment-hits {
     color: var(--fg-lighter-5);
     z-index: -1; /* keep behind the previewer */
@@ -2708,6 +2712,10 @@ input:required {
 
     #topmenu-login {
         margin-bottom: 1rem;
+    }
+
+    .c-point-form {
+        width: 100%;
     }
 }
 

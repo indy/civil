@@ -244,16 +244,12 @@ function Person({ path, id }: { path?: string; id?: string }) {
                 {title && !hasKnownLifespan && (
                     <CivContainer>
                         <CivMain>
-                            <div class="width-50">
-                                <LifespanForm
-                                    deckId={deck.id}
-                                    title={title}
-                                    onLifespanGiven={onLifespan}
-                                    oldestAliveAge={
-                                        immutableState.oldestAliveAge
-                                    }
-                                />
-                            </div>
+                            <LifespanForm
+                                deckId={deck.id}
+                                title={title}
+                                onLifespanGiven={onLifespan}
+                                oldestAliveAge={immutableState.oldestAliveAge}
+                            />
                         </CivMain>
                     </CivContainer>
                 )}
