@@ -123,6 +123,7 @@ pub(crate) fn search_at_all_levels(
         .collect();
 
     let res = SearchResults {
+        search_text: String::from(query),
         deck_level: deduped_deck_level_results,
         note_level: note_level_results,
     };
@@ -148,6 +149,7 @@ pub(crate) fn search_quotes(
     deduped_results.append(&mut note_level_results);
 
     let res = SearchResults {
+        search_text: String::from(query),
         deck_level: vec![],
         note_level: deduped_results,
     };
@@ -265,10 +267,11 @@ pub(crate) fn additional_search_at_deck_level(
 
     let conn = sqlite_pool.get()?;
     let name = get_name_of_deck(&conn, deck_id)?;
-    let sane_name = sanitize_for_sqlite_match(name)?;
+    let sane_name = sanitize_for_sqlite_match(name.clone())?;
 
     if sane_name.is_empty() {
         return Ok(SearchResults {
+            search_text: name,
             deck_level: vec![],
             note_level: vec![],
         });
@@ -303,6 +306,7 @@ pub(crate) fn additional_search_at_deck_level(
         .collect();
 
     let res = SearchResults {
+        search_text: name,
         deck_level: deduped_deck_level_results,
         note_level: note_level_results,
     };

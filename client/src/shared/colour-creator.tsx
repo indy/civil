@@ -242,7 +242,7 @@ function generateColourDefs(seeds: ColourSeeds): ColourDefinitions {
     defs = fgCol(defs, seeds, 7, "fg_lighter_7");
 
     defs = addTopMenuColours(defs, seeds, 150, "home");
-    defs = addTopMenuColours(defs, seeds, 240, "search");
+    // defs = addTopMenuColours(defs, seeds, 240, "search");
     defs = addTopMenuColours(defs, seeds, 300, "memorise");
     defs = addTopMenuColours(defs, seeds, 70, "stats");
 

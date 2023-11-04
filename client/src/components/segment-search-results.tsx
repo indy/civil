@@ -9,6 +9,7 @@ import { addMultipleBookmarks } from "../shared/bookmarks";
 import { nonEmptyArray } from "../shared/civil";
 import { plural } from "../shared/english";
 import Net from "../shared/net";
+import { emptySearchResults } from "../shared/search";
 
 import CivilButton from "./civil-button";
 import RollableSegment from "./rollable-segment";
@@ -22,7 +23,7 @@ export default function SegmentSearchResults({
     const appState = getAppState();
 
     const [searchResults, setSearchResults]: [SearchResults, Function] =
-        useState({ deckLevel: [], noteLevel: [] });
+        useState(emptySearchResults());
 
     const [timing, setTiming] = useState(0);
 

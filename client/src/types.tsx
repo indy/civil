@@ -229,6 +229,7 @@ export type SlimResults = {
 };
 
 export type SearchResults = {
+    searchText: string;
     deckLevel: Array<SearchDeck>;
     noteLevel: Array<SearchDeck>;
 };

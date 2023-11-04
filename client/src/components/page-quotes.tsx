@@ -11,7 +11,7 @@ import {
     deckKindToResourceString,
 } from "../shared/deck";
 import Net from "../shared/net";
-import { sanitize } from "../shared/search";
+import { sanitize, emptySearchResults } from "../shared/search";
 
 import buildMarkup from "./build-markup";
 import CivilButton from "./civil-button";
@@ -55,10 +55,7 @@ function Quotes({ path }: { path?: string }) {
 }
 
 function QuotesModule({}) {
-    const [results, setResults] = useState({
-        deckLevel: [],
-        noteLevel: [],
-    } as SearchResults);
+    const [results, setResults] = useState(emptySearchResults());
 
     const [timing, setTiming] = useState(0);
 

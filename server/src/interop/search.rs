@@ -29,6 +29,7 @@ pub struct SearchDeck {
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SearchResults {
+    pub search_text: String,
     pub deck_level: Vec<SearchDeck>,
     pub note_level: Vec<SearchDeck>,
 }

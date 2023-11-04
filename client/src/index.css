@@ -513,16 +513,6 @@ a:visited.pigment-inherit {
     background: var(--bg-home-active);
 }
 
-.pigment-top-menu-search {
-    color: var(--fg-search) !important;
-    background: var(--bg-search);
-}
-
-.pigment-top-menu-search-active {
-    color: var(--fg-search-active) !important;
-    background: var(--bg-search-active);
-}
-
 .pigment-top-menu-memorise {
     color: var(--fg-memorise) !important;
     background: var(--bg-memorise);

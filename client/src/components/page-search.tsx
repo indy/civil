@@ -1,4 +1,3 @@
-import { route } from "preact-router";
 import { useEffect, useState } from "preact/hooks";
 
 import { CivilMode } from "../enums";
@@ -8,11 +7,10 @@ import { AppStateChange, getAppState } from "../app-state";
 
 import { addMultipleBookmarks } from "../shared/bookmarks";
 import Net from "../shared/net";
-import { sanitize } from "../shared/search";
+import { emptySearchResults } from "../shared/search";
 
 import CivilButton from "./civil-button";
-import CivilInput from "./civil-input";
-import { CivContainer, CivLeft, CivMainUi } from "./civil-layout";
+import { CivContainer, CivMainUi, CivLeft } from "./civil-layout";
 import TopBarMenu from "./top-bar-menu";
 import ViewSearchResults from "./view-search-results";
 
@@ -43,24 +41,14 @@ export default function Search({
 function SearchModule({ encodedQuery }: { encodedQuery: string }) {
     const appState = getAppState();
 
-    const emptyResults: SearchResults = {
-        deckLevel: [],
-        noteLevel: [],
-    };
-    const [results, setResults] = useState(emptyResults);
+    const [results, setResults] = useState(emptySearchResults());
     const [timing, setTiming] = useState(0);
-    const [searchText, setSearchText] = useState(decodeURI(encodedQuery));
-
-    function onContentChange(content: string, _name: string) {
-        setSearchText(content);
-    }
 
     useEffect(() => {
         if (encodedQuery.length > 0) {
             getSearchResults(encodedQuery);
-            setSearchText(decodeURI(encodedQuery));
         } else {
-            setResults(emptyResults);
+            setResults(emptySearchResults());
             setTiming(0);
         }
     }, [encodedQuery]);
@@ -71,13 +59,6 @@ function SearchModule({ encodedQuery }: { encodedQuery: string }) {
             setResults(response);
             setTiming(duration);
         });
-    }
-
-    function onReturnPressed(content: string) {
-        let sanitized: string = sanitize(content);
-        if (sanitized.length > 0) {
-            route(`/search?q=${encodeURI(sanitized)}`);
-        }
     }
 
     function bookmarkAll() {
@@ -96,20 +77,15 @@ function SearchModule({ encodedQuery }: { encodedQuery: string }) {
         <article class="c-search-module module margin-top-9">
             <CivContainer>
                 <CivLeft>
-                    <h3 class="ui hack-margin-top-minus-half">Full Search</h3>
+                    <h3 class="ui hack-margin-top-minus-half">Search:</h3>
                 </CivLeft>
                 <CivMainUi>
+                    <h3 class="ui">{encodedQuery}</h3>
                     {bookmarkMode && (
                         <CivilButton onClick={bookmarkAll}>
                             Bookmark All Results
                         </CivilButton>
                     )}
-                    <CivilInput
-                        value={searchText}
-                        onContentChange={onContentChange}
-                        elementClass="width-100"
-                        onReturnPressed={onReturnPressed}
-                    />
                 </CivMainUi>
             </CivContainer>
             <ViewSearchResults searchResults={results} timing={timing} />

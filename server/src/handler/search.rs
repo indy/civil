@@ -39,6 +39,7 @@ pub async fn search_at_deck_level(
     let deck_level_results = db::search_at_deck_level(&sqlite_pool, user_id, &query.q)?;
 
     let res = SearchResults {
+        search_text: query.q,
         deck_level: deck_level_results,
         note_level: vec![],
     };
@@ -60,6 +61,7 @@ pub async fn search_names_at_deck_level(
     let results = db::search_names_at_deck_level(&sqlite_pool, user_id, &query.q)?;
 
     let res = SearchResults {
+        search_text: query.q,
         deck_level: results,
         note_level: vec![],
     };

@@ -306,6 +306,12 @@ export default function CommandBar() {
                     if (success) {
                         AppStateChange.commandBarResetAndHide();
                     }
+                } else if (commandBarState.mode === CommandBarMode.Search) {
+                    let sanitized: string = sanitize(commandBarState.text);
+                    if (sanitized.length > 0) {
+                        route(`/search?q=${encodeURI(sanitized)}`);
+                        AppStateChange.commandBarResetAndHide();
+                    }
                 }
             }
         }
@@ -420,7 +426,9 @@ export default function CommandBar() {
                                 const selectedText = selection.toString();
                                 if (selectedText.length > 0) {
                                     navigated = true;
-                                    navigate(`/search?q=${encodeURI(selectedText)}`);
+                                    navigate(
+                                        `/search?q=${encodeURI(selectedText)}`,
+                                    );
                                 }
                             }
                             if (!navigated) {
@@ -520,10 +528,17 @@ export default function CommandBar() {
         if (sanitized.length > 0) {
             const url = `/api/search/decks?q=${encodeURI(sanitized)}`;
             const searchResponse: SearchResults = await Net.get(url);
-            const searchCandidates: Array<SlimDeck> =
-                searchResponse.deckLevel.map((dl) => dl.deck);
 
-            AppStateChange.commandBarSetSearch({ searchCandidates });
+            let commandBarState = appState.commandBarState.value;
+
+            // sometimes an earlier request will arrive after a later one.
+            // this conditional stops stale results from overwriting newer ones
+            if (searchResponse.searchText === commandBarState.text) {
+                const searchCandidates: Array<SlimDeck> =
+                    searchResponse.deckLevel.map((dl) => dl.deck);
+
+                AppStateChange.commandBarSetSearch({ searchCandidates });
+            }
         }
     }
 
