@@ -4,7 +4,7 @@ import { useEffect, useState } from "preact/hooks";
 import { CivilMode } from "../enums";
 import type { Key, SearchResults } from "../types";
 
-import { getAppState } from "../app-state";
+import { AppStateChange, getAppState } from "../app-state";
 
 import { addMultipleBookmarks } from "../shared/bookmarks";
 import Net from "../shared/net";
@@ -85,6 +85,7 @@ function SearchModule({ encodedQuery }: { encodedQuery: string }) {
         results.deckLevel.forEach((d) => deckIds.push(d.deck.id));
         results.noteLevel.forEach((n) => deckIds.push(n.deck.id));
         addMultipleBookmarks(deckIds);
+        AppStateChange.mode({ mode: CivilMode.View });
     }
 
     const bookmarkMode = appState.mode.value === CivilMode.BookmarkLinks;
