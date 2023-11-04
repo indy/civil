@@ -1,4 +1,3 @@
-import { type ComponentChildren } from "preact";
 import { useEffect, useState } from "preact/hooks";
 
 import { CivilMode } from "../enums";
@@ -59,23 +58,21 @@ export default function SegmentSearchResults({
             addMultipleBookmarks(deckIds);
         }
 
-        let button: ComponentChildren | undefined = undefined;
-        if (appState.mode.value == CivilMode.BookmarkLinks) {
-            button = (
-                <CivilButton onClick={bookmarkAll}>
-                    Add All Results to Bookmarks
-                </CivilButton>
-            );
-        }
+        let showButton = appState.mode.value == CivilMode.BookmarkLinks;
 
         return (
             <RollableSegment
                 heading={heading}
                 font={slimdeck.font}
-                buttons={button}
                 initiallyRolledUp
                 extraClasses="c-segment-search-results"
             >
+                {showButton && (
+                    <CivilButton onClick={bookmarkAll}>
+                        Bookmark All Results
+                    </CivilButton>
+                )}
+
                 <ViewSearchResults
                     parent={slimdeck}
                     searchResults={searchResults}

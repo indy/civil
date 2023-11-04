@@ -13,7 +13,6 @@ import { svgChevronDoubleDown, svgChevronDoubleRight } from "./svg-icons";
 type Props = {
     heading: string;
     font: Font;
-    buttons?: ComponentChildren;
     children: ComponentChildren;
     initiallyRolledUp?: boolean;
     invisible?: boolean;
@@ -23,7 +22,6 @@ type Props = {
 export default function RollableSegment({
     heading,
     font,
-    buttons,
     children,
     initiallyRolledUp,
     invisible,
@@ -55,11 +53,6 @@ export default function RollableSegment({
                     </div>
                 </CivLeft>
                 <CivMain>
-                    <div class="block">
-                        <span class="display-flex-justify-right">
-                            {buttons}
-                        </span>
-                    </div>
                     <h2 class={headingClass} onClick={onRollClicked}>
                         {heading}
                     </h2>
