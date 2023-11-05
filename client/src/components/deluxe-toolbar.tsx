@@ -80,25 +80,17 @@ export function DeluxeToolbar({}) {
 
                 <div class="toolbar-item" onClick={searchClicked}>
                     <span class={searchClasses}>{svgSearch()}</span>
-                    <span class="toolbar-item-text">Quick Search</span>
+                    <span class="toolbar-item-text">Search</span>
                 </div>
 
-                {isCivilModeAllowed(appState, CivilMode.Edit) && (
-                    <ToolbarItem mode={CivilMode.Edit} toolbarText="Edit">
-                        {svgEdit()}
-                    </ToolbarItem>
-                )}
                 {isCivilModeAllowed(appState, CivilMode.Refs) && (
                     <ToolbarItem mode={CivilMode.Refs} toolbarText="Refs">
                         {svgLinkAlt()}
                     </ToolbarItem>
                 )}
-                {isCivilModeAllowed(appState, CivilMode.Memorise) && (
-                    <ToolbarItem
-                        mode={CivilMode.Memorise}
-                        toolbarText="Memorise"
-                    >
-                        {svgFlashCard()}
+                {isCivilModeAllowed(appState, CivilMode.Edit) && (
+                    <ToolbarItem mode={CivilMode.Edit} toolbarText="Edit">
+                        {svgEdit()}
                     </ToolbarItem>
                 )}
                 {isCivilModeAllowed(appState, CivilMode.AddAbove) && (
@@ -107,6 +99,14 @@ export function DeluxeToolbar({}) {
                         toolbarText="Add Above"
                     >
                         {svgAddAbove()}
+                    </ToolbarItem>
+                )}
+                {isCivilModeAllowed(appState, CivilMode.Memorise) && (
+                    <ToolbarItem
+                        mode={CivilMode.Memorise}
+                        toolbarText="Memorise"
+                    >
+                        {svgFlashCard()}
                     </ToolbarItem>
                 )}
                 {isCivilModeAllowed(appState, CivilMode.BookmarkLinks) && (

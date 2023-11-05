@@ -15,6 +15,7 @@ import AccountSettings from "./components/page-account-settings";
 import BusyIndicator from "./components/busy-indicator";
 import FrontPage from "./components/page-front-page";
 import Login from "./components/page-login";
+import Logout from "./components/page-logout";
 import Memorise from "./components/page-memorise";
 import Search from "./components/page-search";
 import Stats from "./components/page-stats";
@@ -107,6 +108,7 @@ const AppUI = () => {
             <Router onChange={handleRoute}>
                 <FrontPage path="/" />
                 <Login path="/login" loginCallback={loginHandler} />
+                <Logout path="/logout" />
                 <AccountSettings path="/account-settings" />
                 <Search path="/search" />
                 <Memorise path="/memorise" />

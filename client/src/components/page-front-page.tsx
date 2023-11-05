@@ -3,7 +3,6 @@ import { useEffect, useState } from "preact/hooks";
 import { Link } from "preact-router";
 
 import type { SlimDeck, SlimResults } from "../types";
-import { getAppState } from "../app-state";
 
 import Net from "../shared/net";
 
@@ -16,41 +15,21 @@ import { listItemSlimDeck } from "./list-items";
 import Pagination from "./pagination";
 
 export default function FrontPage({ path }: { path?: string }) {
-    const appState = getAppState();
-
-    function loggedStatus() {
-        let status = "";
-
-        if (appState.user.value) {
-            let user = appState.user.value;
-            status += user.username;
-            // if (user.admin && user.admin.dbName !== "civil") {
-            //     status += ` (${user.admin.dbName})`;
-            // }
-        } else {
-            status = "Login";
-        }
-
-        return status;
-    }
-
-    function loggedLink() {
-        return appState.user.value ? "/account-settings" : "/login";
-    }
-
     return (
         <div>
             <CivContainer>
-                <CivMainUi>
-                    <Link class="ui" href={loggedLink()}>
-                        {loggedStatus()}
+                <CivMainUi extraClasses="front-page-pusher-container">
+                    <Link class="front-page-pusher" href="/memorise">
+                        Memorise...
                     </Link>
-
-                    <Link class="ui" href="/memorise">
-                        Memorise
+                    <Link class="front-page-pusher" href="/stats">
+                        Stats...
                     </Link>
-                    <Link class="ui" href="/stats">
-                        Stats
+                    <Link class="front-page-pusher" href="/account-settings">
+                        Settings...
+                    </Link>
+                    <Link class="front-page-pusher" href="/logout">
+                        Log out...
                     </Link>
                 </CivMainUi>
             </CivContainer>

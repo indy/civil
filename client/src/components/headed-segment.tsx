@@ -15,7 +15,7 @@ export function HeadedSegment({
     extraClasses,
     extraHeadingClasses,
 }: HeadedSegmentProps) {
-    let aklass = "c-headed-segment module margin-top-5 ";
+    let aklass = "c-headed-segment module margin-top-3 ";
     if (extraClasses) {
         aklass += extraClasses;
     }

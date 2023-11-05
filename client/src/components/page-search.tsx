@@ -71,7 +71,7 @@ function SearchModule({ encodedQuery }: { encodedQuery: string }) {
         <article class="c-search-module module margin-top-5">
             <CivContainer>
                 <CivLeft>
-                    <h3 class="ui hack-margin-top-minus-half">Search:</h3>
+                    <h3 class="ui hack-margin-top-minus-half">Search Phrase</h3>
                 </CivLeft>
                 <CivMainUi>
                     <h3 class="ui">{encodedQuery}</h3>

@@ -1,12 +1,10 @@
 import { type ComponentChildren } from "preact";
-import { route } from "preact-router";
 import { useState } from "preact/hooks";
 
 import { CivilSpan, ColourScheme } from "../enums";
 
 import { AppStateChange, getAppState } from "../app-state";
 
-import Net from "../shared/net";
 import { basicUiConfig, updateAndSaveUiConfig } from "../shared/ui-config";
 
 import { CivContainer, CivMainUi } from "./civil-layout";
@@ -23,7 +21,6 @@ export default function AccountSettings({ path }: { path?: string }) {
             <ColourSchemeSelector />
             {appState.canNarrowWidth && <SpanSelector />}
             <ResetUiConfig />
-            <Logout />
         </article>
     );
 }
@@ -165,24 +162,6 @@ function ColourSchemeOption({
     );
 }
 
-function Logout({}) {
-    const handleLogout = (event: Event) => {
-        Net.delete("api/auth", {}).then(() => {
-            //// this isn't logging out the user, refreshing the app logs the user back in
-            AppStateChange.userLogout({});
-            route("/login", true);
-        });
-        event.preventDefault();
-    };
-
-    return (
-        <Module heading="peace out">
-            <form onSubmit={handleLogout}>
-                <input class="c-civil-button" type="submit" value="Log out " />
-            </form>
-        </Module>
-    );
-}
 /*
 function TestRollupModule({}) {
     if (true) {

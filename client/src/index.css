@@ -638,6 +638,22 @@ a:visited.pigment-inherit {
     width: 10rem;
 }
 
+.front-page-pusher-container {
+    padding-top: 4rem;
+    display: flex;
+    justify-content: space-between;
+}
+
+.front-page-pusher {
+    font-family: var(--font-ui);
+    font-weight: 400;
+    padding: 1rem 2rem;
+
+    background: var(--bg-darker-3);
+    border: 1px solid var(--bg-darker-6);
+    border-radius: var(--ui-control-border-radius);
+}
+
 .ui {
     font-family: var(--font-ui);
     font-weight: 400;
@@ -1389,7 +1405,7 @@ textarea {
 
 .pagination-top-selector {
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
     width: 100%;
     flex-wrap: wrap;
 }
@@ -2390,6 +2406,10 @@ input:required {
         --block-width: 70%;
         --block-width-ui: 70%;
         --command-bar-width: 70%;
+    }
+
+    .pagination-top-selector {
+        justify-content: center;
     }
 
     /* without this modfified padding calc there is a slight horizontal scroll on tablets */
