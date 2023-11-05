@@ -23,7 +23,6 @@ import SegmentGraph from "./segment-graph";
 import SegmentHits from "./segment-hits";
 import SegmentNotes from "./segment-notes";
 import SegmentSearchResults from "./segment-search-results";
-import TopBarMenu from "./top-bar-menu";
 import TopMatter from "./top-matter";
 import useDeckManager from "./use-deck-manager";
 import { CivContainer, CivForm, CivLeftLabel, CivMain } from "./civil-layout";
@@ -32,12 +31,7 @@ import { StarRatingPartial } from "./star-rating";
 import { listItemArticle } from "./list-items";
 
 function Articles({ path }: { path?: string }) {
-    return (
-        <div>
-            <TopBarMenu />
-            <ArticlesModule />
-        </div>
-    );
+    return <ArticlesModule />;
 }
 
 function ArticlesModule() {

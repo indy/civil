@@ -19,17 +19,11 @@ import SegmentGraph from "./segment-graph";
 import SegmentHits from "./segment-hits";
 import SegmentNotes from "./segment-notes";
 import SegmentSearchResults from "./segment-search-results";
-import TopBarMenu from "./top-bar-menu";
 import TopMatter from "./top-matter";
 import useDeckManager from "./use-deck-manager";
 
 function Ideas({ path }: { path?: string }) {
-    return (
-        <div>
-            <TopBarMenu />
-            <IdeasModule />
-        </div>
-    );
+    return <IdeasModule />;
 }
 
 function IdeasModule() {

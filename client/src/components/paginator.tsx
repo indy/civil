@@ -25,7 +25,6 @@ import Pagination from "./pagination";
 
 export default function Paginator({}) {
     const [selected, setSelected] = useState(DeckKind.Idea);
-    // margin-top-9 provides the empty space for the command bar to appear
 
     return (
         <HeadedSegment

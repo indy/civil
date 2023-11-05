@@ -53,18 +53,12 @@ import {
     svgUntickedCheckBox,
     svgX,
 } from "./svg-icons";
-import TopBarMenu from "./top-bar-menu";
 import TopMatter from "./top-matter";
 import useDeckManager from "./use-deck-manager";
 import WhenEditMode from "./when-edit-mode";
 
 function People({ path }: { path?: string }) {
-    return (
-        <div>
-            <TopBarMenu />
-            <PeopleModule />
-        </div>
-    );
+    return <PeopleModule />;
 }
 
 function PeopleModule() {

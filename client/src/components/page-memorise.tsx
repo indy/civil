@@ -14,7 +14,6 @@ import buildMarkup from "./build-markup";
 import CivilButton from "./civil-button";
 import { CivContainer, CivLeft, CivMain } from "./civil-layout";
 import DeckLink from "./deck-link";
-import TopBarMenu from "./top-bar-menu";
 import useLocalReducer from "./use-local-reducer";
 
 enum Mode {
@@ -161,12 +160,7 @@ function reducer(state: State, action: Action): State {
 }
 
 export default function Memorise({ path }: { path?: string }) {
-    return (
-        <div>
-            <TopBarMenu />
-            <MemoriseModule />
-        </div>
-    );
+    return <MemoriseModule />;
 }
 
 function MemoriseModule() {
@@ -241,7 +235,7 @@ function MemoriseModule() {
     }
 
     return (
-        <article class="module margin-top-9 ui">
+        <article class="module margin-top-5 ui">
             <CivContainer>
                 <CivLeft>
                     <h3 class="ui hack-margin-top-minus-half">Memorisation</h3>

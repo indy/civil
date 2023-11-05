@@ -30,7 +30,6 @@ import DeleteConfirmation from "./delete-confirmation";
 import ModalKeyboardHelp from "./modal-keyboard-help";
 import SegmentArrivals from "./segment-arrivals";
 import SegmentNotes from "./segment-notes";
-import TopBarMenu from "./top-bar-menu";
 import useDeckManager from "./use-deck-manager";
 import useLocalReducer from "./use-local-reducer";
 import useModalKeyboard from "./use-modal-keyboard";
@@ -46,12 +45,7 @@ function titleFromQuoteText(quoteText: string) {
 }
 
 function Quotes({ path }: { path?: string }) {
-    return (
-        <div>
-            <TopBarMenu />
-            <QuotesModule />
-        </div>
-    );
+    return <QuotesModule />;
 }
 
 function QuotesModule({}) {
@@ -81,7 +75,7 @@ function QuotesModule({}) {
     }
 
     return (
-        <article class="c-quotes-module module margin-top-9">
+        <article class="c-quotes-module module margin-top-5">
             <CivContainer>
                 <CivLeft>
                     <h3 class="ui hack-margin-top-minus-half">
@@ -207,7 +201,7 @@ function QuoteNew({ path }: { path?: string }) {
     }
 
     return (
-        <article class="c-quotes-module module margin-top-9">
+        <article class="c-quotes-module module margin-top-5">
             <CivContainer>
                 <CivLeft>
                     <h3 class="ui hack-margin-top-minus-half">

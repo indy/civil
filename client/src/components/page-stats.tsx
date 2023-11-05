@@ -1,13 +1,7 @@
 import { HeadedSegment } from "./headed-segment";
-import TopBarMenu from "./top-bar-menu";
 
 export default function Stats({ path }: { path?: string }) {
-    return (
-        <div>
-            <TopBarMenu />
-            <StatsModule />
-        </div>
-    );
+    return <StatsModule />;
 }
 
 function StatsModule() {

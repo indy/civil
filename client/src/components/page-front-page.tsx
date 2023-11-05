@@ -1,22 +1,60 @@
 import { type ComponentChildren } from "preact";
 import { useEffect, useState } from "preact/hooks";
+import { Link } from "preact-router";
 
 import type { SlimDeck, SlimResults } from "../types";
+import { getAppState } from "../app-state";
 
 import Net from "../shared/net";
 
+import { CivContainer, CivMainUi } from "./civil-layout";
 import ListingLink from "./listing-link";
 import { HeadedSegment } from "./headed-segment";
 import Paginator from "./paginator";
-import TopBarMenu from "./top-bar-menu";
 import InsigniaSelector from "./insignia-selector";
 import { listItemSlimDeck } from "./list-items";
 import Pagination from "./pagination";
 
 export default function FrontPage({ path }: { path?: string }) {
+    const appState = getAppState();
+
+    function loggedStatus() {
+        let status = "";
+
+        if (appState.user.value) {
+            let user = appState.user.value;
+            status += user.username;
+            // if (user.admin && user.admin.dbName !== "civil") {
+            //     status += ` (${user.admin.dbName})`;
+            // }
+        } else {
+            status = "Login";
+        }
+
+        return status;
+    }
+
+    function loggedLink() {
+        return appState.user.value ? "/account-settings" : "/login";
+    }
+
     return (
         <div>
-            <TopBarMenu />
+            <CivContainer>
+                <CivMainUi>
+                    <Link class="ui" href={loggedLink()}>
+                        {loggedStatus()}
+                    </Link>
+
+                    <Link class="ui" href="/memorise">
+                        Memorise
+                    </Link>
+                    <Link class="ui" href="/stats">
+                        Stats
+                    </Link>
+                </CivMainUi>
+            </CivContainer>
+
             <Paginator />
             <RecentlyVisitedModule />
             <InsigniasModule />

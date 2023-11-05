@@ -19,7 +19,7 @@
     --coloured-deck-border-radius: 0.3em;
     --deck-image-radius: 0.6em;
 
-    --command-bar-top: 8rem;
+    --command-bar-top: 1rem;
     --command-bar-width: 49rem;
     --command-bar-border-radius: 0.1em;
 
@@ -503,36 +503,6 @@ a:visited.pigment-inherit {
     color: var(--fg-events) !important;
 }
 
-.pigment-top-menu-home {
-    color: var(--fg-home) !important;
-    background: var(--bg-home);
-}
-
-.pigment-top-menu-home-active {
-    color: var(--fg-home-active) !important;
-    background: var(--bg-home-active);
-}
-
-.pigment-top-menu-memorise {
-    color: var(--fg-memorise) !important;
-    background: var(--bg-memorise);
-}
-/* used when there are some spaced repetition questions that are scheduled to be answered */
-.pigment-top-menu-memorise-active {
-    color: var(--fg-memorise-active) !important;
-    background: var(--bg-memorise-active);
-}
-
-.pigment-top-menu-stats {
-    color: var(--fg-stats) !important;
-    background: var(--bg-stats);
-}
-
-.pigment-top-menu-stats-active {
-    color: var(--fg-stats-active) !important;
-    background: var(--bg-stats-active);
-}
-
 /* -------------------------------------------------------------------------------- */
 
 .margin-left-auto {
@@ -586,9 +556,6 @@ a:visited.pigment-inherit {
     margin-top: 0;
 }
 
-.margin-top-9 {
-    margin-top: 9rem;
-}
 .margin-top-5 {
     margin-top: 5rem;
 }
@@ -1403,11 +1370,6 @@ textarea {
     padding-right: 0.3rem;
 }
 
-#elastic-top-menu-items {
-    display: flex;
-    justify-content: flex-start;
-}
-
 .stripe-a .c-deck-link {
     margin-left: 1rem;
     display: block;
@@ -1474,19 +1436,6 @@ textarea {
 }
 .command-entry-quote-around:after {
     content: "\00BB";
-}
-
-/* this will right-align the login info on the top menu bar */
-#elastic-top-menu-items div:last-child {
-    margin-left: auto;
-}
-
-.top-menu-item {
-    flex-grow: 0.05;
-}
-
-.home-menu-item {
-    padding-right: 3rem;
 }
 
 .c-civil-button {
@@ -2504,7 +2453,6 @@ input:required {
         --block-width: 90%;
         --block-width-ui: 90%;
 
-        --command-bar-top: 9.3rem;
         --command-bar-width: 70%;
 
         --title-height: 2.4rem;
@@ -2579,10 +2527,6 @@ input:required {
     .role-view {
         float: left;
         margin-left: 1rem;
-    }
-
-    #elastic-top-menu-items {
-        padding-left: 4rem;
     }
 
     .c-busy-indicator {
@@ -2684,10 +2628,6 @@ input:required {
 
     nav a {
         margin-left: 0;
-    }
-
-    #topmenu-login {
-        margin-bottom: 1rem;
     }
 
     .c-point-form {

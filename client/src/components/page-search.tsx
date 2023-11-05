@@ -11,7 +11,6 @@ import { emptySearchResults } from "../shared/search";
 
 import CivilButton from "./civil-button";
 import { CivContainer, CivMainUi, CivLeft } from "./civil-layout";
-import TopBarMenu from "./top-bar-menu";
 import ViewSearchResults from "./view-search-results";
 
 type SearchQuery = {
@@ -30,12 +29,7 @@ export default function Search({
         encodedQuery = matches.q;
     }
 
-    return (
-        <div>
-            <TopBarMenu />
-            <SearchModule encodedQuery={encodedQuery} />
-        </div>
-    );
+    return <SearchModule encodedQuery={encodedQuery} />;
 }
 
 function SearchModule({ encodedQuery }: { encodedQuery: string }) {
@@ -74,7 +68,7 @@ function SearchModule({ encodedQuery }: { encodedQuery: string }) {
     // can't use a module since search will end up rendering user content
     //
     return (
-        <article class="c-search-module module margin-top-9">
+        <article class="c-search-module module margin-top-5">
             <CivContainer>
                 <CivLeft>
                     <h3 class="ui hack-margin-top-minus-half">Search:</h3>

@@ -41,7 +41,6 @@ import SegmentGraph from "./segment-graph";
 import SegmentHits from "./segment-hits";
 import SegmentNotes from "./segment-notes";
 import SegmentSearchResults from "./segment-search-results";
-import TopBarMenu from "./top-bar-menu";
 import TopMatter from "./top-matter";
 import useDeckManager from "./use-deck-manager";
 import ViewRole from "./view-role";
@@ -61,12 +60,7 @@ type MessageChoice = {
 };
 
 function Dialogues({ path }: { path?: string }) {
-    return (
-        <div>
-            <TopBarMenu />
-            <DialoguesModule />
-        </div>
-    );
+    return <DialoguesModule />;
 }
 
 function DialoguesModule() {

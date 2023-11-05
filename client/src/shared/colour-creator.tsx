@@ -1,10 +1,6 @@
 import { ColourScheme } from "../enums";
 import type { State, ColourTriple, ColourQuad, ColourSeeds } from "../types";
 
-// const H: number = 0;
-// const S: number = 1;
-const L: number = 2;
-
 type ColourDefinitions = {
     [index: string]: string | ColourTriple | ColourQuad | undefined;
 };
@@ -241,11 +237,6 @@ function generateColourDefs(seeds: ColourSeeds): ColourDefinitions {
     defs = fgCol(defs, seeds, 5, "fg_lighter_5");
     defs = fgCol(defs, seeds, 7, "fg_lighter_7");
 
-    defs = addTopMenuColours(defs, seeds, 150, "home");
-    // defs = addTopMenuColours(defs, seeds, 240, "search");
-    defs = addTopMenuColours(defs, seeds, 300, "memorise");
-    defs = addTopMenuColours(defs, seeds, 70, "stats");
-
     defs = addMix(defs, "graph_node_proximity_0", "graph_edge", 0.0, "bg");
     defs = addMix(defs, "graph_node_proximity_1", "graph_edge", 0.6, "bg");
 
@@ -327,36 +318,6 @@ function fgCol(
         seeds.fgH,
         seeds.fgS,
         seeds.fgL + seeds.fgLDelta * factor,
-    ] as ColourTriple;
-
-    return defs;
-}
-
-function addTopMenuColours(
-    defs: ColourDefinitions,
-    seeds: ColourSeeds,
-    hue_offset: number,
-    name: string,
-): ColourDefinitions {
-    defs[`bg_${name}`] = [
-        seeds.hue + hue_offset,
-        seeds.sat,
-        defs["bg_darker_2"]![L],
-    ] as ColourTriple;
-    defs[`bg_${name}_active`] = [
-        seeds.hue + hue_offset,
-        seeds.sat + 80,
-        defs["bg_darker_2"]![L],
-    ] as ColourTriple;
-    defs[`fg_${name}`] = [
-        seeds.hue + hue_offset,
-        seeds.sat,
-        seeds.clockFgL,
-    ] as ColourTriple;
-    defs[`fg_${name}_active`] = [
-        seeds.hue + hue_offset,
-        seeds.sat + 80,
-        seeds.clockFgL,
     ] as ColourTriple;
 
     return defs;
