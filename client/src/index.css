@@ -2073,8 +2073,8 @@ input:required {
 /* compacted list: squish the elements together as comma separated items */
 
 .compacted-list {
-    padding-left: 1.5rem;
-    width: 100% !important;
+    width: 100%;
+    padding-left: 0;
 }
 
 .compacted-list > li {
@@ -2093,8 +2093,8 @@ input:required {
 /* standard list: every element is on a separate line */
 
 .standard-list {
-    padding-left: 1rem !important;
-    width: 100% !important;
+    padding-left: 0;
+    width: 100%;
 }
 
 .standard-list > li {
@@ -2410,6 +2410,10 @@ input:required {
 
     .pagination-top-selector {
         justify-content: center;
+    }
+
+    .front-page-pusher {
+        padding: 1rem 0.5rem;
     }
 
     /* without this modfified padding calc there is a slight horizontal scroll on tablets */
