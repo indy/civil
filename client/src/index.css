@@ -738,6 +738,7 @@ h1 {
 .previewer-invisible {
     opacity: 0;
     max-height: 0;
+    visibility: hidden;
 }
 
 .previewer-visible {
