@@ -39,7 +39,8 @@ export default function ViewBookmark({ bookmark }: { bookmark: Bookmark }) {
         AppStateChange.hidePreviewDeck({ deckId: slimDeck.id });
     }
 
-    function clickedDelete() {
+    function clickedDelete(e: Event) {
+        e.stopPropagation();
         deleteBookmark(bookmark.id);
     }
 
