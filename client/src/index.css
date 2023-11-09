@@ -1528,7 +1528,7 @@ textarea {
     padding-left: 0;
 }
 
-#bookmark-results {
+#bookmarks {
     background: var(--bg-lighter-1);
     border: 0.1rem solid var(--fg-lighter-2);
     border-radius: var(--ui-element-border-radius);
@@ -1537,23 +1537,27 @@ textarea {
     padding-left: 0;
 }
 
-.bookmark-result {
+.bookmark-text {
+    padding-left: 1rem;
+}
+
+.c-view-bookmark {
     background: var(--bg);
     display: flex;
     align-items: center;
     flex-direction: row;
     padding: 0.5rem 1rem 0.5rem 1rem;
 }
-.bookmark-result:hover {
+.c-view-bookmark:hover {
     background: var(--bg-darker-3);
 }
 
-.bookmark-result a {
+.c-view-bookmark a {
     display: inline-block;
     padding-left: 1rem;
 }
 
-.bookmark-result-remove:hover {
+.c-view-bookmark-remove:hover {
     background: var(--bg-lighter-1);
 }
 

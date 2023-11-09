@@ -21,7 +21,6 @@ type Props = {
     extraClasses?: string;
     onClick?: () => void;
     children?: ComponentChildren;
-    alwaysLink?: boolean;
 };
 
 export default function DeckLink({
@@ -29,7 +28,6 @@ export default function DeckLink({
     extraClasses,
     onClick,
     children,
-    alwaysLink,
 }: Props) {
     const appState = getAppState();
 
@@ -68,7 +66,7 @@ export default function DeckLink({
     let klass = `${tc} ${ec} pigment-fg-${dk}`;
 
     let elem: any;
-    if (!alwaysLink && appState.mode.value === CivilMode.BookmarkLinks) {
+    if (appState.mode.value === CivilMode.BookmarkLinks) {
         klass += " bookmarkmode-active";
         elem = (
             <span class={klass} onClick={bookmarkModeClicked}>
@@ -78,7 +76,7 @@ export default function DeckLink({
                 {slimDeck.title}
             </span>
         );
-    } else if (!alwaysLink && appState.mode.value !== CivilMode.View) {
+    } else if (appState.mode.value !== CivilMode.View) {
         elem = (
             <span class={klass}>
                 {children}

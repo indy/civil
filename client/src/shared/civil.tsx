@@ -27,15 +27,14 @@ export function isCivilModeAllowed(state: State, mode: CivilMode): boolean {
             return !onTopLevelPage;
         case CivilMode.Edit:
             return !onTopLevelPage;
-        case CivilMode.Refs:
-            {
-                let onSearchPage = false;
-                if (urlParts[1]) {
-                    onSearchPage = urlParts[1].startsWith("search");
-                }
-                // can also add refs to notes returned in search results
-                return !onTopLevelPage || onSearchPage;
+        case CivilMode.Refs: {
+            let onSearchPage = false;
+            if (urlParts[1]) {
+                onSearchPage = urlParts[1].startsWith("search");
             }
+            // can also add refs to notes returned in search results
+            return !onTopLevelPage || onSearchPage;
+        }
         case CivilMode.Memorise:
             return !onTopLevelPage;
         case CivilMode.AddAbove:

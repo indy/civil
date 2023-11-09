@@ -2,27 +2,14 @@ import type { Bookmark } from "../types";
 
 import { AppStateChange, getAppState } from "../app-state";
 
-import { deleteBookmark } from "../shared/bookmarks";
-
-import DeckLink from "./deck-link";
-import { svgChevronDown, svgChevronUp, svgX } from "./svg-icons";
+import { svgChevronDown, svgChevronUp } from "./svg-icons";
+import ViewBookmark from "./view-bookmark";
 
 export default function Bookmarks() {
     const appState = getAppState();
 
     function buildBookmark(bookmark: Bookmark) {
-        function clickedDelete() {
-            deleteBookmark(bookmark.id);
-        }
-
-        return (
-            <li key={bookmark.id} class="bookmark-result">
-                <div class="bookmark-result-remove" onClick={clickedDelete}>
-                    {svgX()}
-                </div>
-                <DeckLink slimDeck={bookmark.deck} alwaysLink />
-            </li>
-        );
+        return <ViewBookmark bookmark={bookmark} />;
     }
 
     function clickedToggle() {
@@ -34,7 +21,7 @@ export default function Bookmarks() {
         return (
             <div id="bookmark-component">
                 {!appState.bookmarksMinimised.value && (
-                    <ul id="bookmark-results">{bookmarks}</ul>
+                    <ul id="bookmarks">{bookmarks}</ul>
                 )}
                 {appState.bookmarksMinimised.value ? (
                     <div class="bookmark-menu">
