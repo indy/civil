@@ -1104,14 +1104,18 @@ mark {
 }
 
 .right-margin-number:after {
-    content: counters(right-margin-counter, " ", georgian) " ";
+    font-weight: bolder;
+    color: var(--numbered-side);
+    content: counter(right-margin-counter, lower-roman);
     font-size: 1rem;
     top: -0.5rem;
     left: 0.1rem;
 }
 
 .right-margin-numbered:before {
-    content: counters(right-margin-counter, " ", georgian) " ";
+    color: var(--numbered-side);
+    font-weight: bolder;
+    content: counter(right-margin-counter, lower-roman);
     margin-right: 0.5rem;
 }
 

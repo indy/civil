@@ -200,7 +200,11 @@ function generateColourDefs(seeds: ColourSeeds): ColourDefinitions {
             seeds.colouredTextL,
         ] as ColourTriple,
         highlight: [85, 100, 90] as ColourTriple,
-
+        numbered_side: [
+            15.1,
+            seeds.colouredTextS,
+            seeds.colouredTextL,
+        ] as ColourTriple,
         searched_text: [10, 100, 80] as ColourTriple,
         red_text: [
             10,
