@@ -903,8 +903,8 @@ blockquote {
 blockquote .right-margin-numbered,
 blockquote .right-margin,
 blockquote .right-margin-scribble {
-    margin-right: -70%;
-    min-width: 59%;
+    margin-right: -62%;
+    min-width: 52%;
     text-align: left;
 }
 
