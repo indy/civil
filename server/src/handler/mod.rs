@@ -35,6 +35,7 @@ pub mod dialogues;
 pub mod events;
 pub mod graph;
 pub mod ideas;
+pub mod interval;
 pub mod memorise;
 pub mod notes;
 pub mod people;

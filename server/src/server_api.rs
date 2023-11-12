@@ -22,6 +22,7 @@ use crate::handler::dialogues;
 use crate::handler::events;
 use crate::handler::graph;
 use crate::handler::ideas;
+use crate::handler::interval;
 use crate::handler::memorise;
 use crate::handler::notes;
 use crate::handler::people;
@@ -65,6 +66,10 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
                 .route("/summarize/{id}", post().to(decks::summarize))
                 .route("/preview/{id}", get().to(decks::preview)),
         )
+        .service(scope("/interval").route(
+            "points-within-years/{lower}/{upper}",
+            get().to(interval::get_points),
+        ))
         .service(
             scope("/users")
                 .route("/ui_config", put().to(users::edit_ui_config))

@@ -22,6 +22,9 @@ use crate::interop::Key;
 use rusqlite::{params, Row};
 use std::fmt;
 
+#[allow(unused_imports)]
+use tracing::error;
+
 impl fmt::Display for PointKind {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
@@ -85,6 +88,73 @@ pub(crate) fn all(
                 and p.deck_id = d.id
          order by sortdate",
         params![&user_id, &deck_id],
+    )
+}
+
+fn year_as_date_string(year: i32) -> String {
+    let mut res;
+
+    if year >= 0 {
+        res = year.to_string() + "-01-01";
+
+        if (100..1000).contains(&year) {
+            res = "0".to_owned() + &res;
+        } else if (10..100).contains(&year) {
+            res = "00".to_owned() + &res;
+        } else if (0..10).contains(&year) {
+            res = "000".to_owned() + &res;
+        }
+    } else {
+        res = (-year).to_string() + "-01-01";
+
+        if year > -10 && year < 0 {
+            res = "-00".to_owned() + &res;
+        } else if year > -100 && year < -9 {
+            res = "-0".to_owned() + &res;
+        } else if year > -1000 && year < -99 {
+            res = "-".to_owned() + &res;
+        } else {
+            error!("year given to year_as_date_string is too old: {}", year);
+        }
+    }
+
+    res
+}
+
+pub(crate) fn all_points_within_interval(
+    sqlite_pool: &SqlitePool,
+    user_id: Key,
+    lower: i32,
+    upper: i32,
+) -> crate::Result<Vec<Point>> {
+    let conn = sqlite_pool.get()?;
+
+    let lower_year = year_as_date_string(lower);
+    let upper_year = year_as_date_string(upper + 1);
+
+    sqlite::many(
+        &conn,
+        "select p.id,
+                p.kind,
+                p.title,
+                p.font,
+                p.location_textual,
+                p.date_textual,
+                coalesce(date(p.exact_realdate), date(p.lower_realdate)) as date,
+                d.id as deck_id,
+                d.name as deck_name,
+                d.kind as deck_kind,
+                d.insignia as deck_insignia,
+                d.font as deck_font,
+                d.impact as deck_impact,
+                coalesce(p.exact_realdate, p.lower_realdate) as sortdate
+         from   points p, decks d
+         where  date(coalesce(p.exact_realdate, p.upper_realdate)) >= ?2
+                and date(coalesce(p.exact_realdate, p.lower_realdate)) < ?3
+                and p.deck_id = d.id
+                and d.user_id = ?1
+         order by sortdate",
+        params![&user_id, &lower_year, &upper_year],
     )
 }
 

@@ -31,6 +31,7 @@ import SegmentDeckRefs from "./segment-deck-refs";
 import SegmentGraph from "./segment-graph";
 import SegmentHits from "./segment-hits";
 import SegmentNotes from "./segment-notes";
+import SegmentPoints from "./segment-points";
 import SegmentSearchResults from "./segment-search-results";
 import TopMatter from "./top-matter";
 import useDeckManager from "./use-deck-manager";
@@ -162,12 +163,19 @@ function CivEvent({ path, id }: { path?: string; id?: string }) {
                 />
                 <SegmentArrivals deck={deck} />
                 <SegmentSearchResults slimdeck={deck as SlimDeck} />
+
+                {eventHasDuration(deck) && <SegmentPoints deck={deck} />}
+
                 <SegmentGraph deck={deck} />
             </article>
         );
     } else {
         return <article></article>;
     }
+}
+
+function eventHasDuration(deck: DeckEvent): boolean {
+    return !!deck.lowerDate && !!deck.upperDate;
 }
 
 type EventUpdaterProps = {

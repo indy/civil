@@ -274,7 +274,7 @@ function Person({ path, id }: { path?: string; id?: string }) {
 
                 <SegmentSearchResults slimdeck={deck as SlimDeck} />
                 {hasKnownLifespan && (
-                    <SegmentPoints
+                    <SegmentPersonPoints
                         person={deck}
                         deckManager={deckManager}
                         showAddPointForm={appState.showAddPointForm.value}
@@ -401,7 +401,7 @@ function PersonPoint({
     }
 }
 
-function SegmentPoints({
+function SegmentPersonPoints({
     person,
     deckManager,
     showAddPointForm,
@@ -461,7 +461,7 @@ function SegmentPoints({
             />
         );
     }
-
+    // console.log(person.points);
     let filteredPoints = person.points || [];
     if (onlyThisPerson) {
         filteredPoints = filteredPoints.filter((e) => e.deckId === deckId);

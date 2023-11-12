@@ -203,6 +203,12 @@ export type Point = {
     compDate: Date;
 };
 
+export type PointsWithinYears = {
+    lowerYear: number;
+    upperYear: number;
+    points: Array<Point>;
+};
+
 export type FlashCard = {
     // received from server
     //

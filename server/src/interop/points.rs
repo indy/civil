@@ -81,3 +81,11 @@ impl FromSql for PointKind {
         }
     }
 }
+
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PointsWithinYears {
+    pub lower_year: i32,
+    pub upper_year: i32,
+    pub points: Vec<Point>,
+}
