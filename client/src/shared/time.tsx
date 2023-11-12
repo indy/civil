@@ -322,6 +322,45 @@ export function daysUntil(date: string) {
     return Math.round(deltaDays);
 }
 
+// this is shitty code, could just save these booleans server side
+//
+export function calcIsDateApprox(dateTextual: string | undefined): boolean {
+    if (!dateTextual) {
+        return false;
+    }
+    return dateTextual.startsWith("c.") || dateTextual.startsWith("Approx");
+}
+
+// this is shitty code, could just save these booleans server side
+//
+export function calcRoundToYear(dateTextual: string | undefined): boolean {
+    if (!dateTextual) {
+        return false;
+    }
+
+    // single date given:
+    //
+    // optional: start with a "c. "
+    // upto 4 digits
+    // optional: end with a BC
+    if (/^(c. )?(\d{1,4})(BC)?$/.exec(dateTextual)) {
+        return true;
+    }
+
+    // date range is given without approx:
+    //
+    if (/^(Between )?(\d{1,4})(BC)? /.exec(dateTextual)) {
+        return true;
+    }
+    // date range is given with approx:
+    //
+    if (/^(Approx. between )?(\d{1,4})(BC)? /.exec(dateTextual)) {
+        return true;
+    }
+
+    return false;
+}
+
 function textualMonth(month: number) {
     switch (month) {
         case 1:

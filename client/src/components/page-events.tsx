@@ -9,6 +9,8 @@ import Net from "../shared/net";
 import {
     asHumanReadableDate,
     asHumanReadableDateRange,
+    calcIsDateApprox,
+    calcRoundToYear,
     parseDateStringAsTriple,
     parseDateStringAsYearOnly,
     normaliseDateString,
@@ -216,9 +218,10 @@ function EventUpdater({ event, onUpdate, onCancel }: EventUpdaterProps) {
         upperDate: event.upperDate,
         dateFuzz: event.dateFuzz,
 
-        isDateApprox: false,
-        roundToYear: false,
+        isDateApprox: calcIsDateApprox(event.dateTextual),
+        roundToYear: calcRoundToYear(event.dateTextual),
     };
+
     const [localState, setLocalState] = useState(initialState);
 
     function setLocalStateDateChange(s: LocalState) {
