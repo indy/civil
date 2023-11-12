@@ -270,9 +270,7 @@ export function asHumanReadableDateRange(
     if (isApprox) {
         res += `Approx. ${firstWord} `;
     } else {
-        if (!roundToYear) {
-            res += `${capitalise(firstWord)} `;
-        }
+        res += `${capitalise(firstWord)} `;
     }
 
     if (lowerDate) {
