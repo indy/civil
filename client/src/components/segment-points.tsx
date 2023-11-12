@@ -1,18 +1,14 @@
-import { Link } from "preact-router";
 import { useEffect, useState } from "preact/hooks";
 
-import { DeckKind, RenderingDeckPart } from "../enums";
-
-import type { DeckEvent, PointsWithinYears, Point } from "../types";
+import { DeckKind } from "../enums";
+import type { SlimDeck, DeckEvent, PointsWithinYears, Point } from "../types";
 
 import Net from "../shared/net";
 import { parseDateStringAsYearOnly } from "../shared/time";
-import { buildUrl } from "../shared/civil";
-import { fontClass } from "../shared/font";
-import { deckKindToResourceString } from "../shared/deck";
 
+import { CivContainer, CivMain } from "./civil-layout";
 import RollableSegment from "./rollable-segment";
-import { svgBlank } from "./svg-icons";
+import DeckLink from "./deck-link";
 
 export default function SegmentPoints({ deck }: { deck: DeckEvent }) {
     let x: Array<Point> = [];
@@ -41,44 +37,48 @@ export default function SegmentPoints({ deck }: { deck: DeckEvent }) {
     return (
         <RollableSegment
             extraClasses="c-segment-points"
-            heading="All points occuring during the event"
+            heading="Other events occuring during this time"
             font={deck.font}
             initiallyRolledUp={true}
         >
-            {ps}
+            <CivContainer>
+                <CivMain>
+                    <ul class="unstyled-list hug-left">{ps}</ul>
+                </CivMain>
+            </CivContainer>
         </RollableSegment>
     );
 }
 
 function MiniPoint({ point }: { point: Point }) {
-    let klass = fontClass(point.font, RenderingDeckPart.Heading);
-
+    let linkText: string = "";
     let pointText = `${point.title} ${point.dateTextual}`;
     if (point.locationTextual) {
         pointText += ` ${point.locationTextual}`;
     }
+    if (point.deckKind === DeckKind.Event) {
+        linkText = pointText;
+    } else {
+        linkText = `${point.deckTitle} - ${pointText}`;
+    }
 
-    klass += ` point`;
-
-    const dk: string = deckKindToResourceString(point.deckKind);
-    const linkColour = `pigment-fg-${dk}`;
-
-    // don't apply to events since their single point will have the same text as the deck title
+    // construct a 'fake' SlimDeck based on point data
+    // it's title is more informative than a normal SlimDeck
     //
-    let linkText =
-        point.deckKind === DeckKind.Event
-            ? pointText
-            : `${point.deckTitle} - ${pointText}`;
+    const slimDeck: SlimDeck = {
+        id: point.deckId,
+        createdAt: "",
+        title: linkText,
+        deckKind: point.deckKind,
+        graphTerminator: false,
+        insignia: point.deckInsignia,
+        font: point.deckFont,
+        impact: point.deckImpact,
+    };
 
     return (
-        <li class={klass}>
-            <Link
-                class={linkColour}
-                href={buildUrl(point.deckKind, point.deckId)}
-            >
-                {svgBlank()}
-                {linkText}
-            </Link>
+        <li class="point">
+            <DeckLink slimDeck={slimDeck} />
         </li>
     );
 }
