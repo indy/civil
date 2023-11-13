@@ -1,4 +1,3 @@
-import { Link } from "preact-router";
 import { useState } from "preact/hooks";
 
 import {
@@ -19,16 +18,16 @@ import type {
 
 import { AppStateChange, getAppState, immutableState } from "../app-state";
 
-import { buildUrl } from "../shared/civil";
 import { fontClass } from "../shared/font";
 import Net from "../shared/net";
 import { calcAgeInYears, dateStringAsTriple } from "../shared/time";
-import { deckKindToResourceString } from "../shared/deck";
+import { slimDeckFromPoint } from "../shared/deck";
 
 import CivilButton from "./civil-button";
 import CivilButtonCreateDeck from "./civil-button-create-deck";
 import { CivContainer, CivLeft, CivMain } from "./civil-layout";
 import CivilTabButton from "./civil-tab-button";
+import DeckLink from "./deck-link";
 import DeckUpdater from "./deck-updater";
 import DeleteDeckConfirmation from "./delete-deck-confirmation";
 import { HeadedSegment } from "./headed-segment";
@@ -344,58 +343,44 @@ function PersonPoint({
 }) {
     let [expanded, setExpanded] = useState(false);
 
-    function onClicked(e: Event) {
-        e.preventDefault();
-        setExpanded(!expanded);
-    }
-
     let ageText = point.age! > 0 ? `${point.age}` : "";
-    let klass = fontClass(point.font, RenderingDeckPart.Heading);
-
-    let pointText = `${point.title} ${point.dateTextual}`;
-    if (point.locationTextual) {
-        pointText += ` ${point.locationTextual}`;
-    }
 
     if (point.deckId === deckId) {
+
+        function onClicked(e: Event) {
+            e.preventDefault();
+            setExpanded(!expanded);
+        }
+
+        let klass = fontClass(point.font, RenderingDeckPart.Heading);
         klass += " relevent-point";
+
+        let pointText = `${point.title} ${point.dateTextual}`;
+        if (point.locationTextual) {
+            pointText += ` ${point.locationTextual}`;
+        }
+
         return (
             <li class={klass}>
                 <span class="point-age">{ageText}</span>
                 <span onClick={onClicked}>
-                    {expanded
-                        ? svgCaretDown()
-                        : hasNotes
-                        ? svgCaretRight()
-                        : svgCaretRightEmpty()}
-                </span>
+                {expanded
+                    ? svgCaretDown()
+                    : hasNotes
+                    ? svgCaretRight()
+                    : svgCaretRightEmpty()}
+            </span>
                 {point.deckTitle} - {pointText}
-                {expanded && <div class="point-notes">{passage}</div>}
+            {expanded && <div class="point-notes">{passage}</div>}
             </li>
         );
     } else {
-        klass += ` point`;
-
-        const dk: string = deckKindToResourceString(point.deckKind);
-        const linkColour = `pigment-fg-${dk}`;
-
-        // don't apply to events since their single point will have the same text as the deck title
-        //
-        let linkText =
-            point.deckKind === DeckKind.Event
-                ? pointText
-                : `${point.deckTitle} - ${pointText}`;
-
         return (
-            <li class={klass}>
-                <Link
-                    class={linkColour}
-                    href={buildUrl(point.deckKind, point.deckId)}
-                >
+            <li class="point">
+                <DeckLink slimDeck={slimDeckFromPoint(point)}>
                     <span class="point-age">{ageText}</span>
                     {svgBlank()}
-                    {linkText}
-                </Link>
+                </DeckLink>
             </li>
         );
     }
@@ -461,7 +446,7 @@ function SegmentPersonPoints({
             />
         );
     }
-    // console.log(person.points);
+
     let filteredPoints = person.points || [];
     if (onlyThisPerson) {
         filteredPoints = filteredPoints.filter((e) => e.deckId === deckId);

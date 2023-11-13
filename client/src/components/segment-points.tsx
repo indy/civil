@@ -1,10 +1,10 @@
 import { useEffect, useState } from "preact/hooks";
 
-import { DeckKind } from "../enums";
-import type { SlimDeck, DeckEvent, PointsWithinYears, Point } from "../types";
+import type { DeckEvent, PointsWithinYears, Point } from "../types";
 
 import Net from "../shared/net";
 import { parseDateStringAsYearOnly } from "../shared/time";
+import { slimDeckFromPoint } from "../shared/deck";
 
 import { CivContainer, CivMain } from "./civil-layout";
 import RollableSegment from "./rollable-segment";
@@ -32,14 +32,17 @@ export default function SegmentPoints({ deck }: { deck: DeckEvent }) {
 
     const ps: Array<any> = points
         .filter((p) => p.deckId !== deck.id)
-        .map((dp) => <MiniPoint key={dp.id} point={dp} />);
+        .map((dp) => (
+            <li class="point" key={dp.id}>
+                <DeckLink slimDeck={slimDeckFromPoint(dp)} />
+            </li>
+        ));
 
     return (
         <RollableSegment
             extraClasses="c-segment-points"
-            heading="Other events occuring during this time"
+            heading="Other events during this time"
             font={deck.font}
-            initiallyRolledUp={true}
         >
             <CivContainer>
                 <CivMain>
@@ -47,38 +50,5 @@ export default function SegmentPoints({ deck }: { deck: DeckEvent }) {
                 </CivMain>
             </CivContainer>
         </RollableSegment>
-    );
-}
-
-function MiniPoint({ point }: { point: Point }) {
-    let linkText: string = "";
-    let pointText = `${point.title} ${point.dateTextual}`;
-    if (point.locationTextual) {
-        pointText += ` ${point.locationTextual}`;
-    }
-    if (point.deckKind === DeckKind.Event) {
-        linkText = pointText;
-    } else {
-        linkText = `${point.deckTitle} - ${pointText}`;
-    }
-
-    // construct a 'fake' SlimDeck based on point data
-    // it's title is more informative than a normal SlimDeck
-    //
-    const slimDeck: SlimDeck = {
-        id: point.deckId,
-        createdAt: "",
-        title: linkText,
-        deckKind: point.deckKind,
-        graphTerminator: false,
-        insignia: point.deckInsignia,
-        font: point.deckFont,
-        impact: point.deckImpact,
-    };
-
-    return (
-        <li class="point">
-            <DeckLink slimDeck={slimDeck} />
-        </li>
     );
 }

@@ -1,7 +1,7 @@
 import { route } from "preact-router";
 
 import { DeckKind } from "../enums";
-import type { SlimDeck } from "../types";
+import type { SlimDeck, Point } from "../types";
 
 import Net from "../shared/net";
 
@@ -91,6 +91,35 @@ export function sortByDeckKindThenName(a: SlimDeck, b: SlimDeck): number {
 
     // titles must be equal
     return 0;
+}
+
+export function slimDeckFromPoint(point: Point): SlimDeck {
+    let linkText: string = "";
+    let pointText = `${point.title} ${point.dateTextual}`;
+    if (point.locationTextual) {
+        pointText += ` ${point.locationTextual}`;
+    }
+    if (point.deckKind === DeckKind.Event) {
+        linkText = pointText;
+    } else {
+        linkText = `${point.deckTitle} - ${pointText}`;
+    }
+
+    // construct a 'fake' SlimDeck based on point data
+    // it's title is more informative than a normal SlimDeck
+    //
+    const slimDeck: SlimDeck = {
+        id: point.deckId,
+        createdAt: "",
+        title: linkText,
+        deckKind: point.deckKind,
+        graphTerminator: false,
+        insignia: point.deckInsignia,
+        font: point.deckFont,
+        impact: point.deckImpact,
+    };
+
+    return slimDeck;
 }
 
 function deckKindOrderValue(d: DeckKind): number {

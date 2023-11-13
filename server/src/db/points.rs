@@ -214,7 +214,6 @@ pub(crate) fn all_points_during_life(
                                                                       where  point_died.deck_id = ?2
                                                                              and point_died.kind = 'point_end'), CURRENT_DATE)
                 and p.deck_id = d.id
-                and d.impact > 0
                 and d.id <> ?2
                 and d.user_id = ?1
          order by sortdate",
