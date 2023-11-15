@@ -8,6 +8,7 @@ import {
     deckKindToSingularString,
 } from "../shared/deck";
 import { capitalise } from "../shared/english";
+import { impactAsText } from "../shared/impact";
 import Net from "../shared/net";
 
 import CivilButton from "./civil-button";
@@ -97,23 +98,6 @@ const DeckUpdater = <T extends FatDeck>({
             ...localState,
             font,
         });
-    }
-
-    function impactAsText(impact: number): string {
-        switch (impact) {
-            case 0:
-                return "Unimportant";
-            case 1:
-                return "Noteworthy";
-            case 2:
-                return "Important";
-            case 3:
-                return "World Changing";
-            case 4:
-                return "Humanity Changing";
-            default:
-                return "unknown impact value!!!!";
-        }
     }
 
     function onImpactChange(event: Event) {

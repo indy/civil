@@ -340,7 +340,7 @@ pub(crate) fn get_or_create(
         false,
         0,
         Font::LibreBaskerville,
-        0,
+        1,
     )?;
 
     let article_extras = match origin {

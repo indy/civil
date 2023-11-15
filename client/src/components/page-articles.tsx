@@ -4,6 +4,7 @@ import { DeckKind, DeckManagerFlags, NoteKind } from "../enums";
 import type { DeckArticle, DM, Note, ProtoArticle, SlimDeck } from "../types";
 
 import { buildUrl } from "../shared/civil";
+import { impactAsText } from "../shared/impact";
 import Net from "../shared/net";
 import { formattedDate } from "../shared/time";
 
@@ -25,9 +26,15 @@ import SegmentNotes from "./segment-notes";
 import SegmentSearchResults from "./segment-search-results";
 import TopMatter from "./top-matter";
 import useDeckManager from "./use-deck-manager";
-import { CivContainer, CivForm, CivLeftLabel, CivMain } from "./civil-layout";
+import {
+    CivContainer,
+    CivForm,
+    CivLeftLabel,
+    CivMain,
+    CivRight,
+} from "./civil-layout";
 import { HeadedSegment } from "./headed-segment";
-import { StarRatingPartial } from "./star-rating";
+import { ImpactPartial } from "./impact";
 import { listItemArticle } from "./list-items";
 
 function Articles({ path }: { path?: string }) {
@@ -155,7 +162,7 @@ function Article({ path, id }: { path?: string; id?: string }) {
                         </div>
                     )}
                     <div>Added: {formattedDate(deck.createdAt)}</div>
-                    <StarRatingPartial rating={deck.impact} />
+                    <ImpactPartial impact={deck.impact} />
                 </TopMatter>
 
                 {deckManager.isShowingUpdateForm() && (
@@ -299,15 +306,9 @@ function ArticleUpdater({ article, onUpdate, onCancel }: ArticleUpdaterProps) {
         }
     }, [article]);
 
-    function onRatingChange(event: Event) {
+    function onImpactChange(event: Event) {
         if (event.target instanceof HTMLInputElement) {
-            const target = event.target;
-            const name = target.name;
-            const value = target.value;
-
-            if (name === "rating") {
-                setRating(parseInt(value, 10));
-            }
+            setRating(event.target.valueAsNumber);
         }
     }
 
@@ -420,18 +421,18 @@ function ArticleUpdater({ article, onUpdate, onCancel }: ArticleUpdaterProps) {
                 />
             </CivMain>
 
-            <CivLeftLabel forId="rating">Rating (0..5)</CivLeftLabel>
-
+            <CivLeftLabel>Impact</CivLeftLabel>
             <CivMain>
                 <input
-                    id="rating"
-                    type="number"
-                    name="rating"
-                    value={rating}
+                    type="range"
                     min="0"
-                    max="5"
-                    onInput={onRatingChange}
+                    max="4"
+                    value={rating}
+                    class="slider"
+                    id="impactSlider"
+                    onInput={onImpactChange}
                 />
+                <CivRight>{impactAsText(rating)}</CivRight>
             </CivMain>
 
             <CivLeftLabel>Font</CivLeftLabel>

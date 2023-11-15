@@ -16,11 +16,7 @@ import { capitalise } from "../shared/english";
 import CivilButtonCreateDeck from "./civil-button-create-deck";
 import CivilTabButton from "./civil-tab-button";
 import { HeadedSegment } from "./headed-segment";
-import {
-    listItemArticle,
-    listItemSlimDeckStarless,
-    listItemSlimDeck,
-} from "./list-items";
+import { listItemArticle, listItemSlimDeck } from "./list-items";
 import Pagination from "./pagination";
 
 export default function Paginator({}) {
@@ -125,22 +121,22 @@ function DeckPaginator({ deckKind }: DeckPaginatorProps) {
             renderItem = listItemArticle;
             break;
         case DeckKind.Person:
-            renderItem = listItemSlimDeckStarless;
+            renderItem = listItemSlimDeck;
             break;
         case DeckKind.Event:
-            renderItem = listItemSlimDeckStarless;
+            renderItem = listItemSlimDeck;
             break;
         case DeckKind.Idea:
-            renderItem = listItemSlimDeckStarless;
+            renderItem = listItemSlimDeck;
             break;
         case DeckKind.Dialogue:
-            renderItem = listItemSlimDeckStarless;
+            renderItem = listItemSlimDeck;
             break;
         case DeckKind.Quote:
-            renderItem = listItemSlimDeckStarless;
+            renderItem = listItemSlimDeck;
             break;
         case DeckKind.Timeline:
-            renderItem = listItemSlimDeckStarless;
+            renderItem = listItemSlimDeck;
             break;
     }
 

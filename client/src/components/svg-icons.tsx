@@ -194,7 +194,7 @@ M5.29289 5.29289C5.68342 4.90237 6.31658 4.90237 6.70711 5.29289L12 10.5858L17.2
 }
 
 // scaled by 0.8 and then translates down by 4 or 5
-export function svgRatingStar() {
+export function svgStar() {
     return (
         <svg
             xmlns="http://www.w3.org/2000/svg"

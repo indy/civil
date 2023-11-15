@@ -1,6 +1,6 @@
 import type { DeckArticle, SlimDeck } from "../types";
 
-import { StarRatingWithinListing } from "./star-rating";
+import { ImpactWithinListing } from "./impact";
 import DeckLink from "./deck-link";
 
 export function listItemSlimDeck(slimdeck: SlimDeck, i: number) {
@@ -8,17 +8,7 @@ export function listItemSlimDeck(slimdeck: SlimDeck, i: number) {
 
     return (
         <li class={klass}>
-            <StarRatingWithinListing rating={slimdeck.impact} />
-            <DeckLink slimDeck={slimdeck} />
-        </li>
-    );
-}
-
-export function listItemSlimDeckStarless(slimdeck: SlimDeck, i: number) {
-    let klass = i % 2 ? "stripe-a" : "stripe-b";
-
-    return (
-        <li class={klass}>
+            <ImpactWithinListing impact={slimdeck.impact} />
             <DeckLink slimDeck={slimdeck} />
         </li>
     );
@@ -33,7 +23,7 @@ export function listItemArticle(slimdeck: SlimDeck, i: number) {
 
     return (
         <li class={klass}>
-            <StarRatingWithinListing rating={article.impact} />
+            <ImpactWithinListing impact={article.impact} />
             <DeckLink slimDeck={article} />
             {hasDesc && (
                 <span class="descriptive-scribble">

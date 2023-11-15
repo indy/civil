@@ -4,6 +4,7 @@ import { DeckKind, DeckManagerFlags, Font } from "../enums";
 import type { DeckEvent, DM, GeoResult, SlimDeck, ProtoEvent } from "../types";
 
 import { geoGet, getLatitudeLongitude } from "../shared/geo";
+import { impactAsText } from "../shared/impact";
 import Net from "../shared/net";
 
 import {
@@ -390,23 +391,6 @@ function EventUpdater({ event, onUpdate, onCancel }: EventUpdaterProps) {
                 );
                 console.log(geoResult);
             }
-        }
-    }
-
-    function impactAsText(impact: number): string {
-        switch (impact) {
-            case 0:
-                return "Unimportant";
-            case 1:
-                return "Noteworthy";
-            case 2:
-                return "Important";
-            case 3:
-                return "World Changing";
-            case 4:
-                return "Humanity Changing";
-            default:
-                return "unknown impact value!!!!";
         }
     }
 

@@ -346,7 +346,6 @@ function PersonPoint({
     let ageText = point.age! > 0 ? `${point.age}` : "";
 
     if (point.deckId === deckId) {
-
         function onClicked(e: Event) {
             e.preventDefault();
             setExpanded(!expanded);
@@ -364,14 +363,14 @@ function PersonPoint({
             <li class={klass}>
                 <span class="point-age">{ageText}</span>
                 <span onClick={onClicked}>
-                {expanded
-                    ? svgCaretDown()
-                    : hasNotes
-                    ? svgCaretRight()
-                    : svgCaretRightEmpty()}
-            </span>
+                    {expanded
+                        ? svgCaretDown()
+                        : hasNotes
+                        ? svgCaretRight()
+                        : svgCaretRightEmpty()}
+                </span>
                 {point.deckTitle} - {pointText}
-            {expanded && <div class="point-notes">{passage}</div>}
+                {expanded && <div class="point-notes">{passage}</div>}
             </li>
         );
     } else {

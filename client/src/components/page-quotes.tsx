@@ -10,6 +10,7 @@ import {
     deckKindToHeadingString,
     deckKindToResourceString,
 } from "../shared/deck";
+import { impactAsText } from "../shared/impact";
 import Net from "../shared/net";
 import { sanitize, emptySearchResults } from "../shared/search";
 
@@ -118,7 +119,7 @@ function QuoteNew({ path }: { path?: string }) {
         deckKind: DeckKind.Quote,
         font: Font.English,
         graphTerminator: false,
-        impact: 0,
+        impact: 1,
         text: "",
         attribution: "",
     };
@@ -172,23 +173,6 @@ function QuoteNew({ path }: { path?: string }) {
             ...localState,
             font,
         });
-    }
-
-    function impactAsText(impact: number): string {
-        switch (impact) {
-            case 0:
-                return "Unimportant";
-            case 1:
-                return "Noteworthy";
-            case 2:
-                return "Important";
-            case 3:
-                return "World Changing";
-            case 4:
-                return "Humanity Changing";
-            default:
-                return "unknown impact value!!!!";
-        }
     }
 
     function onImpactChange(event: Event) {
@@ -366,7 +350,7 @@ function Quote({ path, id }: { path?: string; id?: string }) {
                     deckKind: DeckKind.Quote,
                     font: deckQuote.font,
                     graphTerminator: false,
-                    impact: 0, // isg fix this
+                    impact: 1, // isg fix this
                     text: deckQuote.text,
                     attribution: attribution,
                 };

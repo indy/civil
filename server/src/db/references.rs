@@ -115,7 +115,7 @@ pub(crate) fn update_references(
             false,
             0,
             Font::Serif,
-            0,
+            1,
         )?;
         sqlite::zero(
             &tx,

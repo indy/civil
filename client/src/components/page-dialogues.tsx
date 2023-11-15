@@ -21,8 +21,13 @@ import type {
 
 import { AppStateChange, getAppState } from "../app-state";
 
-import { buildUrl } from "../shared/civil";
+import {
+    deckKindToResourceString,
+    deckKindToSingularString,
+} from "../shared/deck";
+import { capitalise } from "../shared/english";
 import { fontForRole } from "../shared/font";
+import { impactAsText } from "../shared/impact";
 import Net from "../shared/net";
 
 import buildMarkup from "./build-markup";
@@ -45,12 +50,15 @@ import TopMatter from "./top-matter";
 import useDeckManager from "./use-deck-manager";
 import ViewRole from "./view-role";
 
+import FontSelector from "./font-selector";
+
 import {
+    CivMain,
     CivContainer,
-    CivForm,
     CivLeft,
     CivLeftLabel,
-    CivMain,
+    CivForm,
+    CivRight,
 } from "./civil-layout";
 
 type MessageChoice = {
@@ -443,46 +451,91 @@ function DialogueUpdater({
     onUpdate,
     onCancel,
 }: DialogueUpdaterProps) {
-    const [title, setTitle] = useState(dialogue.title || "");
-    const [insigniaId, setInsigniaId] = useState(dialogue.insignia || 0);
+    const initialState: ProtoDialogue = {
+        title: dialogue.title.trim(),
+        insignia: dialogue.insignia || 0,
+        deckKind: DeckKind.Dialogue,
+        font: dialogue.font,
+        graphTerminator: dialogue.graphTerminator,
+        impact: dialogue.impact,
+        aiKind: AiKind.OpenAIGpt35Turbo,
+        messages: [],
+    };
+    const [localState, setLocalState] = useState(initialState);
 
     useEffect(() => {
-        if (dialogue.title && dialogue.title !== "" && title === "") {
-            setTitle(dialogue.title);
-        }
-        if (dialogue.insignia !== undefined) {
-            setInsigniaId(dialogue.insignia);
-        }
+        setLocalState({
+            ...localState,
+            title: dialogue.title.trim(),
+            insignia: dialogue.insignia,
+            deckKind: dialogue.deckKind,
+            font: dialogue.font,
+            graphTerminator: dialogue.graphTerminator,
+            impact: dialogue.impact,
+            aiKind: dialogue.aiKind,
+            messages: dialogue.messages,
+        });
     }, [dialogue]);
 
-    function onContentChange(content: string, name: string) {
-        if (name === "title") {
-            setTitle(content);
-        }
+    function handleContentChange(title: string) {
+        setLocalState({
+            ...localState,
+            title,
+        });
     }
 
     function handleSubmit(event: Event) {
-        const data: ProtoDialogue = {
-            title: title.trim(),
-            insignia: insigniaId,
-            deckKind: DeckKind.Dialogue,
-            font: Font.Serif,
-            graphTerminator: false,
-            impact: 0, // isg fix this
-            aiKind: AiKind.OpenAIGpt35Turbo,
-            messages: [],
-        };
+        const data: ProtoDialogue = { ...localState };
+        data.title = data.title.trim();
 
-        const deckKind: DeckKind = DeckKind.Dialogue;
+        const resource = deckKindToResourceString(dialogue.deckKind);
 
-        const url = buildUrl(deckKind, dialogue.id, "/api");
-
-        Net.put<ProtoDialogue, DeckDialogue>(url, data).then((newDeck) => {
+        Net.put<ProtoDialogue, DeckDialogue>(
+            `/api/${resource}/${dialogue.id}`,
+            data,
+        ).then((newDeck) => {
             onUpdate(newDeck);
         });
 
         event.preventDefault();
     }
+
+    function handleCheckbox(event: Event) {
+        if (event.target instanceof HTMLInputElement) {
+            if (event.target.id === "graph-terminator") {
+                setLocalState({
+                    ...localState,
+                    graphTerminator: !localState.graphTerminator,
+                });
+            }
+        }
+    }
+
+    function setInsignia(insignia: number) {
+        setLocalState({
+            ...localState,
+            insignia,
+        });
+    }
+
+    function setFont(font: Font) {
+        setLocalState({
+            ...localState,
+            font,
+        });
+    }
+
+    function onImpactChange(event: Event) {
+        if (event.target instanceof HTMLInputElement) {
+            setLocalState({
+                ...localState,
+                impact: event.target.valueAsNumber,
+            });
+        }
+    }
+
+    const submitButtonText =
+        "Update " + capitalise(deckKindToSingularString(dialogue.deckKind));
 
     return (
         <CivForm onSubmit={handleSubmit}>
@@ -490,21 +543,57 @@ function DialogueUpdater({
             <CivMain>
                 <CivilInput
                     id="title"
-                    value={title}
-                    onContentChange={onContentChange}
+                    value={localState.title}
+                    onContentChange={handleContentChange}
                 />
             </CivMain>
 
             <CivLeftLabel extraClasses="icon-left-label">
                 Insignias
             </CivLeftLabel>
-
             <CivMain>
                 <InsigniaSelector
-                    insigniaId={insigniaId}
-                    onChange={setInsigniaId}
+                    insigniaId={localState.insignia}
+                    onChange={setInsignia}
                 />
             </CivMain>
+
+            <CivLeftLabel
+                extraClasses="graph-terminator-form-label"
+                forId="graph-terminator"
+            >
+                Graph Terminator
+            </CivLeftLabel>
+            <CivMain>
+                <input
+                    type="checkbox"
+                    id="graph-terminator"
+                    name="graph-terminator"
+                    onInput={handleCheckbox}
+                    checked={localState.graphTerminator}
+                />
+            </CivMain>
+
+            <CivLeftLabel>Font</CivLeftLabel>
+            <CivMain>
+                <FontSelector font={localState.font} onChangedFont={setFont} />
+            </CivMain>
+
+            <CivLeftLabel>Impact</CivLeftLabel>
+            <CivMain>
+                <input
+                    type="range"
+                    min="0"
+                    max="4"
+                    value={localState.impact}
+                    class="slider"
+                    id="impactSlider"
+                    onInput={onImpactChange}
+                />
+                <CivRight>{impactAsText(localState.impact)}</CivRight>
+            </CivMain>
+
+            <div class="vertical-spacer"></div>
 
             <CivMain>
                 <CivilButton extraClasses="dialog-cancel" onClick={onCancel}>
@@ -512,9 +601,8 @@ function DialogueUpdater({
                 </CivilButton>
                 <input
                     class="c-civil-button"
-                    id="dialogue-submit"
                     type="submit"
-                    value="Update Dialogue"
+                    value={submitButtonText}
                 />
             </CivMain>
         </CivForm>

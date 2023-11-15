@@ -152,6 +152,7 @@ pub(crate) fn all_points_within_interval(
          where  date(coalesce(p.exact_realdate, p.upper_realdate)) >= ?2
                 and date(coalesce(p.exact_realdate, p.lower_realdate)) < ?3
                 and p.deck_id = d.id
+                and d.impact > 0
                 and d.user_id = ?1
          order by sortdate",
         params![&user_id, &lower_year, &upper_year],
@@ -215,6 +216,7 @@ pub(crate) fn all_points_during_life(
                                                                              and point_died.kind = 'point_end'), CURRENT_DATE)
                 and p.deck_id = d.id
                 and d.id <> ?2
+                and d.impact > 0
                 and d.user_id = ?1
          order by sortdate",
         params![&user_id, &deck_id],

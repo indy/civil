@@ -58,7 +58,7 @@ pub(crate) fn get_or_create(
         false,
         0,
         Font::DeWalpergens,
-        0,
+        1,
     )?;
 
     tx.commit()?;

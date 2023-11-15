@@ -138,7 +138,7 @@ pub(crate) fn get_or_create(
         false,
         0,
         default_font,
-        0,
+        1,
     )?;
 
     let point_kind = String::from("point");
