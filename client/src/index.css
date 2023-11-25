@@ -779,9 +779,9 @@ h1 {
     border-left: var(--space-for-selectable-highlight) solid
         var(--fg-toolbar-memorise);
 }
-.selectable-hovering-add-above {
+.selectable-hovering-upper-insert {
     border-left: var(--space-for-selectable-highlight) solid
-        var(--fg-toolbar-add-above);
+        var(--fg-toolbar-upper-insert);
 }
 
 h2 {
@@ -2343,9 +2343,9 @@ input:required {
     color: var(--fg-toolbar-memorise);
     fill: var(--fg-toolbar-memorise);
 }
-.toolbar-add-above-colour {
-    color: var(--fg-toolbar-add-above);
-    fill: var(--fg-toolbar-add-above);
+.toolbar-upper-insert-colour {
+    color: var(--fg-toolbar-upper-insert);
+    fill: var(--fg-toolbar-upper-insert);
 }
 .toolbar-bookmark-links-colour {
     color: var(--fg-toolbar-bookmark);
@@ -2364,8 +2364,8 @@ input:required {
 .toolbar-item-selected-memorise {
     border: var(--ui-element-border-radius) solid var(--fg-toolbar-memorise) !important;
 }
-.toolbar-item-selected-add-above {
-    border: var(--ui-element-border-radius) solid var(--fg-toolbar-add-above) !important;
+.toolbar-item-selected-upper-insert {
+    border: var(--ui-element-border-radius) solid var(--fg-toolbar-upper-insert) !important;
 }
 .toolbar-item-selected-bookmark-links {
     border: var(--ui-element-border-radius) solid var(--fg-toolbar-bookmark) !important;

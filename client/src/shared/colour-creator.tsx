@@ -220,7 +220,7 @@ function generateColourDefs(seeds: ColourSeeds): ColourDefinitions {
         fg_toolbar_edit: [10, 80, 50] as ColourTriple,
         fg_toolbar_refs: [270, 80, 50] as ColourTriple,
         fg_toolbar_memorise: [170, 80, 50] as ColourTriple,
-        fg_toolbar_add_above: [210, 80, 50] as ColourTriple,
+        fg_toolbar_upper_insert: [210, 80, 50] as ColourTriple,
         fg_toolbar_bookmark: [70, 80, 50] as ColourTriple,
 
         graph_edge: [seeds.hue, seeds.sat, 70] as ColourTriple,

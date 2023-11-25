@@ -325,11 +325,12 @@ function Quote({ path, id }: { path?: string; id?: string }) {
     const quoteId: number = id ? parseInt(id, 10) : 0;
 
     useModalKeyboard(quoteId, (key: string) => {
+        console.log(key);
         switch (key) {
-            case "n":
+            case ".":
                 nextQuote(quoteId);
                 break;
-            case "p":
+            case ",":
                 previousQuote(quoteId);
                 break;
             case "j":
@@ -428,8 +429,8 @@ function Quote({ path, id }: { path?: string; id?: string }) {
                 </WhenNoPhysicalKeyboard>
 
                 <ModalKeyboardHelp>
-                    <pre>n: next quote</pre>
-                    <pre>p: previous quote</pre>
+                    <pre>,: previous quote</pre>
+                    <pre>.: next quote</pre>
                     <pre>j: jump to random quote</pre>
                 </ModalKeyboardHelp>
             </article>

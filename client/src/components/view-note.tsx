@@ -35,7 +35,7 @@ import useFlashcards from "./use-flashcards";
 enum ActionType {
     AddDeckReferencesUiShow,
     AddDecksCommit,
-    AddNoteAboveUiShow,
+    UpperInsertUiShow,
     DeletedNote,
     EditedFont,
     EditedNote,
@@ -54,7 +54,7 @@ enum ActionType {
 type LocalState = {
     addDeckReferencesUI: boolean;
     showFlashCardCreator: boolean;
-    addNoteAboveUI: boolean;
+    upperInsertUI: boolean;
     isEditingMarkup: boolean;
     note: Note;
     originalContent: string;
@@ -160,11 +160,11 @@ function reducer(state: LocalState, action: Action): LocalState {
 
             return newState;
         }
-        case ActionType.AddNoteAboveUiShow: {
+        case ActionType.UpperInsertUiShow: {
             const showUI = action.data as boolean;
             const newState: LocalState = {
                 ...state,
-                addNoteAboveUI: showUI,
+                upperInsertUI: showUI,
             };
 
             if (showUI) {
@@ -345,7 +345,7 @@ const ViewNote = <T extends FatDeck>({
     const initialState: LocalState = {
         addDeckReferencesUI: false,
         showFlashCardCreator: false,
-        addNoteAboveUI: false,
+        upperInsertUI: false,
         isEditingMarkup: false,
         note: { ...note },
         originalContent: note.content,
@@ -442,14 +442,14 @@ const ViewNote = <T extends FatDeck>({
         );
     }
 
-    function buildAddNoteAboveUI() {
+    function buildUpperInsertUI() {
         function onCancelled(e: Event) {
             e.preventDefault();
-            localDispatch(ActionType.AddNoteAboveUiShow, false);
+            localDispatch(ActionType.UpperInsertUiShow, false);
         }
 
         function onNoteCreated(allNotes: Notes) {
-            localDispatch(ActionType.AddNoteAboveUiShow, false);
+            localDispatch(ActionType.UpperInsertUiShow, false);
             onUpdateDeck({ ...parentDeck, notes: allNotes });
         }
 
@@ -558,9 +558,9 @@ const ViewNote = <T extends FatDeck>({
                     localDispatch(ActionType.FlashCardCreatorShow, true);
                 }
                 break;
-            case CivilMode.AddAbove:
-                if (!local.addNoteAboveUI) {
-                    localDispatch(ActionType.AddNoteAboveUiShow, true);
+            case CivilMode.UpperInsert:
+                if (!local.upperInsertUI) {
+                    localDispatch(ActionType.UpperInsertUiShow, true);
                 }
                 break;
         }
@@ -580,9 +580,9 @@ const ViewNote = <T extends FatDeck>({
 
     return (
         <CivContainer extraClasses={noteClasses}>
-            {appState.mode.value === CivilMode.AddAbove &&
-                local.addNoteAboveUI &&
-                buildAddNoteAboveUI()}
+            {appState.mode.value === CivilMode.UpperInsert &&
+                local.upperInsertUI &&
+                buildUpperInsertUI()}
             {!isEditingMarkup() &&
                 (note.refs.length > 0 ||
                     note.flashcards.length > 0 ||

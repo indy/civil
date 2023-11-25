@@ -37,8 +37,8 @@ export function isCivilModeAllowed(state: State, mode: CivilMode): boolean {
         }
         case CivilMode.Memorise:
             return !onTopLevelPage;
-        case CivilMode.AddAbove:
-            // don't show AddAbove option for quotes
+        case CivilMode.UpperInsert:
+            // don't show UpperInsert option for quotes
             return !onTopLevelPage && urlParts[1] !== "quotes";
         case CivilMode.BookmarkLinks:
             return true;

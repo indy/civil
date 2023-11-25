@@ -638,7 +638,7 @@ export function svgLinkAlt() {
     );
 }
 
-export function svgAddAbove() {
+export function svgUpperInsert() {
     return (
         <svg
             fill="none"

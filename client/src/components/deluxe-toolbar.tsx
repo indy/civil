@@ -10,7 +10,7 @@ import { isCivilModeAllowed } from "../shared/civil";
 import { visibleClass } from "../shared/css";
 
 import {
-    svgAddAbove,
+    svgUpperInsert,
     svgBookmark,
     svgCircle,
     svgEdit,
@@ -75,36 +75,36 @@ export function DeluxeToolbar({}) {
                     >
                         {svgHome()}
                     </Link>
-                    <span class="toolbar-item-text">Home</span>
+                    <span class="toolbar-item-text">Home (h)</span>
                 </div>
 
                 <div class="toolbar-item" onClick={searchClicked}>
                     <span class={searchClasses}>{svgSearch()}</span>
-                    <span class="toolbar-item-text">Search</span>
+                    <span class="toolbar-item-text">Search (/)</span>
                 </div>
 
                 {isCivilModeAllowed(appState, CivilMode.Refs) && (
-                    <ToolbarItem mode={CivilMode.Refs} toolbarText="Refs">
+                    <ToolbarItem mode={CivilMode.Refs} toolbarText="Refs (r)">
                         {svgLinkAlt()}
                     </ToolbarItem>
                 )}
                 {isCivilModeAllowed(appState, CivilMode.Edit) && (
-                    <ToolbarItem mode={CivilMode.Edit} toolbarText="Edit">
+                    <ToolbarItem mode={CivilMode.Edit} toolbarText="Edit (n)">
                         {svgEdit()}
                     </ToolbarItem>
                 )}
-                {isCivilModeAllowed(appState, CivilMode.AddAbove) && (
+                {isCivilModeAllowed(appState, CivilMode.UpperInsert) && (
                     <ToolbarItem
-                        mode={CivilMode.AddAbove}
-                        toolbarText="Add Above"
+                        mode={CivilMode.UpperInsert}
+                        toolbarText="Upper Insert (u)"
                     >
-                        {svgAddAbove()}
+                        {svgUpperInsert()}
                     </ToolbarItem>
                 )}
                 {isCivilModeAllowed(appState, CivilMode.Memorise) && (
                     <ToolbarItem
                         mode={CivilMode.Memorise}
-                        toolbarText="Memorise"
+                        toolbarText="Memorise Card (c)"
                     >
                         {svgFlashCard()}
                     </ToolbarItem>
@@ -112,7 +112,7 @@ export function DeluxeToolbar({}) {
                 {isCivilModeAllowed(appState, CivilMode.BookmarkLinks) && (
                     <ToolbarItem
                         mode={CivilMode.BookmarkLinks}
-                        toolbarText="Bookmarks"
+                        toolbarText="Bookmarks (b)"
                     >
                         {svgBookmark()}
                     </ToolbarItem>
@@ -174,8 +174,8 @@ function baseCssName(mode: CivilMode) {
             return "refs";
         case CivilMode.Memorise:
             return "memorise";
-        case CivilMode.AddAbove:
-            return "add-above";
+        case CivilMode.UpperInsert:
+            return "upper-insert";
         case CivilMode.BookmarkLinks:
             return "bookmark-links";
     }

@@ -338,6 +338,7 @@ export default function CommandBar() {
                 }
             }
         }
+
         if (
             e.shiftKey ||
             (e.key >= "1" && e.key <= "9") ||
@@ -361,60 +362,84 @@ export default function CommandBar() {
                 }
             } else {
                 /*
-
                   shortcut keys
-
+                  -------- ----
                   Escape : toolbar: view mode
+                  Comma: quotes: prev quote
+                  Period: quotes: next quote
                   / : search
-                  a : toolbar: add above
-                  b : toolbar: bookmarks
-                  c
-                  d
-                  e : toolbar: edit mode
-                  f
-                  g
+                  a : route: articles
+                  b : toolbar: bookmarks mode
+                  c : toolbar: memorise card mode
+                  d : route: dialogues
+                  e : route: events
+                  f :
+                  g :
                   h : toolbar: home
-                  i
+                  i : route: ideas
                   j : quotes: jump to random quote
-                  k
-                  l
-                  m : toolbar: memorise
-                  n : quotes: next quote
-                  o
-                  p : quotes: prev quote
-                  q
-                  r : toolbar: refs
-                  s : goto full search page
-                  t : special: toggle showing deck update form (me_T_adata)
-                  u
-                  v
+                  k :
+                  l :
+                  m : special: toggle showing deck metadata form
+                  n : toolbar: edit mode
+                  o :
+                  p : route: people
+                  q : route: quotes
+                  r : toolbar: refs mode
+                  s : route: full search page
+                  t : route: timelines
+                  u : toolbar: upper insert mode
+                  v :
                   w : special: toggle civil span (_W_idth)
-                  x
-                  y
-                  z
+                  x :
+                  y :
+                  z :
+
                 */
                 if (
                     appState.componentRequiresFullKeyboardAccess.value === false
                 ) {
                     // we can treat any keypresses as modal commands for the app
                     switch (code) {
-                        case "KeyH":
-                            navigate("/", "home");
+                        case "KeyA":
+                            routeOnly(DeckKind.Article);
                             break;
                         case "KeyB":
                             modeToggle(appState, CivilMode.BookmarkLinks);
                             break;
+                        case "KeyC":
+                            modeToggle(appState, CivilMode.Memorise);
+                            break;
+                        case "KeyD":
+                            routeOnly(DeckKind.Dialogue);
+                            break;
                         case "KeyE":
+                            routeOnly(DeckKind.Event);
+                            break;
+                        case "KeyH":
+                            navigate("/", "home");
+                            break;
+                        case "KeyI":
+                            routeOnly(DeckKind.Idea);
+                            break;
+                        case "KeyM":
+                            if (appState.wantToShowDeckUpdateForm.value) {
+                                AppStateChange.requestToHideUpdateForm();
+                            } else {
+                                AppStateChange.requestToShowUpdateForm();
+                            }
+                            break;
+                        case "KeyN":
                             modeToggle(appState, CivilMode.Edit);
+                            break;
+                        case "KeyP":
+                            routeOnly(DeckKind.Person);
+                            break;
+                        case "KeyQ":
+                            routeOnly(DeckKind.Quote);
                             break;
                         case "KeyR":
                             modeToggle(appState, CivilMode.Refs);
-                            break;
-                        case "KeyA":
-                            modeToggle(appState, CivilMode.AddAbove);
-                            break;
-                        case "KeyM":
-                            modeToggle(appState, CivilMode.Memorise);
                             break;
                         case "KeyS":
                             // can select some text before pressing 's'
@@ -436,11 +461,10 @@ export default function CommandBar() {
                             }
                             break;
                         case "KeyT":
-                            if (appState.wantToShowDeckUpdateForm.value) {
-                                AppStateChange.requestToHideUpdateForm();
-                            } else {
-                                AppStateChange.requestToShowUpdateForm();
-                            }
+                            routeOnly(DeckKind.Timeline);
+                            break;
+                        case "KeyU":
+                            modeToggle(appState, CivilMode.UpperInsert);
                             break;
                         case "KeyW":
                             if (appState.span.value === CivilSpan.Broad) {

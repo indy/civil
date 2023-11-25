@@ -85,7 +85,7 @@ export enum CivilMode {
     Edit,
     Refs,
     Memorise,
-    AddAbove,
+    UpperInsert,
     BookmarkLinks,
 }
 
