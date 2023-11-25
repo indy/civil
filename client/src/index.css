@@ -2417,6 +2417,10 @@ input:required {
         --command-bar-width: 70%;
     }
 
+    .left-margin-entry-no-wrap {
+      margin-left: 0;
+    }
+
     .pagination-top-selector {
         justify-content: center;
     }
