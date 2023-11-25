@@ -512,136 +512,114 @@ export type UserWithUiConfig = User & {
     uiConfigJson: string;
 };
 
-export type StateChangeSpan = {
+type StateChangeBase = {
+    calledFromBroadcastChannel?: boolean;
+};
+
+export type StateChangeSpan = StateChangeBase & {
     span: CivilSpan;
-    calledFromBroadcastChannel?: boolean;
 };
 
-export type StateChangeUiConfig = {
+export type StateChangeUiConfig = StateChangeBase & {
     uiConfig: UiConfig;
-    calledFromBroadcastChannel?: boolean;
 };
 
-export type StateChangeWaitingFor = {
+export type StateChangeWaitingFor = StateChangeBase & {
     waitingFor: WaitingFor;
-    calledFromBroadcastChannel?: boolean;
 };
 
-export type StateChangeShowShortcuts = {
+export type StateChangeShowShortcuts = StateChangeBase & {
     showKeyboardShortcuts: boolean;
-    calledFromBroadcastChannel?: boolean;
 };
 
-export type StateChangeKeyDown = {
+export type StateChangeKeyDown = StateChangeBase & {
     keyDownIndex: number;
     shiftKey: boolean;
-    calledFromBroadcastChannel?: boolean;
 };
 
-export type StateChangeSetFocus = {
+export type StateChangeSetFocus = StateChangeBase & {
     hasFocus: boolean;
-    calledFromBroadcastChannel?: boolean;
 };
 
-export type StateChangeSetSearch = {
+export type StateChangeSetSearch = StateChangeBase & {
     searchCandidates: Array<SlimDeck>;
-    calledFromBroadcastChannel?: boolean;
 };
 
-export type StateChangeInputGiven = {
+export type StateChangeInputGiven = StateChangeBase & {
     mode: CommandBarMode;
     text: string;
     searchCandidates: Array<SlimDeck>;
-    calledFromBroadcastChannel?: boolean;
 };
 
-export type StateChangeDeckId = {
+export type StateChangeDeckId = StateChangeBase & {
     deckId: Key;
-    calledFromBroadcastChannel?: boolean;
 };
 
-export type StateChangeDeleteDeck = {
+export type StateChangeDeleteDeck = StateChangeBase & {
     deckKind: DeckKind;
     deckId: Key;
-    calledFromBroadcastChannel?: boolean;
 };
 
-export type StateChangeAddPreview = {
+export type StateChangeAddPreview = StateChangeBase & {
     slimDeck: SlimDeck;
     previewNotes: PreviewNotes;
-    calledFromBroadcastChannel?: boolean;
 };
 
-export type StateChangeMode = {
+export type StateChangeMode = StateChangeBase & {
     mode: CivilMode;
-    calledFromBroadcastChannel?: boolean;
 };
 
-export type StateChangeTitle = {
+export type StateChangeTitle = StateChangeBase & {
     title: string;
-    calledFromBroadcastChannel?: boolean;
 };
 
-export type StateChangeUrl = {
+export type StateChangeUrl = StateChangeBase & {
     url: string;
-    calledFromBroadcastChannel?: boolean;
 };
 
-export type StateChangeUber = {
+export type StateChangeUber = StateChangeBase & {
     uber: UberSetup;
-    calledFromBroadcastChannel?: boolean;
 };
 
-export type StateChangeUser = {
+export type StateChangeUser = StateChangeBase & {
     user: User;
-    calledFromBroadcastChannel?: boolean;
 };
 
-export type StateChangeNoteRefsModified = {
+export type StateChangeNoteRefsModified = StateChangeBase & {
     refsInNote: Array<Reference>;
     changes: ReferencesDiff;
-    calledFromBroadcastChannel?: boolean;
 };
 
-export type StateChangeNoteForm = {
+export type StateChangeNoteForm = StateChangeBase & {
     noteKind: NoteKind;
     pointId?: Key;
-    calledFromBroadcastChannel?: boolean;
 };
 
-export type StateChangePageState = {
+export type StateChangePageState = StateChangeBase & {
     pageState: PageState;
-    calledFromBroadcastChannel?: boolean;
 };
 
-export type StateChangeRecentImages = {
+export type StateChangeRecentImages = StateChangeBase & {
     recentImages: Array<UserUploadedImage>;
-    calledFromBroadcastChannel?: boolean;
 };
 
-export type StateChangeBookmarks = {
+export type StateChangeBookmarks = StateChangeBase & {
     bookmarks: Array<Bookmark>;
-    calledFromBroadcastChannel?: boolean;
 };
 
-export type StateChangeRecentlyUsedDecks = {
+export type StateChangeRecentlyUsedDecks = StateChangeBase & {
     recents: Array<SlimDeck>;
-    calledFromBroadcastChannel?: boolean;
 };
 
-export type StateChangeCount = {
+export type StateChangeCount = StateChangeBase & {
     count: number;
-    calledFromBroadcastChannel?: boolean;
 };
 
-export type StateChangeGraph = {
+export type StateChangeGraph = StateChangeBase & {
     graph: FullGraphStruct;
-    calledFromBroadcastChannel?: boolean;
 };
 
-export type StateChangeEmpty = {
-    calledFromBroadcastChannel?: boolean;
-};
+export type StateChangeEmpty = StateChangeBase & {};
 
 export type AppStateChangeArgs =
     | StateChangeAddPreview
