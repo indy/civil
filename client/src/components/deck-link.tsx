@@ -2,7 +2,7 @@ import { type ComponentChildren } from "preact";
 import { Link } from "preact-router";
 import { useRef } from "preact/hooks";
 
-import { CivilMode, RenderingDeckPart } from "../enums";
+import { CivilMode, PageState, RenderingDeckPart } from "../enums";
 import type { PreviewNotes, SlimDeck } from "../types";
 
 import { AppStateChange, getAppState } from "../app-state";
@@ -35,20 +35,27 @@ export default function DeckLink({
     useMouseHoveringEvents(hoveringRef, onMouseEnter, onMouseLeave);
 
     function onMouseEnter() {
-        if (!appState.previewCache.value.has(slimDeck.id)) {
-            Net.get<PreviewNotes>(`/api/decks/preview/${slimDeck.id}`).then(
-                (previewNotes) => {
-                    AppStateChange.addPreview({ slimDeck, previewNotes });
-                },
-            );
+        if (appState.pageState.value !== PageState.PageLoading) {
+            if (!appState.previewCache.value.has(slimDeck.id)) {
+                Net.get<PreviewNotes>(`/api/decks/preview/${slimDeck.id}`).then(
+                    (previewNotes) => {
+                        AppStateChange.addPreview({ slimDeck, previewNotes });
+                    },
+                );
+            }
+            AppStateChange.showPreviewDeck({ deckId: slimDeck.id });
+        } else {
+            // ignore hover events and don't show previews if
+            // the user has already clicked on a link and is
+            // waiting for that deck to load
         }
-        AppStateChange.showPreviewDeck({ deckId: slimDeck.id });
     }
     function onMouseLeave() {
         AppStateChange.hidePreviewDeck({ deckId: slimDeck.id });
     }
 
     function clicked(_e: Event) {
+        AppStateChange.setPageState({ pageState: PageState.PageLoading });
         AppStateChange.hidePreviewDeck({ deckId: slimDeck.id });
         if (onClick) {
             onClick();

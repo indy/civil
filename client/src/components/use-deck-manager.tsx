@@ -1,6 +1,12 @@
 import { useEffect, useState } from "preact/hooks";
 
-import { CivilMode, DeckKind, NoteKind, PassageHowToShow } from "../enums";
+import {
+    CivilMode,
+    DeckKind,
+    NoteKind,
+    PageState,
+    PassageHowToShow,
+} from "../enums";
 import type {
     Arrival,
     FatDeck,
@@ -85,6 +91,9 @@ export default function useDeckManager<T extends FatDeck>(
                     );
                     newDms = dmsCanHaveReviewPassage(newDms, hasReviewPassage);
                     setDms(newDms);
+                    AppStateChange.setPageState({
+                        pageState: PageState.PageLoaded,
+                    });
                 } else {
                     console.error(`error: fetchDeck for ${url}`);
                 }

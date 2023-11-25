@@ -1,3 +1,14 @@
+// need to know the current state of the page in order to prevent
+// unnecessary previews from appearing when the mouse hovers over
+// a link after another link has been clicked, the hovered over
+// link will show a preview afther the clicked link page is navigated
+// to.
+//
+export enum PageState {
+    PageLoaded = 1,
+    PageLoading,
+}
+
 export enum CivilSpan {
     Narrow = 1,
     Broad,

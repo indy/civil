@@ -1,21 +1,22 @@
 import { Signal } from "@preact/signals";
 
 import {
-    CivilSpan,
-    Font,
-    ColourScheme,
     AiKind,
-    DeckKind,
-    NoteKind,
-    RefKind,
-    PointKind,
     CivilMode,
-    PassageHowToShow,
+    CivilSpan,
+    ColourScheme,
     CommandBarMode,
-    WaitingFor,
-    LineStyle,
+    DeckKind,
     Direction,
+    Font,
+    LineStyle,
+    NoteKind,
+    PageState,
+    PassageHowToShow,
+    PointKind,
+    RefKind,
     Role,
+    WaitingFor,
 } from "./enums";
 
 export type Key = number;
@@ -359,8 +360,8 @@ export type State = {
     colourSeeds: Signal<ColourSeeds>;
 
     previewCache: Signal<Map<Key, PreviewDeck>>;
-
     visiblePreviewDeck: Signal<VisiblePreview>;
+    pageState: Signal<PageState>;
 
     showNoteForm: Signal<Record<NoteKind, boolean>>;
     showNoteFormPointId: Signal<Key | undefined>;
@@ -608,6 +609,11 @@ export type StateChangeNoteForm = {
     calledFromBroadcastChannel?: boolean;
 };
 
+export type StateChangePageState = {
+    pageState: PageState;
+    calledFromBroadcastChannel?: boolean;
+};
+
 export type StateChangeRecentImages = {
     recentImages: Array<UserUploadedImage>;
     calledFromBroadcastChannel?: boolean;
@@ -649,6 +655,7 @@ export type AppStateChangeArgs =
     | StateChangeMode
     | StateChangeNoteForm
     | StateChangeNoteRefsModified
+    | StateChangePageState
     | StateChangeRecentImages
     | StateChangeRecentlyUsedDecks
     | StateChangeSetFocus

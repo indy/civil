@@ -101,6 +101,7 @@ function Idea({ path, id }: { path?: string; id?: string }) {
     const deckManager: DM<DeckIdea> = useDeckManager(id, DeckKind.Idea);
 
     const deck: DeckIdea | undefined = deckManager.getDeck();
+
     if (deck) {
         deckManager.complyWithAppStateRequestToShowUpdateForm();
         return (

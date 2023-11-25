@@ -10,6 +10,7 @@ import {
     DeckKind,
     Font,
     NoteKind,
+    PageState,
     RefKind,
     WaitingFor,
 } from "./enums";
@@ -41,6 +42,7 @@ import type {
     StateChangeMode,
     StateChangeNoteForm,
     StateChangeNoteRefsModified,
+    StateChangePageState,
     StateChangeRecentImages,
     StateChangeRecentlyUsedDecks,
     StateChangeSetFocus,
@@ -222,6 +224,7 @@ const state: State = {
 
     previewCache: signal(new Map<Key, PreviewDeck>()),
     visiblePreviewDeck: signal({ id: 0, showing: false }),
+    pageState: signal(PageState.PageLoaded),
 
     showNoteForm: signal({
         [NoteKind.Note]: false,
@@ -463,6 +466,16 @@ export const AppStateChange = {
                         state.visiblePreviewDeck.value.id,
                 );
             }
+        },
+    ),
+
+    setPageState: build(
+        Scope.Local,
+        "setPageState",
+        (asca?: AppStateChangeArgs) => {
+            let args = asca! as StateChangePageState;
+
+            state.pageState.value = args.pageState;
         },
     ),
 
