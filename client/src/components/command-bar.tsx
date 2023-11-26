@@ -346,6 +346,7 @@ export default function CommandBar() {
         ) {
             const code = e.code;
             const shiftKey = e.shiftKey;
+            const ctrlKey = e.ctrlKey;
 
             let commandBarState = appState.commandBarState.value;
             if (appState.showingCommandBar.value) {
@@ -420,7 +421,12 @@ export default function CommandBar() {
                             navigate("/", "home");
                             break;
                         case "KeyI":
-                            routeOnly(DeckKind.Idea);
+                            if (!shiftKey && !ctrlKey) {
+                                // Ctrl + Shift + i should bring up the
+                                // browser dev tools, not navigate to
+                                // the ideas page
+                                routeOnly(DeckKind.Idea);
+                            }
                             break;
                         case "KeyM":
                             if (appState.wantToShowDeckUpdateForm.value) {
