@@ -4,7 +4,10 @@ import { Link } from "preact-router";
 
 import type { SlimDeck, SlimResults } from "../types";
 
+import { getAppState } from "../app-state";
+
 import Net from "../shared/net";
+import { plural } from "../shared/english";
 
 import { CivContainer, CivMainUi } from "./civil-layout";
 import ListingLink from "./listing-link";
@@ -15,12 +18,20 @@ import { listItemSlimDeck } from "./list-items";
 import Pagination from "./pagination";
 
 export default function FrontPage({ path }: { path?: string }) {
+    const appState = getAppState();
+
+    let memoriseLabel = "Memorise...";
+    const numCards = appState.memoriseReviewCount.value;
+    if (numCards > 0) {
+        memoriseLabel = `Review ${plural(numCards, "card", "s")}`;
+    }
+
     return (
         <div>
             <CivContainer>
                 <CivMainUi extraClasses="front-page-pusher-container">
                     <Link class="front-page-pusher" href="/memorise">
-                        Memorise...
+                        { memoriseLabel }
                     </Link>
                     <Link class="front-page-pusher" href="/stats">
                         Stats...
