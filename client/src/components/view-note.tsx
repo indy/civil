@@ -1,4 +1,9 @@
-import { type Ref as PreactRef, useEffect, useRef } from "preact/hooks";
+import {
+    type Ref as PreactRef,
+    useEffect,
+    useRef,
+    useState,
+} from "preact/hooks";
 
 import { CivilMode, Font, Role } from "../enums";
 import type {
@@ -363,6 +368,18 @@ const ViewNote = <T extends FatDeck>({
 
     const hoveringRef = useRef(null);
     const mouseHovering = useMouseHovering(hoveringRef);
+    // the note can remain in a visibly selected state
+    // because the user presses the save button and this would
+    // shrink the note's visible area so that the mouse cursor
+    // is outside of it without ever setting the mouseHovering
+    // variable to false.
+    //
+    // fixed by introducing the allowHover override which is
+    // set to false after the save button is clicked and
+    // is set to true everytime a hover is explicitly
+    // detected
+    //
+    const [allowHover, setAllowHover] = useState(true);
 
     const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -371,6 +388,12 @@ const ViewNote = <T extends FatDeck>({
         // from the DeckManager::onRefsChanged callback
         localDispatch(ActionType.NoteChanged, note);
     }, [note]);
+
+    useEffect(() => {
+        if (mouseHovering) {
+            setAllowHover(true);
+        }
+    }, [mouseHovering]);
 
     function handleChangeEvent(content: string) {
         localDispatch(ActionType.NoteSetContent, content);
@@ -409,6 +432,8 @@ const ViewNote = <T extends FatDeck>({
         } else {
             localDispatch(ActionType.ToggleEditing);
         }
+
+        setAllowHover(false);
     }
 
     function onTextAreaFocus() {
@@ -533,7 +558,7 @@ const ViewNote = <T extends FatDeck>({
     }
 
     let noteClasses = "note";
-    if (mouseHovering && appState.mode.value !== CivilMode.View) {
+    if (allowHover && mouseHovering && appState.mode.value !== CivilMode.View) {
         noteClasses += addToolbarSelectableClasses(appState.mode.value);
     }
 
