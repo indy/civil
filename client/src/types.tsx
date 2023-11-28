@@ -472,6 +472,8 @@ export type DM<T extends FatDeck> = {
     isEditingDeckRefs: () => boolean;
     setEditingDeckRefs: (value: boolean) => void;
     updateAndReset: (newDeck: T) => void;
+    summaryButtonEnabled: () => boolean;
+    reviewButtonEnabled: () => boolean;
     onShowSummaryClicked: () => void;
     onShowReviewClicked: () => void;
     buildPointForm: (onSuccessCallback: () => void) => any;

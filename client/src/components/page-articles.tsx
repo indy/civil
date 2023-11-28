@@ -183,11 +183,17 @@ function Article({ path, id }: { path?: string; id?: string }) {
                                 )}
                                 <CivilButton
                                     onClick={deckManager.onShowSummaryClicked}
+                                    disabled={
+                                        !deckManager.summaryButtonEnabled()
+                                    }
                                 >
                                     Show Summary Passage
                                 </CivilButton>
                                 <CivilButton
                                     onClick={deckManager.onShowReviewClicked}
+                                    disabled={
+                                        !deckManager.reviewButtonEnabled()
+                                    }
                                 >
                                     Show Review Passage
                                 </CivilButton>

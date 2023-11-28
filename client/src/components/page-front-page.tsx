@@ -31,7 +31,7 @@ export default function FrontPage({ path }: { path?: string }) {
             <CivContainer>
                 <CivMainUi extraClasses="front-page-pusher-container">
                     <Link class="front-page-pusher" href="/memorise">
-                        { memoriseLabel }
+                        {memoriseLabel}
                     </Link>
                     <Link class="front-page-pusher" href="/stats">
                         Stats...

@@ -3,6 +3,7 @@ import { useEffect, useState } from "preact/hooks";
 import {
     CivilMode,
     DeckKind,
+    DeckManagerFlags,
     NoteKind,
     PageState,
     PassageHowToShow,
@@ -82,8 +83,14 @@ export default function useDeckManager<T extends FatDeck>(
 
                     window.scrollTo(0, 0);
 
-                    let hasSummaryPassage = bitset(flags || 0, 1);
-                    let hasReviewPassage = bitset(flags || 0, 2);
+                    let hasSummaryPassage = bitset(
+                        flags || 0,
+                        DeckManagerFlags.Summary,
+                    );
+                    let hasReviewPassage = bitset(
+                        flags || 0,
+                        DeckManagerFlags.Review,
+                    );
 
                     newDms = dmsCanHaveSummaryPassage(
                         newDms,
@@ -217,6 +224,14 @@ export default function useDeckManager<T extends FatDeck>(
 
             setDms(newDms);
         },
+
+        summaryButtonEnabled: function () {
+            return dms.displayShowSummaryButton;
+        },
+        reviewButtonEnabled: function () {
+            return dms.displayShowReviewButton;
+        },
+
         onShowSummaryClicked: function () {
             let newDms = dmsShowSummaryButtonToggle(
                 dms,
