@@ -90,6 +90,8 @@ function declareSeeds(colourScheme: ColourScheme): ColourSeeds {
 
             clockFgL: 53.6,
             clockBgL: 93,
+
+            searchedTextL: 80,
         };
     } else {
         s = {
@@ -114,6 +116,8 @@ function declareSeeds(colourScheme: ColourScheme): ColourSeeds {
 
             clockBgL: 30.0,
             clockFgL: 80,
+
+            searchedTextL: 20,
         };
     }
     return s;
@@ -205,7 +209,7 @@ function generateColourDefs(seeds: ColourSeeds): ColourDefinitions {
             seeds.colouredTextS,
             seeds.colouredTextL,
         ] as ColourTriple,
-        searched_text: [10, 100, 80] as ColourTriple,
+        searched_text: [10, 100, seeds.searchedTextL] as ColourTriple,
         red_text: [
             10,
             seeds.colouredTextS,

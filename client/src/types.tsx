@@ -263,6 +263,8 @@ export type ColourSeeds = {
 
     clockFgL: number;
     clockBgL: number;
+
+    searchedTextL: number;
 };
 
 export type ColourTriple = [number, number, number];
