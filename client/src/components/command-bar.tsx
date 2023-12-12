@@ -521,7 +521,18 @@ export default function CommandBar() {
 
     const handleChangeEvent = (event: Event) => {
         if (event.target instanceof HTMLInputElement) {
-            const text = event.target.value;
+            let text = event.target.value;
+
+            // hacks for quick computers:
+            //
+            // sanitise the text in case it's picked up a starting forward slash
+            if (text.startsWith("/")) {
+                text = text.slice(1);
+            }
+            if (text.startsWith("::")) {
+                text = text.slice(1);
+            }
+
             if (
                 appState.commandBarState.value.mode === CommandBarMode.Command
             ) {
@@ -529,6 +540,7 @@ export default function CommandBar() {
             } else if (
                 appState.commandBarState.value.mode === CommandBarMode.Search
             ) {
+
                 if (!appState.commandBarState.value.showKeyboardShortcuts) {
                     inputGiven(appState, text);
                     if (text.length > 0 && !isCommand(text)) {
@@ -549,6 +561,7 @@ export default function CommandBar() {
 
                     inputGiven(appState, displayText);
                 }
+
             }
         }
     };
