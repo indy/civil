@@ -29,6 +29,7 @@ import { svgCloseShifted } from "./svg-icons";
 import useLocalReducer from "./use-local-reducer";
 
 enum ActionType {
+    AbsorbInput,
     CandidatesSet,
     CtrlKeyDown,
     CtrlKeyUp,
@@ -83,6 +84,7 @@ type LocalState = {
     candidates: Array<SlimDeck>;
     canSave: boolean;
     nakedCtrlPress: boolean;
+    justAddedViaShortcut: boolean;
 };
 
 function candidateToAddedRef(candidate: SlimDeck): Reference {
@@ -171,6 +173,7 @@ function reducer(state: LocalState, action: Action): LocalState {
 
                         newState.nakedCtrlPress = false;
                         newState.showKeyboardShortcuts = false;
+                        newState.justAddedViaShortcut = true;
 
                         return newState;
                     }
@@ -348,14 +351,18 @@ function reducer(state: LocalState, action: Action): LocalState {
                 ...state,
                 candidates: action.data as SlimDeck[],
             };
-        case ActionType.InputGiven: {
-            const newState = {
+        case ActionType.AbsorbInput:
+            return {
                 ...state,
+                justAddedViaShortcut: false,
+            };
+        case ActionType.InputGiven: {
+            return {
+                ...state,
+                justAddedViaShortcut: false,
                 showKeyboardShortcuts: false,
                 text: action.data as string,
             };
-
-            return newState;
         }
         default:
             throw new Error(`unknown action: ${action}`);
@@ -398,6 +405,7 @@ export default function CivilSelect({
         candidates: [],
         canSave: false,
         nakedCtrlPress: false,
+        justAddedViaShortcut: false,
     };
     const [local, localDispatch] = useLocalReducer<LocalState, ActionType>(
         reducer,
@@ -453,8 +461,14 @@ export default function CivilSelect({
     }
 
     function onTextChanged(newText: string) {
-        refineCandidates(newText);
-        localDispatch(ActionType.InputGiven, newText);
+
+        if (local.justAddedViaShortcut && newText.length === 1 && newText >= "0" && newText <= "9") {
+            localDispatch(ActionType.CandidatesSet, []);
+            localDispatch(ActionType.AbsorbInput);
+        } else {
+            refineCandidates(newText);
+            localDispatch(ActionType.InputGiven, newText);
+        }
     }
 
     function alreadySelected(title: string) {
