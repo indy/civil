@@ -2399,6 +2399,10 @@ input:required {
     border: 0.2rem solid var(--bg);
 }
 
+.star-rating-partial {
+  direction: rtl;
+}
+
 /* Responsive adjustments
    ========================================================================== */
 @media (max-width: 2000px) {
@@ -2479,6 +2483,11 @@ input:required {
     .c-busy-indicator {
         left: 45rem;
     }
+
+    .star-rating-partial {
+      direction: ltr;
+    }
+
 }
 
 @media (max-width: 800px) {
@@ -2552,11 +2561,6 @@ input:required {
         margin-left: -1.3rem;
     }
 
-    .star-rating-partial {
-        float: left;
-        margin-left: -12rem;
-        padding-left: 5rem;
-    }
     .svg-sized-hack {
         width: 12px;
     }

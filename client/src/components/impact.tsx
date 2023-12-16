@@ -1,7 +1,7 @@
 import { type ComponentChildren } from "preact";
 
 import { CivLeft } from "./civil-layout";
-import { svgBlank, svgStar } from "./svg-icons";
+import { svgStar } from "./svg-icons";
 
 export function ImpactWithinListing({ impact }: { impact: number }) {
     return (
@@ -19,14 +19,6 @@ export function ImpactPartial({ impact }: { impact: number }) {
     let ratings: Array<ComponentChildren> = [];
 
     const imp = impact <= 1 ? 0 : impact - 1;
-
-    // pad out with blanks so that it looks correct on small display
-    // devices where the parent div will have a float left applied.
-    // (see the .star-rating-partial rule for max-width: 800px)
-    //
-    for (let i = 0; i < 3 - imp; i++) {
-        ratings.push(svgBlank());
-    }
     for (let i = 0; i < imp; i++) {
         ratings.push(svgStar());
     }
