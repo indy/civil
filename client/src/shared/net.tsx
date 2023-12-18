@@ -20,6 +20,12 @@ const Net = {
     ): Promise<TResp> {
         return go<TData, TResp>("DELETE", url, data);
     },
+    getAbortable: async function <TResp>(
+        url: string,
+        signal: AbortSignal,
+    ): Promise<TResp> {
+        return goAbortable<void, TResp>("GET", url, signal);
+    },
     // use getCORS when you're not allowed to set 'content-type'
     getCORS: async function <TResp>(url: string): Promise<TResp> {
         return fetch(url).then((response) => response.json());
@@ -43,6 +49,33 @@ async function go<TData, TResp>(
         headers: {
             "content-type": "application/json",
         },
+    };
+    if (data) {
+        options.body = JSON.stringify(data);
+    }
+
+    let response = await fetch(url, options);
+    if (!response.ok) {
+        throw new Error("Network response was not OK");
+    }
+
+    let ret = await response.json();
+
+    return ret as TResp;
+}
+
+async function goAbortable<TData, TResp>(
+    method: string,
+    url: string,
+    signal: AbortSignal,
+    data?: TData,
+): Promise<TResp> {
+    let options: RequestInit = {
+        method,
+        headers: {
+            "content-type": "application/json",
+        },
+        signal,
     };
     if (data) {
         options.body = JSON.stringify(data);

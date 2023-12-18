@@ -87,6 +87,8 @@ type LocalState = {
     justAddedViaShortcut: boolean;
 };
 
+let gCivilSelectAbortController = new AbortController();
+
 function candidateToAddedRef(candidate: SlimDeck): Reference {
     return {
         id: candidate.id,
@@ -482,26 +484,37 @@ export default function CivilSelect({
     }
 
     async function refineCandidates(newText: string) {
-        if (newText.length > 0) {
-            const url = `/api/search/names?q=${encodeURI(newText)}`;
+        try {
+            gCivilSelectAbortController.abort();
 
-            const searchResponse = await Net.get<SearchResults>(url);
-            if (searchResponse.deckLevel) {
-                const newCandidates = searchResponse.deckLevel
-                    .map((searchDeck) => searchDeck.deck)
-                    .filter((slimDeck) => {
-                        return (
-                            slimDeck.id !== parentDeckId &&
-                            !alreadySelected(slimDeck.title)
-                        );
-                    })
-                    .sort((a, b) => {
-                        return a.title.length - b.title.length;
-                    });
-                localDispatch(ActionType.CandidatesSet, newCandidates);
+            if (newText.length > 0) {
+                gCivilSelectAbortController = new AbortController();
+                const url = `/api/search/names?q=${encodeURI(newText)}`;
+
+                const searchResponse = await Net.getAbortable<SearchResults>(
+                    url,
+                    gCivilSelectAbortController.signal,
+                );
+                if (searchResponse.deckLevel) {
+                    const newCandidates = searchResponse.deckLevel
+                        .map((searchDeck) => searchDeck.deck)
+                        .filter((slimDeck) => {
+                            return (
+                                slimDeck.id !== parentDeckId &&
+                                !alreadySelected(slimDeck.title)
+                            );
+                        })
+                        .sort((a, b) => {
+                            return a.title.length - b.title.length;
+                        });
+                    localDispatch(ActionType.CandidatesSet, newCandidates);
+                }
+            } else {
+                localDispatch(ActionType.CandidatesSet, []);
             }
-        } else {
-            localDispatch(ActionType.CandidatesSet, []);
+        } catch (e) {
+            // this catches the exception thrown when abort is invoked
+            // console.log(e)
         }
     }
 

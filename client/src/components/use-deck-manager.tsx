@@ -65,12 +65,14 @@ export default function useDeckManager<T extends FatDeck>(
     );
 
     useEffect(() => {
+        const controller = new AbortController();
+
         if (id) {
             const deckId = parseInt(id, 10);
 
             // fetch deckKind from the server
             const url = buildUrl(deckKind, deckId, "/api");
-            Net.get<T>(url).then((deck) => {
+            Net.getAbortable<T>(url, controller.signal).then((deck) => {
                 // console.log(deck);
                 if (deck) {
                     deck.hits = [];
@@ -106,6 +108,10 @@ export default function useDeckManager<T extends FatDeck>(
                 }
             });
         }
+
+        return () => {
+            controller.abort();
+        };
     }, [id]);
 
     function update(newDeck: T) {

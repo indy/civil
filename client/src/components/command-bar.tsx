@@ -259,6 +259,8 @@ function inputGiven(state: State, text: string) {
     }
 }
 
+let gCommandBarAbortController = new AbortController();
+
 export default function CommandBar() {
     const appState = getAppState();
     const commandBarRef: Ref<HTMLInputElement> = useRef(null);
@@ -540,13 +542,6 @@ export default function CommandBar() {
             } else if (
                 appState.commandBarState.value.mode === CommandBarMode.Search
             ) {
-                if (!appState.commandBarState.value.showKeyboardShortcuts) {
-                    inputGiven(appState, text);
-                    if (text.length > 0 && !isCommand(text)) {
-                        search(text);
-                    }
-                }
-
                 if (appState.commandBarState.value.showKeyboardShortcuts) {
                     // searchCommand is showing keyboard shortcuts and the user
                     // has just pressed a key whilst holding down the shift button
@@ -559,27 +554,38 @@ export default function CommandBar() {
                         : text;
 
                     inputGiven(appState, displayText);
+                } else {
+                    inputGiven(appState, text);
+                    if (text.length > 0 && !isCommand(text)) {
+                        search(text);
+                    }
                 }
             }
         }
     };
 
     async function search(text: string) {
-        let sanitized: string = sanitize(text);
-        if (sanitized.length > 0) {
-            const url = `/api/search/decks?q=${encodeURI(sanitized)}`;
-            const searchResponse: SearchResults = await Net.get(url);
+        try {
+            gCommandBarAbortController.abort();
 
-            let commandBarState = appState.commandBarState.value;
+            let sanitized: string = sanitize(text);
+            if (sanitized.length > 0) {
+                gCommandBarAbortController = new AbortController();
 
-            // sometimes an earlier request will arrive after a later one.
-            // this conditional stops stale results from overwriting newer ones
-            if (searchResponse.searchText === commandBarState.text) {
+                const url = `/api/search/decks?q=${encodeURI(sanitized)}`;
+                const searchResponse: SearchResults = await Net.getAbortable(
+                    url,
+                    gCommandBarAbortController.signal,
+                );
+
                 const searchCandidates: Array<SlimDeck> =
                     searchResponse.deckLevel.map((dl) => dl.deck);
 
                 AppStateChange.commandBarSetSearch({ searchCandidates });
             }
+        } catch (e) {
+            // this catches the exception thrown when abort is invoked
+            // console.log(e)
         }
     }
 
