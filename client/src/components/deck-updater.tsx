@@ -32,15 +32,14 @@ const DeckUpdater = <T extends FatDeck>({
     onUpdate,
     onCancel,
 }: DeckUpdaterProps<T>) => {
-    const initialState: ProtoSlimDeck = {
+    const [localState, setLocalState] = useState<ProtoSlimDeck>({
         title: deck.title,
         deckKind: deck.deckKind,
         graphTerminator: deck.graphTerminator,
         insignia: deck.insignia,
         font: deck.font,
         impact: deck.impact,
-    };
-    const [localState, setLocalState] = useState(initialState);
+    });
 
     useEffect(() => {
         setLocalState({

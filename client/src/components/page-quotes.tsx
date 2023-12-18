@@ -113,7 +113,7 @@ function getQuoteThenRoute(url: string) {
 }
 
 function QuoteNew({ path }: { path?: string }) {
-    const initialState: ProtoQuote = {
+    const [localState, setLocalState] = useState<ProtoQuote>({
         title: "",
         insignia: 0,
         deckKind: DeckKind.Quote,
@@ -122,8 +122,7 @@ function QuoteNew({ path }: { path?: string }) {
         impact: 1,
         text: "",
         attribution: "",
-    };
-    const [localState, setLocalState] = useState(initialState);
+    });
 
     const textAreaRef: Ref<HTMLTextAreaElement> = useRef(null);
     useEffect(() => {

@@ -74,11 +74,10 @@ function EagerLoadedGrouping({ url }: EagerLoadedGroupingProps) {
         list: Array<SlimDeck>;
     };
 
-    let initialState: State = {
+    let [localState, setLocalState] = useState<State>({
         fetchedData: false,
         list: [],
-    };
-    let [localState, setLocalState] = useState(initialState);
+    });
 
     useEffect(() => {
         Net.get<SlimResults>(url).then((resultList) => {
@@ -110,7 +109,7 @@ function InsigniasModule() {
         };
     }
 
-    let [localState, setLocalState] = useState(buildState(2));
+    let [localState, setLocalState] = useState<LocalState>(buildState(2));
 
     function onChangeInsignia(val: number): void {
         // only select one insignia at a time

@@ -73,7 +73,7 @@ export default function PointForm({
         dateFuzz: 0.5,
     };
 
-    const initialLocalState: LocalState = {
+    const [localState, setLocalState] = useState<LocalState>({
         title: initialPoint.title,
         titleBackup: initialPoint.titleBackup,
         locationTextual: initialPoint.locationTextual,
@@ -91,8 +91,7 @@ export default function PointForm({
         roundToYear: false,
         hasTypedTitle: false,
         kind: pointKind || PointKind.Point,
-    };
-    const [localState, setLocalState] = useState(initialLocalState);
+    });
 
     // build a dateTextual from whatever was the last user input date
     function buildReadableDateFromLast(s: LocalState): LocalState {

@@ -28,14 +28,13 @@ export default function Pagination({
     upperContent?: ComponentChildren;
     lowerContent?: ComponentChildren;
 }) {
-    const initialState: LocalState = {
+    const [localState, setLocalState] = useState<LocalState>({
         offset: 0,
         itemsPerPage,
         items: [],
         totalItems: 0,
         lastUrl: "",
-    };
-    const [localState, setLocalState] = useState(initialState);
+    });
 
     function fetchData() {
         const offset = localState.offset;
@@ -99,8 +98,8 @@ export default function Pagination({
         );
     }
 
-    let maxPages = localState.totalItems / initialState.itemsPerPage;
-    if (localState.totalItems % initialState.itemsPerPage > 0) {
+    let maxPages = localState.totalItems / itemsPerPage;
+    if (localState.totalItems % itemsPerPage > 0) {
         maxPages += 1;
     }
     maxPages = Math.floor(maxPages);

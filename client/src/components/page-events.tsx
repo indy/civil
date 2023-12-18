@@ -209,7 +209,7 @@ type LocalState = {
 };
 
 function EventUpdater({ event, onUpdate, onCancel }: EventUpdaterProps) {
-    const initialState: LocalState = {
+    const [localState, setLocalState] = useState<LocalState>({
         title: event.title || "",
         insigniaId: event.insignia || 0,
         font: event.font || Font.DeWalpergens,
@@ -229,9 +229,7 @@ function EventUpdater({ event, onUpdate, onCancel }: EventUpdaterProps) {
 
         isDateApprox: calcIsDateApprox(event.dateTextual),
         roundToYear: calcRoundToYear(event.dateTextual),
-    };
-
-    const [localState, setLocalState] = useState(initialState);
+    });
 
     function setLocalStateDateChange(s: LocalState) {
         const parsedLowerDate = parseDateStringAsTriple(s.lowerDate);

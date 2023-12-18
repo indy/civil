@@ -44,7 +44,14 @@ export default function NoteForm({
     // image markups at the point where the cursor was (by default the cursor
     // goes to the end of the content once the first image markup has been added)
     //
-    const [local, setLocal] = useState({
+    type Local = {
+        content: string;
+        oldCursorPos: number;
+        splitIntoMultipleNotes: boolean;
+        textAreaFocused: boolean;
+    };
+
+    const [local, setLocal] = useState<Local>({
         content: "",
         oldCursorPos: 0,
         splitIntoMultipleNotes: true,

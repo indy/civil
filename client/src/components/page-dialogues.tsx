@@ -451,7 +451,7 @@ function DialogueUpdater({
     onUpdate,
     onCancel,
 }: DialogueUpdaterProps) {
-    const initialState: ProtoDialogue = {
+    const [localState, setLocalState] = useState<ProtoDialogue>({
         title: dialogue.title.trim(),
         insignia: dialogue.insignia || 0,
         deckKind: DeckKind.Dialogue,
@@ -460,8 +460,7 @@ function DialogueUpdater({
         impact: dialogue.impact,
         aiKind: AiKind.OpenAIGpt35Turbo,
         messages: [],
-    };
-    const [localState, setLocalState] = useState(initialState);
+    });
 
     useEffect(() => {
         setLocalState({

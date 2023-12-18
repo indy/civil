@@ -21,24 +21,23 @@ type Props = {
     oldestAliveAge: number;
 };
 
-type State = {
-    stage: LifespanStage;
-    birthPoint?: ProtoPoint;
-    deathPoint?: ProtoPoint;
-};
-
 export default function LifespanForm({
     deckId,
     title,
     onLifespanGiven,
     oldestAliveAge,
 }: Props) {
-    const initialState: State = {
+    type State = {
+        stage: LifespanStage;
+        birthPoint?: ProtoPoint;
+        deathPoint?: ProtoPoint;
+    };
+
+    const [localState, setLocalState] = useState<State>({
         stage: LifespanStage.Birth,
         birthPoint: undefined,
         deathPoint: undefined,
-    };
-    const [localState, setLocalState] = useState(initialState);
+    });
 
     useEffect(() => {
         if (localState.stage === LifespanStage.Finished) {
