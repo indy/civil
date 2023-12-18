@@ -392,6 +392,7 @@ function ArticleUpdater({ article, onUpdate, onCancel }: ArticleUpdaterProps) {
                     id="source"
                     value={source}
                     onContentChange={onContentChange}
+                    focus={true}
                 />
             </CivMain>
 
