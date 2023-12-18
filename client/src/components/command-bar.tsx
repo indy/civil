@@ -540,7 +540,6 @@ export default function CommandBar() {
             } else if (
                 appState.commandBarState.value.mode === CommandBarMode.Search
             ) {
-
                 if (!appState.commandBarState.value.showKeyboardShortcuts) {
                     inputGiven(appState, text);
                     if (text.length > 0 && !isCommand(text)) {
@@ -561,7 +560,6 @@ export default function CommandBar() {
 
                     inputGiven(appState, displayText);
                 }
-
             }
         }
     };

@@ -73,12 +73,17 @@ export default function CivilInput({
         AppStateChange.relinquishKeyboard();
     }
 
+    let klass = "c-civil-input";
+    if (elementClass) {
+        klass += " " + elementClass;
+    }
+
     const ac = autoComplete || "off";
     return (
         <input
             ref={inputRef}
             id={id}
-            class={elementClass}
+            class={klass}
             type="text"
             name={id}
             value={value}

@@ -1,5 +1,5 @@
 import { route } from "preact-router";
-import { useEffect, useState } from "preact/hooks";
+import { type Ref, useEffect, useState, useRef } from "preact/hooks";
 
 import { DeckKind, Font, NoteKind } from "../enums";
 import type { DeckQuote, DM, Key, ProtoQuote, SearchResults } from "../types";
@@ -124,6 +124,13 @@ function QuoteNew({ path }: { path?: string }) {
         attribution: "",
     };
     const [localState, setLocalState] = useState(initialState);
+
+    const textAreaRef: Ref<HTMLTextAreaElement> = useRef(null);
+    useEffect(() => {
+        if (textAreaRef && textAreaRef.current) {
+            textAreaRef.current.focus();
+        }
+    }, []);
 
     function handleAttributionChange(content: string) {
         setLocalState({
@@ -258,6 +265,7 @@ function QuoteNew({ path }: { path?: string }) {
                             id="quote-text"
                             value={localState.text}
                             onContentChange={handleContentChange}
+                            elementRef={textAreaRef}
                         />
                     </CivMain>
 

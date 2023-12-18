@@ -1459,6 +1459,11 @@ textarea {
     content: "\00BB";
 }
 
+.c-civil-input:read-only {
+    background: var(--bg-darker-3);
+    border: 0;
+}
+
 .c-civil-button {
     color: var(--fg-lighter-1);
     background: var(--bg-darker-3);
@@ -1994,10 +1999,11 @@ div.note > textarea {
 }
 
 #quote-text {
-    width: 40rem;
+    width: 90%;
+    height: 12rem;
 }
 #attribution {
-    width: 40rem;
+    width: 90%;
 }
 
 .wider-button {
@@ -2400,7 +2406,7 @@ input:required {
 }
 
 .star-rating-partial {
-  direction: rtl;
+    direction: rtl;
 }
 
 /* Responsive adjustments
@@ -2485,9 +2491,8 @@ input:required {
     }
 
     .star-rating-partial {
-      direction: ltr;
+        direction: ltr;
     }
-
 }
 
 @media (max-width: 800px) {

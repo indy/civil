@@ -461,8 +461,12 @@ export default function CivilSelect({
     }
 
     function onTextChanged(newText: string) {
-
-        if (local.justAddedViaShortcut && newText.length === 1 && newText >= "0" && newText <= "9") {
+        if (
+            local.justAddedViaShortcut &&
+            newText.length === 1 &&
+            newText >= "0" &&
+            newText <= "9"
+        ) {
             localDispatch(ActionType.CandidatesSet, []);
             localDispatch(ActionType.AbsorbInput);
         } else {
