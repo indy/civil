@@ -399,9 +399,10 @@ export default function CommandBar() {
                   z :
 
                 */
-                if (
-                    appState.componentRequiresFullKeyboardAccess.value === false
-                ) {
+
+                // ignore ctrl and shift so shortcuts like Ctrl-C or Ctrl-Shift-I aren't intercepted here
+                let kb = !appState.componentRequiresFullKeyboardAccess.value;
+                if (kb && !ctrlKey && !shiftKey) {
                     // we can treat any keypresses as modal commands for the app
                     switch (code) {
                         case "KeyA":
@@ -423,12 +424,7 @@ export default function CommandBar() {
                             navigate("/", "home");
                             break;
                         case "KeyI":
-                            if (!shiftKey && !ctrlKey) {
-                                // Ctrl + Shift + i should bring up the
-                                // browser dev tools, not navigate to
-                                // the ideas page
-                                routeOnly(DeckKind.Idea);
-                            }
+                            routeOnly(DeckKind.Idea);
                             break;
                         case "KeyM":
                             if (appState.wantToShowDeckUpdateForm.value) {
