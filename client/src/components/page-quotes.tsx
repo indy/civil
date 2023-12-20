@@ -101,15 +101,28 @@ function QuotesModule({}) {
     );
 }
 
+// note: not sure that this abort mechanism is working for quotes
+// I think that the route function call may be escaping the code
+// out of the enclosing try/catch block?
+//
+let gQuotesAbort = new AbortController();
 function getQuoteThenRoute(url: string) {
-    Net.get<DeckQuote>(url).then((deck) => {
-        if (deck) {
-            route(`/quotes/${deck.id}`);
-            AppStateChange.urlTitle({ title: deck.title });
-        } else {
-            console.error(`error: fetchDeck for ${url}`);
-        }
-    });
+    try {
+        gQuotesAbort.abort();
+
+        gQuotesAbort = new AbortController();
+        Net.getAbortable<DeckQuote>(url, gQuotesAbort.signal).then((deck) => {
+            if (deck) {
+                route(`/quotes/${deck.id}`);
+                AppStateChange.urlTitle({ title: deck.title });
+            } else {
+                console.error(`error: fetchDeck for ${url}`);
+            }
+        });
+    } catch (e) {
+        // this catches the exception thrown when abort is invoked
+        console.log(e);
+    }
 }
 
 function QuoteNew({ path }: { path?: string }) {
