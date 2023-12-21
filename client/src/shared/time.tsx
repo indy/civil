@@ -44,14 +44,27 @@ export function prettyPrintTimeSpan(deltaMS: number): string {
     return `${roundedVal} ${unit}`;
 }
 
-export function formattedDate(timestamp: string) {
+export function formattedDate(timestamp: string): string {
+    let [year, month, day] = dateStringAsTriple(timestamp);
+
+    const isBC = year < 0;
+
+    if (isBC && month === 1 && day === 1) {
+        // special case BC date of Jan 01 should always be rounded to the year
+        return `${year * -1}BC`;
+    }
+
     const options: Intl.DateTimeFormatOptions = {
         year: "numeric",
         month: "long",
         day: "numeric",
     };
     const d = new Date(timestamp);
-    const textual = d.toLocaleDateString("en-GB", options);
+    let textual = d.toLocaleDateString("en-GB", options);
+    if (isBC) {
+        // toLocaleDateString doesn't handle BC dates correctly
+        textual += "BC";
+    }
 
     return textual;
 }
