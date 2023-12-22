@@ -221,16 +221,8 @@ function MemoriseModule() {
 
     let nextTestInfo = "";
     if (local.mode === Mode.PreTest && !canTest) {
-        const nextReviewDate = formattedDate(
-            Date.parse(
-                appState.memoriseEarliestReviewDate.value!,
-            ) as unknown as string,
-        );
-        const nextReviewTime = formattedTime(
-            Date.parse(
-                appState.memoriseEarliestReviewDate.value!,
-            ) as unknown as string,
-        );
+        const nextReviewDate = formattedDate(appState.memoriseEarliestReviewDate.value!);
+        const nextReviewTime = formattedTime(appState.memoriseEarliestReviewDate.value!);
         nextTestInfo = `The next test will be available at ${nextReviewTime} on ${nextReviewDate}`;
     }
 
