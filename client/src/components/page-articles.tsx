@@ -4,7 +4,7 @@ import { DeckKind, DeckManagerFlags, NoteKind } from "../enums";
 import type { DeckArticle, DM, Note, ProtoArticle, SlimDeck } from "../types";
 
 import { buildUrl } from "../shared/civil";
-import { impactAsText } from "../shared/impact";
+import { impactAsStarText } from "../shared/impact";
 import Net from "../shared/net";
 import { formattedDate } from "../shared/time";
 
@@ -439,7 +439,7 @@ function ArticleUpdater({ article, onUpdate, onCancel }: ArticleUpdaterProps) {
                     id="impactSlider"
                     onInput={onImpactChange}
                 />
-                <CivRight>{impactAsText(rating)}</CivRight>
+                <CivRight>{impactAsStarText(rating)}</CivRight>
             </CivMain>
 
             <CivLeftLabel>Font</CivLeftLabel>

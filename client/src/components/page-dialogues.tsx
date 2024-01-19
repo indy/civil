@@ -27,7 +27,7 @@ import {
 } from "../shared/deck";
 import { capitalise } from "../shared/english";
 import { fontForRole } from "../shared/font";
-import { impactAsText } from "../shared/impact";
+import { impactAsStarText } from "../shared/impact";
 import Net from "../shared/net";
 
 import buildMarkup from "./build-markup";
@@ -589,7 +589,7 @@ function DialogueUpdater({
                     id="impactSlider"
                     onInput={onImpactChange}
                 />
-                <CivRight>{impactAsText(localState.impact)}</CivRight>
+                <CivRight>{impactAsStarText(localState.impact)}</CivRight>
             </CivMain>
 
             <div class="vertical-spacer"></div>

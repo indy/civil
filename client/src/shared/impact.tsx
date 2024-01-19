@@ -8,6 +8,8 @@
   as Michelin stars rather than film review stars
  */
 
+// used by ideas, people, timelines, events
+//
 export function impactAsText(impact: number): string {
     switch (impact) {
         case 0:
@@ -20,6 +22,25 @@ export function impactAsText(impact: number): string {
             return "World Changing";
         case 4:
             return "Humanity Changing";
+        default:
+            return "unknown impact value!!!!";
+    }
+}
+
+// used by articles and dialogues
+//
+export function impactAsStarText(impact: number): string {
+    switch (impact) {
+        case 0:
+            return "Unimportant";
+        case 1:
+            return "Normal";
+        case 2:
+            return "One Star";
+        case 3:
+            return "Two Star";
+        case 4:
+            return "Three Star";
         default:
             return "unknown impact value!!!!";
     }
