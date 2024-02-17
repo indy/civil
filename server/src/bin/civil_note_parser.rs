@@ -76,13 +76,14 @@ async fn main() -> civil_server::Result<()> {
 
                 //if input.starts_with("y") {
                 //info!("saving {}", note.id);
-                edit_note(&sqlite_pool, 1, &note, note.id)?;
+                edit_note(&sqlite_pool, Key(1), &note, note.id)?;
                 // } else {
                 //     println!("note.id: {}, skip this one", note.id);
                 // }
             }
 
-            let res = civil_shared::markup_as_struct(&note.content, note.id as usize)?;
+            let note_id = note.id.0 as usize;
+            let res = civil_shared::markup_as_struct(&note.content, note_id)?;
             num_elements += res.len();
             c += 1;
 

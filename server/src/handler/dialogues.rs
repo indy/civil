@@ -39,7 +39,7 @@ pub async fn chat(
     info!("chat");
 
     let user_id = session::user_id(&session)?;
-    info!(user_id);
+    info!("{}", user_id.0);
 
     let dialogue = dialogue.into_inner();
 

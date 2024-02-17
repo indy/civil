@@ -23,6 +23,7 @@ pub mod events;
 pub mod font;
 pub mod graph;
 pub mod ideas;
+pub mod key;
 pub mod memorise;
 pub mod notes;
 pub mod people;
@@ -35,7 +36,7 @@ pub mod timelines;
 pub mod uploader;
 pub mod users;
 
-pub type Key = i64;
+pub use key::Key;
 
 #[derive(serde::Deserialize)]
 pub struct IdParam {

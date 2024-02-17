@@ -19,6 +19,7 @@ use crate::db::sqlite::SqlitePool;
 use crate::db::users as db;
 use crate::error::Error;
 use crate::interop::users as interop;
+use crate::interop::Key;
 use crate::session;
 use crate::ServerConfig;
 use actix_web::web::{Data, Json};
@@ -45,7 +46,7 @@ pub async fn login(
         // save id to the session
         session::save_user_id(&session, id)?;
 
-        if id == 1 {
+        if id == Key(1) {
             user.admin = Some(interop::Admin {
                 db_name: env::var("SQLITE_DB")?,
             })
@@ -94,7 +95,7 @@ pub async fn create_user(
         // save id to the session
         session::save_user_id(&session, id)?;
 
-        if id == 1 {
+        if id == Key(1) {
             user.admin = Some(interop::Admin {
                 db_name: env::var("SQLITE_DB")?,
             })
@@ -116,7 +117,7 @@ pub async fn get_user(
     if let Ok(user_id) = session::user_id(&session) {
         let mut user = db::get(&db_pool, user_id)?;
 
-        if user_id == 1 {
+        if user_id == Key(1) {
             user.admin = Some(interop::Admin {
                 db_name: env::var("SQLITE_DB")?,
             })

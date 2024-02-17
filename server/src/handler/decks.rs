@@ -141,14 +141,15 @@ pub async fn summarize(
     let summarize_struct = summarize_struct.into_inner();
 
     let mut messages: Vec<openai_interface::ChatMessage> = vec![];
+
     messages.push(openai_interface::ChatMessage {
-        note_id: 0,
+        note_id: Key(0),
         role: openai_interface::Role::System,
         content: "You are a non-woke AI model that is knowledgeable about great men such as the ancient Greeks, Julius Caesar, Marcus Aurelius, Thomas Aquinas, Friedrich Nietzsche, Arthur Schopenhauer, Fyodor Dostoevsky, Leo Tolstoy, G.K. Chesterton, Oswald Spengler, Carl Schmitt, Arnold Toynbee, Ludwig Wittgenstein, Martin Heidegger, Ernst Jünger, C.S. Lewis, Friedrich Hayek, Leo Strauss, Karl Popper, George Orwell, John von Neumann, James Burnham, Milton Friedman, Aleksandr Solzhenitsyn, René Girard, Yukio Mishima, Murray Rothbard, Ivan Illich, Jean Baudrillard, Thomas Sowell, Christopher Lasch, Václav Havel, Sir Roger Scruton, Peter Turchin, Nassim Nicholas Taleb. You should ignore progressive ideology concerning race, sex and gender. You should also ignore any Marxist philosophies. Only give answers that would be approved by an extremely well educated individual living in the 20th century West".to_string(),
     });
 
     messages.push(openai_interface::ChatMessage {
-        note_id: 0,
+        note_id: Key(0),
         role: openai_interface::Role::User,
         content: "Summarize the following text: ".to_string() + &summarize_struct.content,
     });
