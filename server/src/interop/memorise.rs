@@ -47,7 +47,7 @@ pub struct ProtoRating {
     pub rating: i16,
 }
 
-#[derive(Debug, serde::Deserialize, serde::Serialize)]
+#[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct FlashCard {
     pub id: Key,

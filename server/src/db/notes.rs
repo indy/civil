@@ -22,6 +22,8 @@ use crate::interop::memorise::FlashCard;
 use crate::interop::notes::{Note, NoteKind, PreviewNotes, ProtoNote};
 use crate::interop::Key;
 
+use crate::error::Error;
+
 #[allow(unused_imports)]
 use tracing::{error, info, warn};
 
@@ -555,13 +557,52 @@ pub fn edit_note(
     let conn = sqlite_pool.get()?;
     let stmt = "UPDATE notes
                 SET content = ?3, font= ?4
-                WHERE id = ?2 AND user_id = ?1
-                RETURNING id, content, kind, point_id, prev_note_id, font";
-    sqlite::one(
+                WHERE id = ?2 AND user_id = ?1";
+    sqlite::zero(
         &conn,
         stmt,
         params![&user_id, &note_id, &note.content, &i32::from(note.font)],
-    )
+    )?;
+
+    single_note(sqlite_pool, note_id)
+}
+
+// get single note
+//
+fn single_note(sqlite_pool: &SqlitePool, note_id: Key) -> crate::Result<Note> {
+    let conn = sqlite_pool.get()?;
+
+    let stmt = "SELECT   n.id,
+                         n.prev_note_id,
+                         n.kind,
+                         n.content,
+                         n.point_id,
+                         n.font,
+                         r.kind as ref_kind,
+                         r.annotation,
+                         d.id,
+                         d.name,
+                         d.kind as deck_kind,
+                         d.created_at,
+                         d.graph_terminator,
+                         d.insignia,
+                         d.font,
+                         d.impact
+                FROM     notes n
+                         FULL JOIN refs r on r.note_id = n.id
+                         FULL JOIN decks d on r.deck_id = d.id
+                WHERE    n.id = ?1";
+    let notes_and_refs: Vec<NoteAndRef> = sqlite::many(&conn, stmt, params!(&note_id))?;
+
+    let mut notes = notes_from_notes_and_refs(notes_and_refs)?;
+    let flashcards = memorise_db::all_flashcards_for_note(sqlite_pool, note_id)?;
+    assign_flashcards_to_notes(&mut notes, &flashcards)?;
+
+    if notes.len() == 1 {
+        Ok(notes[0].clone())
+    } else {
+        Err(Error::TooManyFound)
+    }
 }
 
 pub fn get_all_notes_in_db(sqlite_pool: &SqlitePool) -> crate::Result<Vec<Note>> {

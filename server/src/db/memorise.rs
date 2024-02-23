@@ -92,6 +92,21 @@ pub(crate) fn all_flashcards_for_deck(
     )
 }
 
+pub(crate) fn all_flashcards_for_note(
+    sqlite_pool: &SqlitePool,
+    note_id: Key,
+) -> crate::Result<Vec<FlashCard>> {
+    let conn = sqlite_pool.get()?;
+    sqlite::many(
+        &conn,
+        "SELECT c.id, c.note_id, c.prompt, c.next_test_date,
+                c.easiness_factor, c.interval, c.repetition
+         FROM cards c, notes n
+         WHERE n.id=?1 AND c.note_id = n.id",
+        params![&note_id],
+    )
+}
+
 pub(crate) fn all_flashcards_for_deck_arrivals(
     sqlite_pool: &SqlitePool,
     deck_id: Key,

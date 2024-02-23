@@ -109,7 +109,7 @@ impl FromSql for RefKind {
 
 // links to decks on the side of notes
 //
-#[derive(Debug, serde::Deserialize, serde::Serialize)]
+#[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Ref {
     pub note_id: Key,
