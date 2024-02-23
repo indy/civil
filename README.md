@@ -32,6 +32,12 @@ The dist directory will contain the release build
 
 ```sh
 $ make upload
+$ sudo systemctl stop isg-civil.service
+```
+May have to restart the service if changes were made to the server
+```sh
+$ sudo systemctl stop isg-civil.service
+$ sudo systemctl start isg-civil.service
 ```
 
 # Requirements

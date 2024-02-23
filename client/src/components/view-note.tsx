@@ -468,8 +468,7 @@ const ViewNote = <T extends FatDeck>({
     }
 
     function buildUpperInsertUI() {
-        function onCancelled(e: Event) {
-            e.preventDefault();
+        function onCancelled() {
             localDispatch(ActionType.UpperInsertUiShow, false);
         }
 

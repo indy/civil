@@ -7,15 +7,15 @@ import { getAppState } from "../app-state";
 
 import Net from "../shared/net";
 
-import { CivLeft, CivMain } from "./civil-layout";
+import { CivMain } from "./civil-layout";
+import CivilButton from "./civil-button";
 import CivilTextArea from "./civil-text-area";
 import ImageSelector from "./image-selector";
-import { svgX } from "./svg-icons";
 
 type Props = {
     label: string;
     onCreate: (ns: Notes) => void;
-    onCancel: (e: Event) => void;
+    onCancel: () => void;
     deckId: Key;
     font: Font;
     prevNoteId?: number;
@@ -149,15 +149,6 @@ export default function NoteForm({
 
     return (
         <div>
-            <CivLeft>
-                <div
-                    class="left-margin-entry fadeable clickable cancel-offset"
-                    onClick={onCancel}
-                >
-                    <span class="left-margin-icon-label">Cancel</span>
-                    {svgX()}
-                </div>
-            </CivLeft>
             <CivMain>
                 <form class="civil-add-note-form" onSubmit={onSubmit}>
                     <label for="content">{label}</label>
@@ -173,6 +164,9 @@ export default function NoteForm({
                         onPaste={onImagePaste}
                     />
                     <br />
+
+                    <CivilButton onClick={onCancel}>Cancel</CivilButton>
+
                     <input class="c-civil-button" type="submit" value="Save" />
                     <span class="note-split-option">
                         <label for="splitbox">Split into multiple notes:</label>

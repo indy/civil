@@ -25,7 +25,7 @@
 
     --title-height: 1.6rem;
 
-    --ui-element-border-radius: 0.4em;
+    --ui-element-border-radius: 0.3em;
 
     --space-for-selectable-highlight: 0.5rem;
 
@@ -630,6 +630,7 @@ a:visited.pigment-inherit {
 
 .bookmarkmode-active {
     background: var(--highlight);
+    border: 0.1rem solid var(--fg-toolbar-bookmark) !important;
     border-radius: var(--coloured-deck-border-radius);
     padding: 0.3rem;
 }
@@ -1954,6 +1955,38 @@ section > form {
 .left-margin-icon-label {
     vertical-align: super;
     margin-right: 0.5rem;
+}
+
+
+
+.inline-view-button-extras {
+    margin-left: 1rem;
+    border: var(--ui-element-border-radius) solid var(--fg-toolbar-view) !important;
+}
+.inline-edit-button-extras {
+    margin-left: 1rem;
+    border: var(--ui-element-border-radius) solid var(--fg-toolbar-edit) !important;
+}
+.inline-ref-button-extras {
+    margin-left: 1rem;
+    border: var(--ui-element-border-radius) solid var(--fg-toolbar-refs) !important;
+}
+.inline-memorise-button-extras {
+    margin-left: 1rem;
+    border: var(--ui-element-border-radius) solid var(--fg-toolbar-memorise) !important;
+}
+.inline-upper-insert-button-extras {
+    margin-left: 1rem;
+    border: var(--ui-element-border-radius) solid var(--fg-toolbar-upper-insert) !important;
+}
+.inline-bookmark-button-extras {
+    margin-left: 1rem;
+    border: var(--ui-element-border-radius) solid var(--fg-toolbar-bookmark) !important;
+}
+
+.inline-button-extras-text {
+    vertical-align: super;
+    margin-left: 0.5rem;
 }
 
 .append-note {

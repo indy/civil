@@ -642,6 +642,7 @@ export const AppStateChange = {
             state.showNoteForm.value = snf;
             state.showNoteFormPointId.value = undefined;
             state.componentRequiresFullKeyboardAccess.value = false;
+            state.mode.value = CivilMode.View;
         },
     ),
 

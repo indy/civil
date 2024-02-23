@@ -9,7 +9,7 @@ import { addMultipleBookmarks } from "../shared/bookmarks";
 import Net from "../shared/net";
 import { emptySearchResults } from "../shared/search";
 
-import CivilButton from "./civil-button";
+import CivilModeButton from "./civil-mode-button";
 import { CivContainer, CivMainUi, CivLeft } from "./civil-layout";
 import ViewSearchResults from "./view-search-results";
 
@@ -76,9 +76,10 @@ function SearchModule({ encodedQuery }: { encodedQuery: string }) {
                 <CivMainUi>
                     <h3 class="ui">{encodedQuery}</h3>
                     {bookmarkMode && (
-                        <CivilButton onClick={bookmarkAll}>
+                        <CivilModeButton mode={CivilMode.BookmarkLinks}
+                                         onClick={bookmarkAll}>
                             Bookmark All Results
-                        </CivilButton>
+                        </CivilModeButton>
                     )}
                 </CivMainUi>
             </CivContainer>

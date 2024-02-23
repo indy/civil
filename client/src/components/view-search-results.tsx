@@ -20,7 +20,7 @@ import Net from "../shared/net";
 
 import buildMarkup from "./build-markup";
 import { CivContainer, CivLeft, CivMain } from "./civil-layout";
-import CivilButton from "./civil-button";
+import CivilModeButton from "./civil-mode-button";
 import CivilSelect from "./civil-select";
 import DeckLink from "./deck-link";
 import Expandable from "./expandable";
@@ -193,14 +193,10 @@ function SearchNote({
     }
     return (
         <CivContainer extraClasses={noteClasses}>
+            {refMode && parent && (
+                <AddQuickRef onAdded={onAdded} parent={parent} note={note} />
+            )}
             <CivLeft>
-                {refMode && parent && (
-                    <AddQuickRef
-                        onAdded={onAdded}
-                        parent={parent}
-                        note={note}
-                    />
-                )}
                 {flashcardIndicators}
                 {buildRefs(note.refs)}
             </CivLeft>
@@ -210,7 +206,6 @@ function SearchNote({
                     {buildMarkup(note.content, note.font, note.id)}
                 </div>
             </CivMain>
-
             {appState.mode.value === CivilMode.Refs &&
                 addDeckReferencesUI &&
                 buildAddDecksUI()}
@@ -259,6 +254,8 @@ function AddQuickRef({
     }
 
     return (
-        <CivilButton onClick={onClick}>Add Ref to {parent.title}</CivilButton>
+        <CivilModeButton mode={CivilMode.Refs} onClick={onClick}>
+            Add Ref to {parent.title}
+        </CivilModeButton>
     );
 }

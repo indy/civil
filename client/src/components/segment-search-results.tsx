@@ -11,7 +11,7 @@ import { plural } from "../shared/english";
 import Net from "../shared/net";
 import { emptySearchResults } from "../shared/search";
 
-import CivilButton from "./civil-button";
+import CivilModeButton from "./civil-mode-button";
 import RollableSegment from "./rollable-segment";
 import ViewSearchResults from "./view-search-results";
 
@@ -69,9 +69,11 @@ export default function SegmentSearchResults({
                 extraClasses="c-segment-search-results"
             >
                 {showButton && (
-                    <CivilButton onClick={bookmarkAll}>
-                        Bookmark All Results
-                    </CivilButton>
+
+                        <CivilModeButton mode={CivilMode.BookmarkLinks}
+                                         onClick={bookmarkAll}>
+                            Bookmark All Results
+                        </CivilModeButton>
                 )}
 
                 <ViewSearchResults

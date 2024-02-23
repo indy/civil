@@ -2,11 +2,13 @@ import { NoteKind } from "../enums";
 
 import type { FatDeck, Note, Notes, Point, Reference } from "../types";
 
+import { CivilMode } from "../enums";
+
 import { AppStateChange, getAppState } from "../app-state";
 
-import { CivContainer, CivLeft } from "./civil-layout";
+import { CivContainer } from "./civil-layout";
+import CivilModeButton from "./civil-mode-button";
 import NoteForm from "./note-form";
-import { svgEdit } from "./svg-icons";
 import ViewNote from "./view-note";
 import WhenEditMode from "./when-edit-mode";
 
@@ -52,9 +54,8 @@ const ViewPassageChunkyBoy = <T extends FatDeck>({
     }
 
     function buildNoteForm() {
-        function onCancelled(e: Event) {
+        function onCancelled() {
             AppStateChange.hideNoteForm({ noteKind });
-            e.preventDefault();
         }
 
         function onNoteCreated(allNotes: Array<Note>) {
@@ -82,7 +83,7 @@ const ViewPassageChunkyBoy = <T extends FatDeck>({
     }
 
     function buildNoteFormIcon() {
-        function onAddNoteClicked(e: Event) {
+        function onAddNoteClicked() {
             if (optionalPoint) {
                 AppStateChange.showNoteForm({
                     noteKind,
@@ -91,8 +92,6 @@ const ViewPassageChunkyBoy = <T extends FatDeck>({
             } else {
                 AppStateChange.showNoteForm({ noteKind });
             }
-
-            e.preventDefault();
         }
 
         if (optionalPoint) {
@@ -100,15 +99,11 @@ const ViewPassageChunkyBoy = <T extends FatDeck>({
                 <WhenEditMode>
                     <div class="inline-append-note">
                         <div class="left-margin-inline">
-                            <div
-                                class="fadeable clickable"
-                                onClick={onAddNoteClicked}
-                            >
-                                {svgEdit()}
-                                <span class="left-margin-icon-label ui-bold">
+                            <CivilModeButton
+                                mode={CivilMode.Edit}
+                                onClick={onAddNoteClicked}>
                                     {appendLabel}
-                                </span>
-                            </div>
+                            </CivilModeButton>
                         </div>
                     </div>
                 </WhenEditMode>
@@ -116,17 +111,11 @@ const ViewPassageChunkyBoy = <T extends FatDeck>({
         } else {
             return (
                 <WhenEditMode>
-                    <CivLeft ui>
-                        <div
-                            class="fadeable clickable"
-                            onClick={onAddNoteClicked}
-                        >
-                            <span class="left-margin-icon-label ui-bold">
-                                {appendLabel}
-                            </span>
-                            {svgEdit()}
-                        </div>
-                    </CivLeft>
+                    <CivilModeButton
+                        mode={CivilMode.Edit}
+                        onClick={onAddNoteClicked}>
+                            {appendLabel}
+                    </CivilModeButton>
                 </WhenEditMode>
             );
         }
