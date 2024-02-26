@@ -7,6 +7,8 @@
     --can-narrow-width: true;
 
     --body-width: 80%;
+    --body-left-margin: 20%;
+
     --block-width: 55%;
     --block-width-ui: 55%;
 
@@ -679,11 +681,12 @@ html {
 }
 
 body {
+    display: block;
+    margin: 0;
     overflow-y: scroll;
     width: var(--body-width);
-    margin-left: auto;
-    margin-right: auto;
-    padding-left: calc(100% - var(--body-width));
+    padding-left: 4rem;
+    margin-left: var(--body-left-margin);
     font-family: var(--silly-temporary-font);
     background-color: var(--bg);
     color: var(--fg);
@@ -1956,8 +1959,6 @@ section > form {
     vertical-align: super;
     margin-right: 0.5rem;
 }
-
-
 
 .inline-view-button-extras {
     margin-left: 1rem;

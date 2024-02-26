@@ -306,11 +306,13 @@ export const AppStateChange = {
 
             let root = document.body;
             if (args.span === CivilSpan.Narrow) {
-                // root.style.setProperty("--body-width", "72%");
                 root.style.setProperty("--block-width", "40%");
+                root.style.setProperty("--body-left-margin", "32%");
+                root.style.setProperty("--body-width", "64%");
             } else {
-                // root.style.setProperty("--body-width", "80%");
                 root.style.setProperty("--block-width", "55%");
+                root.style.setProperty("--body-left-margin", "20%");
+                root.style.setProperty("--body-width", "80%");
             }
         }
     }),
