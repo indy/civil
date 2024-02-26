@@ -2473,9 +2473,8 @@ input:required {
         padding: 1rem 0.5rem;
     }
 
-    /* without this modfified padding calc there is a slight horizontal scroll on tablets */
     body {
-        padding-left: calc(98% - var(--body-width));
+        padding-left: 0rem;
     }
 
     /* prevent horizontal scrolling */
@@ -2718,6 +2717,7 @@ input:required {
 @media (max-width: 500px) {
     :root {
         /* --bg: #220044; */
+        --body-left-margin: 0%;
         --block-width: 95%;
         --block-width-ui: 95%;
         --command-bar-width: 90%;
