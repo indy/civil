@@ -27,6 +27,8 @@ use actix_web::HttpResponse;
 #[allow(unused_imports)]
 use tracing::{info, warn};
 
+// called by the realtime search at the top of the page
+//
 pub async fn search_at_deck_level(
     sqlite_pool: Data<SqlitePool>,
     session: actix_session::Session,
@@ -87,6 +89,8 @@ pub async fn additional_search_for_decks(
     Ok(HttpResponse::Ok().json(res))
 }
 
+// called by the search page
+//
 pub async fn search_at_all_levels(
     sqlite_pool: Data<SqlitePool>,
     session: actix_session::Session,

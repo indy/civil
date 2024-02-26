@@ -15,7 +15,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::db::postfix_asterisks;
 use crate::db::sqlite::{self, FromRow, SqlitePool};
 use crate::interop::decks::SlimDeck;
 use crate::interop::memorise::{Card, CardUpcomingReview, FlashCard, ProtoCard};
@@ -163,7 +162,6 @@ pub(crate) fn all_flashcards_for_search_query(
     query: &str,
 ) -> crate::Result<Vec<FlashCard>> {
     let conn = sqlite_pool.get()?;
-    let q = postfix_asterisks(query)?;
 
     sqlite::many(
         &conn,
@@ -180,7 +178,7 @@ pub(crate) fn all_flashcards_for_search_query(
                AND (dm.role IS null OR dm.role <> 'system')
          ORDER BY rank ASC
          LIMIT 100",
-        params![&user_id, &q],
+        params![&user_id, &query],
     )
 }
 

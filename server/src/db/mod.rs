@@ -66,17 +66,6 @@ fn sanitize_for_sqlite_match(s: String) -> crate::Result<String> {
     Ok(res)
 }
 
-fn postfix_asterisks(s: &str) -> crate::Result<String> {
-    let mut res: String = "".to_string();
-
-    for i in s.split_whitespace() {
-        res.push_str(i);
-        res.push_str("* ");
-    }
-
-    Ok(res)
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;

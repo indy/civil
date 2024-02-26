@@ -17,8 +17,8 @@
 
 use crate::db::memorise as db_memorise;
 use crate::db::notes as db_notes;
+use crate::db::sanitize_for_sqlite_match;
 use crate::db::sqlite::{self, FromRow, SqlitePool};
-use crate::db::{postfix_asterisks, sanitize_for_sqlite_match};
 use crate::interop::decks::{Arrival, DeckKind, Ref, SlimDeck};
 use crate::interop::notes::Note;
 use crate::interop::search::{SearchDeck, SearchResults};
@@ -163,7 +163,6 @@ fn search_at_quote_extras_level(
     query: &str,
 ) -> crate::Result<Vec<SearchDeck>> {
     let conn = sqlite_pool.get()?;
-    let q = postfix_asterisks(query)?;
 
     // only search in the quote_extras since the deck.title will only
     // be a shortened version of the actual quote
@@ -185,7 +184,7 @@ fn search_at_quote_extras_level(
                ORDER BY rank ASC
                LIMIT 100";
     let search_deck_note_refs: Vec<SearchDeckNoteRef> =
-        sqlite::many(&conn, stmt, params![&user_id, &q])?;
+        sqlite::many(&conn, stmt, params![&user_id, &query])?;
 
     build_search_decks(search_deck_note_refs)
 }
@@ -220,8 +219,7 @@ pub(crate) fn search_at_deck_level(
     user_id: Key,
     query: &str,
 ) -> crate::Result<Vec<SearchDeck>> {
-    let q = postfix_asterisks(query)?;
-    search_at_deck_level_base(sqlite_pool, user_id, &q, false)
+    search_at_deck_level_base(sqlite_pool, user_id, &query, false)
 }
 
 pub(crate) fn search_names_at_deck_level(
@@ -465,7 +463,6 @@ fn search_query(
     query: &str,
 ) -> crate::Result<Vec<SearchDeckNoteRef>> {
     let conn = sqlite_pool.get()?;
-    let q = postfix_asterisks(query)?;
 
     let stmt = "SELECT notes_fts.rank AS rank,
                        d.id, d.name, d.kind, d.created_at, d.graph_terminator, d.insignia, d.font, d.impact,
@@ -485,7 +482,7 @@ fn search_query(
                      AND (dm.role IS null OR dm.role <> 'system')
                ORDER BY rank ASC
                LIMIT 100";
-    sqlite::many(&conn, stmt, params![&user_id, &q])
+    sqlite::many(&conn, stmt, params![&user_id, &query])
 }
 
 // only searching via notes for the moment, will have to add additional search queries that look in points, article_extras etc
