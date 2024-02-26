@@ -76,8 +76,10 @@ function SearchModule({ encodedQuery }: { encodedQuery: string }) {
                 <CivMainUi>
                     <h3 class="ui">{encodedQuery}</h3>
                     {bookmarkMode && (
-                        <CivilModeButton mode={CivilMode.BookmarkLinks}
-                                         onClick={bookmarkAll}>
+                        <CivilModeButton
+                            mode={CivilMode.BookmarkLinks}
+                            onClick={bookmarkAll}
+                        >
                             Bookmark All Results
                         </CivilModeButton>
                     )}

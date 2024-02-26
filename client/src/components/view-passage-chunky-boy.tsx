@@ -101,8 +101,9 @@ const ViewPassageChunkyBoy = <T extends FatDeck>({
                         <div class="left-margin-inline">
                             <CivilModeButton
                                 mode={CivilMode.Edit}
-                                onClick={onAddNoteClicked}>
-                                    {appendLabel}
+                                onClick={onAddNoteClicked}
+                            >
+                                {appendLabel}
                             </CivilModeButton>
                         </div>
                     </div>
@@ -113,8 +114,9 @@ const ViewPassageChunkyBoy = <T extends FatDeck>({
                 <WhenEditMode>
                     <CivilModeButton
                         mode={CivilMode.Edit}
-                        onClick={onAddNoteClicked}>
-                            {appendLabel}
+                        onClick={onAddNoteClicked}
+                    >
+                        {appendLabel}
                     </CivilModeButton>
                 </WhenEditMode>
             );

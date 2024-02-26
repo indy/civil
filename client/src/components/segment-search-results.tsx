@@ -69,11 +69,12 @@ export default function SegmentSearchResults({
                 extraClasses="c-segment-search-results"
             >
                 {showButton && (
-
-                        <CivilModeButton mode={CivilMode.BookmarkLinks}
-                                         onClick={bookmarkAll}>
-                            Bookmark All Results
-                        </CivilModeButton>
+                    <CivilModeButton
+                        mode={CivilMode.BookmarkLinks}
+                        onClick={bookmarkAll}
+                    >
+                        Bookmark All Results
+                    </CivilModeButton>
                 )}
 
                 <ViewSearchResults
