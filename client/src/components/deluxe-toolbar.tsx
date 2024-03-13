@@ -16,15 +16,28 @@ import {
     svgEdit,
     svgFilledCircle,
     svgFlashCard,
+    svgGrid,
     svgHome,
+    svgLogout,
+    svgReviewCards,
+    svgSettings,
+    svgStats,
     svgLinkAlt,
     svgSearch,
 } from "./svg-icons";
 
+type LocalState = {
+    active: boolean;
+    showGrid: boolean;
+};
+
 export function DeluxeToolbar({}) {
     const appState = getAppState();
 
-    const [active, setActive] = useState(true);
+    const [localState, setLocalState] = useState<LocalState>({
+        active: true,
+        showGrid: false,
+    });
 
     let classes = "deluxe-toolbar";
 
@@ -32,18 +45,21 @@ export function DeluxeToolbar({}) {
 
     let currentCivilMode = appState.mode.value;
     if (currentCivilMode === CivilMode.View) {
-        if (active) {
+        if (localState.active) {
             classes += " deluxe-toolbar-faded";
         }
         toggleIcon = svgCircle;
     }
 
-    classes += visibleClass("deluxe-toolbar", active);
+    classes += visibleClass("deluxe-toolbar", localState.active);
 
     let searchClasses = "toolbar-item-icon";
 
     function toggleActive() {
-        setActive(!active);
+        setLocalState({
+            ...localState,
+            active: !localState.active,
+        });
     }
 
     function searchClicked() {
@@ -61,21 +77,54 @@ export function DeluxeToolbar({}) {
         AppStateChange.commandBarResetAndHide();
     }
 
+    function clickedGrid() {
+        setLocalState({
+            ...localState,
+            showGrid: !localState.showGrid,
+        });
+    }
+
+    function Hicon({ href, children }: { href: string; children: any }) {
+        return (
+            <span class="toolbar-item">
+                <Link href={href} class="toolbar-item-icon">
+                    {children}
+                </Link>
+            </span>
+        );
+    }
+    function renderGrid() {
+        return (
+            <div class="deluxe-toolbar-grid">
+                <span>
+                    <span class="toolbar-item">
+                        <Link
+                            onClick={clickedHome}
+                            class="toolbar-item-icon"
+                            href="/"
+                        >
+                            {svgHome()}
+                        </Link>
+                    </span>
+
+                    <Hicon href="/memorise">{svgReviewCards()}</Hicon>
+                    <Hicon href="/stats">{svgStats()}</Hicon>
+                    <Hicon href="/account-settings">{svgSettings()}</Hicon>
+                    <Hicon href="/logout">{svgLogout()}</Hicon>
+                </span>
+            </div>
+        );
+    }
+
     return (
         <div>
             <div class="deluxe-toolbar-toggle-control" onClick={toggleActive}>
                 {toggleIcon(toolbarColourCss(currentCivilMode))}
             </div>
             <div class={classes}>
-                <div class="toolbar-item">
-                    <Link
-                        onClick={clickedHome}
-                        class="toolbar-item-icon"
-                        href="/"
-                    >
-                        {svgHome()}
-                    </Link>
-                    <span class="toolbar-item-text">Home (h)</span>
+                <div class="toolbar-item" onClick={clickedGrid}>
+                    <span class="toolbar-item-icon">{svgGrid()}</span>
+                    {localState.showGrid && renderGrid()}
                 </div>
 
                 <div class="toolbar-item" onClick={searchClicked}>

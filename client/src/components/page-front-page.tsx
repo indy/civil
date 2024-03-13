@@ -1,15 +1,10 @@
 import { type ComponentChildren } from "preact";
 import { useEffect, useState } from "preact/hooks";
-import { Link } from "preact-router";
 
 import type { SlimDeck, SlimResults } from "../types";
 
-import { getAppState } from "../app-state";
-
 import Net from "../shared/net";
-import { plural } from "../shared/english";
 
-import { CivContainer, CivMainUi } from "./civil-layout";
 import ListingLink from "./listing-link";
 import { HeadedSegment } from "./headed-segment";
 import Paginator from "./paginator";
@@ -18,33 +13,8 @@ import { listItemSlimDeck } from "./list-items";
 import Pagination from "./pagination";
 
 export default function FrontPage({ path }: { path?: string }) {
-    const appState = getAppState();
-
-    let memoriseLabel = "Memorise...";
-    const numCards = appState.memoriseReviewCount.value;
-    if (numCards > 0) {
-        memoriseLabel = `Review ${plural(numCards, "card", "s")}`;
-    }
-
     return (
         <div>
-            <CivContainer>
-                <CivMainUi extraClasses="front-page-pusher-container">
-                    <Link class="front-page-pusher" href="/memorise">
-                        {memoriseLabel}
-                    </Link>
-                    <Link class="front-page-pusher" href="/stats">
-                        Stats...
-                    </Link>
-                    <Link class="front-page-pusher" href="/account-settings">
-                        Settings...
-                    </Link>
-                    <Link class="front-page-pusher" href="/logout">
-                        Log out...
-                    </Link>
-                </CivMainUi>
-            </CivContainer>
-
             <Paginator />
             <RecentlyVisitedModule />
             <InsigniasModule />
