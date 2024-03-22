@@ -370,7 +370,7 @@
 }
 
 .svg-fill-colour-attention-required {
-    fill: var(--red-text);
+    fill: var(--fg-red);
 }
 
 a:link {
@@ -551,13 +551,6 @@ a:visited.pigment-inherit {
     width: 50%;
 }
 
-.red-text {
-    color: var(--red-text);
-}
-.green-text {
-    color: var(--green-text);
-}
-
 .margin-top-0 {
     margin-top: 0;
 }
@@ -635,7 +628,7 @@ a:visited.pigment-inherit {
 }
 
 .bookmarkmode-active {
-    background: var(--highlight);
+    background: var(--hi-yellow);
     border: 0.1rem solid var(--fg-toolbar-bookmark) !important;
     border-radius: var(--coloured-deck-border-radius);
     padding: 0.3rem;
@@ -1035,8 +1028,48 @@ nav a {
     border-radius: var(--coloured-deck-border-radius);
 }
 
-mark {
-    background: var(--highlight);
+.bg-hi-red {
+  background: var(--hi-red);
+}
+.bg-hi-green {
+  background: var(--hi-green);
+}
+.bg-hi-blue {
+  background: var(--hi-blue);
+}
+.bg-hi-yellow {
+  background: var(--hi-yellow);
+}
+.bg-hi-orange {
+  background: var(--hi-orange);
+}
+.bg-hi-pink {
+  background: var(--hi-pink);
+}
+.bg-hi-purple {
+  background: var(--hi-purple);
+}
+
+.fg-red {
+  color: var(--fg-red);
+}
+.fg-green {
+  color: var(--fg-green);
+}
+.fg-blue {
+  color: var(--fg-blue);
+}
+.fg-yellow {
+  color: var(--fg-yellow);
+}
+.fg-orange {
+  color: var(--fg-orange);
+}
+.fg-pink {
+  color: var(--fg-pink);
+}
+.fg-purple {
+  color: var(--fg-purple);
 }
 
 .right-margin-numbered > .pseudo-paragraph {
@@ -1081,14 +1114,6 @@ mark {
     font-family: var(--font-cursive);
     font-size: 1.3rem;
     text-align: left;
-}
-
-.scribble-neutral {
-    color: var(--scribble-neutral);
-}
-
-.scribble-disagree {
-    color: var(--scribble-disagree);
 }
 
 .right-margin-number {
@@ -2152,14 +2177,14 @@ input:required {
 .descriptive-scribble {
     display: block;
     font-family: var(--font-cursive);
-    color: var(--scribble-neutral);
+    color: var(--fg-blue);
     margin-left: 1rem;
     margin-right: 1rem;
     font-size: 1.4rem;
 }
 .top-scribble {
     font-family: var(--font-cursive);
-    color: var(--scribble-neutral);
+    color: var(--fg-blue);
     font-size: 1.8rem;
 }
 

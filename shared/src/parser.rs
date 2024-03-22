@@ -29,6 +29,17 @@ pub enum MarginTextLabel {
     Numbered,
 }
 
+#[derive(Debug, Serialize, PartialEq, Eq)]
+pub enum ColourPalette {
+    Red,
+    Green,
+    Blue,
+    Yellow,
+    Orange,
+    Pink,
+    Purple,
+}
+
 // NOTE: update the node check in www/js/index.js to reflect this enum
 //
 #[derive(Debug, Serialize, EnumDiscriminants)]
@@ -36,10 +47,10 @@ pub enum MarginTextLabel {
 pub enum Node {
     BlockQuote(usize, Vec<Node>),
     Codeblock(usize, String),
+    ColouredText(usize, ColourPalette, Vec<Node>),
     Deleted(usize, Vec<Node>),
-    Green(usize, Vec<Node>),
     Header(usize, u32, Vec<Node>),
-    Highlight(usize, Vec<Node>),
+    Highlight(usize, ColourPalette, Vec<Node>),
     HorizontalRule(usize),
     Image(usize, String, Vec<Node>),
     Italic(usize, Vec<Node>),
@@ -50,7 +61,6 @@ pub enum Node {
     OrderedList(usize, Vec<Node>, String),
     Paragraph(usize, Vec<Node>),
     Quotation(usize, Vec<Node>),
-    Red(usize, Vec<Node>),
     Searched(usize, Vec<Node>),
     Strong(usize, Vec<Node>),
     Subscript(usize, Vec<Node>),
@@ -65,11 +75,11 @@ pub enum Node {
 fn get_node_pos(node: &Node) -> usize {
     match node {
         Node::BlockQuote(pos, _) => *pos,
+        Node::ColouredText(pos, _, _) => *pos,
         Node::Codeblock(pos, _) => *pos,
         Node::Deleted(pos, _) => *pos,
-        Node::Green(pos, _) => *pos,
         Node::Header(pos, _, _) => *pos,
-        Node::Highlight(pos, _) => *pos,
+        Node::Highlight(pos, _, _) => *pos,
         Node::HorizontalRule(pos) => *pos,
         Node::Image(pos, _, _) => *pos,
         Node::Italic(pos, _) => *pos,
@@ -80,7 +90,6 @@ fn get_node_pos(node: &Node) -> usize {
         Node::OrderedList(pos, _, _) => *pos,
         Node::Paragraph(pos, _) => *pos,
         Node::Quotation(pos, _) => *pos,
-        Node::Red(pos, _) => *pos,
         Node::Searched(pos, _) => *pos,
         Node::Strong(pos, _) => *pos,
         Node::Subscript(pos, _) => *pos,
@@ -316,9 +325,14 @@ fn eat_searched<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
     Ok((tokens, Node::Searched(pos, parsed_content)))
 }
 
-fn eat_highlighted<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
+fn eat_highlighted<'a>(colour: ColourPalette, tokens: &'a [Token<'a>]) -> ParserResult<Node> {
     let (tokens, (pos, parsed_content)) = eat_basic_colon_command(tokens)?;
-    Ok((tokens, Node::Highlight(pos, parsed_content)))
+    Ok((tokens, Node::Highlight(pos, colour, parsed_content)))
+}
+
+fn eat_coloured<'a>(colour: ColourPalette, tokens: &'a [Token<'a>]) -> ParserResult<Node> {
+    let (tokens, (pos, parsed_content)) = eat_basic_colon_command(tokens)?;
+    Ok((tokens, Node::ColouredText(pos, colour, parsed_content)))
 }
 
 fn eat_underlined<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
@@ -329,16 +343,6 @@ fn eat_underlined<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
 fn eat_italic<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
     let (tokens, (pos, parsed_content)) = eat_basic_colon_command(tokens)?;
     Ok((tokens, Node::Italic(pos, parsed_content)))
-}
-
-fn eat_red<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
-    let (tokens, (pos, parsed_content)) = eat_basic_colon_command(tokens)?;
-    Ok((tokens, Node::Red(pos, parsed_content)))
-}
-
-fn eat_green<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
-    let (tokens, (pos, parsed_content)) = eat_basic_colon_command(tokens)?;
-    Ok((tokens, Node::Green(pos, parsed_content)))
 }
 
 fn eat_subscript<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
@@ -411,7 +415,24 @@ fn eat_colon<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Node> {
             Token::Text(_, "img") => eat_img(tokens),
             Token::Text(_, "url") => eat_url(tokens),
             Token::Text(_, "b") => eat_bold(tokens),
-            Token::Text(_, "h") => eat_highlighted(tokens),
+            Token::Text(_, "h") => eat_highlighted(ColourPalette::Yellow, tokens),
+            Token::Text(_, "hi") => eat_highlighted(ColourPalette::Yellow, tokens),
+            Token::Text(_, "hi-red") => eat_highlighted(ColourPalette::Red, tokens),
+            Token::Text(_, "hi-green") => eat_highlighted(ColourPalette::Green, tokens),
+            Token::Text(_, "hi-blue") => eat_highlighted(ColourPalette::Blue, tokens),
+            Token::Text(_, "hi-yellow") => eat_highlighted(ColourPalette::Yellow, tokens),
+            Token::Text(_, "hi-orange") => eat_highlighted(ColourPalette::Orange, tokens),
+            Token::Text(_, "hi-pink") => eat_highlighted(ColourPalette::Pink, tokens),
+            Token::Text(_, "hi-purple") => eat_highlighted(ColourPalette::Purple, tokens),
+
+            Token::Text(_, "red") => eat_coloured(ColourPalette::Red, tokens),
+            Token::Text(_, "green") => eat_coloured(ColourPalette::Green, tokens),
+            Token::Text(_, "blue") => eat_coloured(ColourPalette::Blue, tokens),
+            Token::Text(_, "yellow") => eat_coloured(ColourPalette::Yellow, tokens),
+            Token::Text(_, "orange") => eat_coloured(ColourPalette::Orange, tokens),
+            Token::Text(_, "pink") => eat_coloured(ColourPalette::Pink, tokens),
+            Token::Text(_, "purple") => eat_coloured(ColourPalette::Purple, tokens),
+
             Token::Text(_, "u") => eat_underlined(tokens),
             Token::Text(_, "i") => eat_italic(tokens),
             Token::Text(_, "h1") => eat_header(1, tokens),
@@ -427,9 +448,7 @@ fn eat_colon<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Node> {
             Token::Text(_, "comment") => eat_comment(tokens),
             Token::Text(_, "deleted") => eat_deleted(tokens),
             Token::Text(_, "disagree") => eat_disagree(tokens),
-            Token::Text(_, "green") => eat_green(tokens),
             Token::Text(_, "nside") => eat_nside(tokens),
-            Token::Text(_, "red") => eat_red(tokens),
             Token::Text(_, "searched") => eat_searched(tokens),
             Token::Text(_, "side") => eat_side(tokens),
             Token::Text(_, "subscript") => eat_subscript(tokens),
@@ -964,10 +983,11 @@ mod tests {
         };
     }
 
-    fn assert_highlight1_pos(node: &Node, expected: &'static str, loc: usize) {
+    fn assert_highlight1_pos(node: &Node, expected: &'static str, colour: ColourPalette, loc: usize) {
         match node {
-            Node::Highlight(pos, ns) => {
+            Node::Highlight(pos, col, ns) => {
                 assert_eq!(ns.len(), 1);
+                assert_eq!(*col, colour);
                 match &ns[0] {
                     Node::Paragraph(_, ns) => {
                         assert_text(&ns[0], expected);
@@ -1114,23 +1134,33 @@ mod tests {
     #[test]
     fn test_highlight() {
         {
-            let nodes = build("words with :h(highlighted) test");
+            let nodes = build("words with :hi(highlighted) test");
 
             assert_eq!(1, nodes.len());
             let children = paragraph_children(&nodes[0]).unwrap();
             assert_eq!(children.len(), 3);
             assert_text(&children[0], "words with ");
-            assert_highlight1_pos(&children[1], "highlighted", 11);
+            assert_highlight1_pos(&children[1], "highlighted", ColourPalette::Yellow, 11);
             assert_text(&children[2], " test");
         }
         {
-            let nodes = build("words with :h(highlight)");
+            let nodes = build("words with :hi(highlight)");
 
             assert_eq!(1, nodes.len());
             let children = paragraph_children(&nodes[0]).unwrap();
             assert_eq!(children.len(), 2);
             assert_text(&children[0], "words with ");
-            assert_highlight1_pos(&children[1], "highlight", 11);
+            assert_highlight1_pos(&children[1], "highlight", ColourPalette::Yellow, 11);
+        }
+        {
+            let nodes = build("words with :hi-purple(highlighted) test");
+
+            assert_eq!(1, nodes.len());
+            let children = paragraph_children(&nodes[0]).unwrap();
+            assert_eq!(children.len(), 3);
+            assert_text(&children[0], "words with ");
+            assert_highlight1_pos(&children[1], "highlighted", ColourPalette::Purple, 11);
+            assert_text(&children[2], " test");
         }
     }
 
@@ -1168,18 +1198,18 @@ mod tests {
 
     #[test]
     fn test_nested_markup() {
-        let nodes = build(":h(:b(words) with :b(strong)) test");
+        let nodes = build(":hi(:b(words) with :b(strong)) test");
         assert_eq!(1, nodes.len());
         let children = paragraph_children(&nodes[0]).unwrap();
         assert_eq!(children.len(), 2);
 
         match &children[0] {
-            Node::Highlight(_, children) => match &children[0] {
+            Node::Highlight(_, _, children) => match &children[0] {
                 Node::Paragraph(_, children) => {
                     assert_eq!(children.len(), 3);
-                    assert_strong1_pos(&children[0], "words", 3);
+                    assert_strong1_pos(&children[0], "words", 4);
                     assert_text(&children[1], " with ");
-                    assert_strong1_pos(&children[2], "strong", 18);
+                    assert_strong1_pos(&children[2], "strong", 19);
                 }
                 _ => assert_eq!(false, true),
             },

@@ -16,7 +16,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::element::Element;
-use crate::parser::{MarginTextLabel, Node};
+use crate::parser::{ColourPalette, MarginTextLabel, Node};
 
 use std::fmt::Write;
 
@@ -33,6 +33,7 @@ pub fn compile_to_struct(nodes: &[Node], note_id: usize) -> crate::Result<Vec<El
 fn compile_node_to_struct(node: &Node, key: usize, note_id: usize) -> crate::Result<Vec<Element>> {
     let res = match node {
         Node::BlockQuote(_, ns) => element("blockquote", key, note_id, ns)?,
+        Node::ColouredText(_, col, ns) => coloured_text(col, key, note_id, ns)?,
         Node::Codeblock(_, code) => {
             vec![Element {
                 name: String::from("pre"),
@@ -50,9 +51,8 @@ fn compile_node_to_struct(node: &Node, key: usize, note_id: usize) -> crate::Res
             }]
         }
         Node::Deleted(_, ns) => element_hoisted("del", key, note_id, ns)?,
-        Node::Green(_, ns) => element_hoisted_class("span", "green-text", key, note_id, ns)?,
         Node::Header(_, level, ns) => header_key(*level, key, note_id, ns)?,
-        Node::Highlight(_, ns) => element_hoisted("mark", key, note_id, ns)?,
+        Node::Highlight(_, col, ns) => coloured_highlight(col, key, note_id, ns)?,
         Node::HorizontalRule(_) => element_class("hr", "hr-inline", key, note_id, &[])?,
         Node::Image(_, src, ns) => {
             let img = Element {
@@ -80,8 +80,8 @@ fn compile_node_to_struct(node: &Node, key: usize, note_id: usize) -> crate::Res
         }
         Node::Italic(_, ns) => element_hoisted("i", key, note_id, ns)?,
         Node::ListItem(_, ns) => element("li", key, note_id, ns)?,
-        Node::MarginComment(_, ns) => compile_sidenote("right-margin-scribble scribble-neutral", key, note_id, ns)?,
-        Node::MarginDisagree(_, ns) => compile_sidenote("right-margin-scribble scribble-disagree", key, note_id, ns)?,
+        Node::MarginComment(_, ns) => compile_sidenote("right-margin-scribble fg-blue", key, note_id, ns)?,
+        Node::MarginDisagree(_, ns) => compile_sidenote("right-margin-scribble fg-red", key, note_id, ns)?,
         Node::MarginText(_, numbered, ns) => match numbered {
             MarginTextLabel::Numbered => compile_numbered_sidenote(key, note_id, ns)?,
             MarginTextLabel::UnNumbered => compile_sidenote("right-margin", key, note_id, ns)?,
@@ -90,7 +90,6 @@ fn compile_node_to_struct(node: &Node, key: usize, note_id: usize) -> crate::Res
         Node::Paragraph(_, ns) => element("p", key, note_id, ns)?,
         Node::Quotation(_, ns) => element_hoisted("em", key, note_id, ns)?,
         Node::Searched(_, ns) => element_hoisted_class("span", "searched-text", key, note_id, ns)?,
-        Node::Red(_, ns) => element_hoisted_class("span", "red-text", key, note_id, ns)?,
         Node::Strong(_, ns) => element_hoisted("strong", key, note_id, ns)?,
         Node::Subscript(_, ns) => element_hoisted("sub", key, note_id, ns)?,
         Node::Superscript(_, ns) => element_hoisted("sup", key, note_id, ns)?,
@@ -182,6 +181,32 @@ fn element(name: &str, key: usize, note_id: usize, ns: &[Node]) -> crate::Result
     let e = base_element(name, key, note_id, ns)?;
 
     Ok(vec![e])
+}
+
+fn coloured_highlight(col: &ColourPalette, key: usize, note_id: usize, ns: &[Node]) -> crate::Result<Vec<Element>> {
+    let class = match col {
+        ColourPalette::Red => "bg-hi-red",
+        ColourPalette::Green => "bg-hi-green",
+        ColourPalette::Blue => "bg-hi-blue",
+        ColourPalette::Yellow => "bg-hi-yellow",
+        ColourPalette::Orange => "bg-hi-orange",
+        ColourPalette::Pink => "bg-hi-pink",
+        ColourPalette::Purple => "bg-hi-purple",
+    };
+    element_hoisted_class("mark", class, key, note_id, ns)
+}
+
+fn coloured_text(col: &ColourPalette, key: usize, note_id: usize, ns: &[Node]) -> crate::Result<Vec<Element>> {
+    let class = match col {
+        ColourPalette::Red => "fg-red",
+        ColourPalette::Green => "fg-green",
+        ColourPalette::Blue => "fg-blue",
+        ColourPalette::Yellow => "fg-yellow",
+        ColourPalette::Orange => "fg-orange",
+        ColourPalette::Pink => "fg-pink",
+        ColourPalette::Purple => "fg-purple",
+    };
+    element_hoisted_class("span", class, key, note_id, ns)
 }
 
 fn element_hoisted(name: &str, key: usize, note_id: usize, ns: &[Node]) -> crate::Result<Vec<Element>> {

@@ -1,17 +1,37 @@
 
-certain words :h(can be highlighted) in a sentence
-this is an :u(important) word
+this is an :u(underlined) word
 this is a :b(bold) word
 this is an :i(italic) word
 
-:comment(a comment in the right hand margin)
-:disagree(a criticism in the right hand margin)
+certain words :h(can be highlighted) in a sentence
+
+certain words :hi(can be highlighted yellow by default) in a sentence
+certain words :hi-red(can be highlighted red) in a sentence
+certain words :hi-green(can be highlighted green) in a sentence
+certain words :hi-blue(can be highlighted blue) in a sentence
+certain words :hi-yellow(can be highlighted yellow) in a sentence
+certain words :hi-orange(can be highlighted orange) in a sentence
+certain words :hi-pink(can be highlighted pink) in a sentence
+certain words :hi-purple(can be highlighted purple) in a sentence
+
+:comment(a comment in the right hand margin) (defaults to blue)
+:disagree(a criticism in the right hand margin) (defaults to red)
+
+words :red(can be coloured red) in a sentence
+words :hi-green(can be coloured green) in a sentence
+words :hi-blue(can be coloured blue) in a sentence
+words :hi-yellow(can be coloured yellow) in a sentence
+words :hi-orange(can be coloured orange) in a sentence
+words :hi-pink(can be coloured pink) in a sentence
+words :hi-purple(can be coloured purple) in a sentence
+
 
 :side(content that goes on the right hand margin)
 :nside(content labelled with a number that goes on the right hand margin)
 
 :url(https://indy.io everything after the space is descriptive text)
 :img(a21.png Golden Retriever)
+:youtube(kRQdtlCOZBI)
 
 :red(this text is red)
 :green(this text is green)
