@@ -415,7 +415,6 @@ fn eat_colon<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Node> {
             Token::Text(_, "img") => eat_img(tokens),
             Token::Text(_, "url") => eat_url(tokens),
             Token::Text(_, "b") => eat_bold(tokens),
-            Token::Text(_, "h") => eat_highlighted(ColourPalette::Yellow, tokens),
             Token::Text(_, "hi") => eat_highlighted(ColourPalette::Yellow, tokens),
             Token::Text(_, "hi-red") => eat_highlighted(ColourPalette::Red, tokens),
             Token::Text(_, "hi-green") => eat_highlighted(ColourPalette::Green, tokens),
