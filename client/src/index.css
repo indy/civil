@@ -369,6 +369,10 @@
     fill: var(--fg-lighter-1);
 }
 
+.svg-fill-colour-attention-required {
+    fill: var(--red-text);
+}
+
 a:link {
     color: var(--fg-lighter-1);
 }
