@@ -46,10 +46,6 @@ function titleFromQuoteText(quoteText: string) {
 }
 
 function Quotes({ path }: { path?: string }) {
-    return <QuotesModule />;
-}
-
-function QuotesModule({}) {
     const [results, setResults] = useState(emptySearchResults());
 
     const [timing, setTiming] = useState(0);
@@ -627,4 +623,4 @@ function Attribution({ attribution, onEdited, onDelete }: AttributionProps) {
     );
 }
 
-export { Quote, Quotes, QuotesModule, QuoteNew };
+export { Quote, Quotes, QuoteNew };
