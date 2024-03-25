@@ -681,15 +681,9 @@ h3,
 h4,
 h5,
 h6 {
-    transition:
-        font-size 0.15s,
-        background 0.15s;
-    -moz-transition:
-        font-size 0.15s,
-        background 0.15s; /* Firefox 4 */
-    -webkit-transition:
-        font-size 0.15s,
-        background 0.15s; /* Safari and Chrome */
+    transition: font-size 0.15s, background 0.15s;
+    -moz-transition: font-size 0.15s, background 0.15s; /* Firefox 4 */
+    -webkit-transition: font-size 0.15s, background 0.15s; /* Safari and Chrome */
 
     font-weight: 400;
     margin-top: 2rem;
@@ -1029,47 +1023,47 @@ nav a {
 }
 
 .bg-hi-red {
-  background: var(--hi-red);
+    background: var(--hi-red);
 }
 .bg-hi-green {
-  background: var(--hi-green);
+    background: var(--hi-green);
 }
 .bg-hi-blue {
-  background: var(--hi-blue);
+    background: var(--hi-blue);
 }
 .bg-hi-yellow {
-  background: var(--hi-yellow);
+    background: var(--hi-yellow);
 }
 .bg-hi-orange {
-  background: var(--hi-orange);
+    background: var(--hi-orange);
 }
 .bg-hi-pink {
-  background: var(--hi-pink);
+    background: var(--hi-pink);
 }
 .bg-hi-purple {
-  background: var(--hi-purple);
+    background: var(--hi-purple);
 }
 
 .fg-red {
-  color: var(--fg-red);
+    color: var(--fg-red);
 }
 .fg-green {
-  color: var(--fg-green);
+    color: var(--fg-green);
 }
 .fg-blue {
-  color: var(--fg-blue);
+    color: var(--fg-blue);
 }
 .fg-yellow {
-  color: var(--fg-yellow);
+    color: var(--fg-yellow);
 }
 .fg-orange {
-  color: var(--fg-orange);
+    color: var(--fg-orange);
 }
 .fg-pink {
-  color: var(--fg-pink);
+    color: var(--fg-pink);
 }
 .fg-purple {
-  color: var(--fg-purple);
+    color: var(--fg-purple);
 }
 
 .right-margin-numbered > .pseudo-paragraph {
@@ -1500,10 +1494,8 @@ textarea {
 }
 
 .c-civil-button:hover {
-    box-shadow:
-        inset 0 0.2rem 0.4rem var(--ui-highlight),
-        0 0.2rem 0.4rem var(--ui-shadow),
-        0 0.2rem 0.4rem var(--ui-shadow-2);
+    box-shadow: inset 0 0.2rem 0.4rem var(--ui-highlight),
+        0 0.2rem 0.4rem var(--ui-shadow), 0 0.2rem 0.4rem var(--ui-shadow-2);
 }
 
 .c-civil-button:disabled {
@@ -1602,9 +1594,7 @@ textarea {
     width: var(--command-bar-width);
     z-index: 1000;
 
-    transition:
-        max-width 250ms linear 50ms,
-        opacity 200ms ease-out;
+    transition: max-width 250ms linear 50ms, opacity 200ms ease-out;
 }
 
 .command-bar-invisible {

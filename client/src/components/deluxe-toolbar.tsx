@@ -95,7 +95,7 @@ export function DeluxeToolbar({}) {
     }
     function renderGrid() {
         let memoriseColour = "svg-fill-colour";
-        if(appState.memoriseReviewCount.value > 0) {
+        if (appState.memoriseReviewCount.value > 0) {
             memoriseColour += "-attention-required";
         }
 
@@ -111,7 +111,9 @@ export function DeluxeToolbar({}) {
                             {svgHome()}
                         </Link>
                     </span>
-                    <Hicon href="/memorise">{svgReviewCards(memoriseColour)}</Hicon>
+                    <Hicon href="/memorise">
+                        {svgReviewCards(memoriseColour)}
+                    </Hicon>
                     <Hicon href="/stats">{svgStats()}</Hicon>
                     <Hicon href="/account-settings">{svgSettings()}</Hicon>
                     <Hicon href="/logout">{svgLogout()}</Hicon>

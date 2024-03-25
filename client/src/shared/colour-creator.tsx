@@ -12,8 +12,8 @@ enum Palette {
     Yellow = 85,
     Orange = 40,
     Pink = 10,
-    Purple = 280
-};
+    Purple = 280,
+}
 
 function generateColoursFromSeeds(state: State, seeds: ColourSeeds) {
     if (state.wasmInterface) {
@@ -204,21 +204,49 @@ function generateColourDefs(seeds: ColourSeeds): ColourDefinitions {
             seeds.colouredTextL,
         ] as ColourTriple,
 
-        hi_red:    [Palette.Red,    100, 60] as ColourTriple,
-        hi_green:  [Palette.Green,  100, 90] as ColourTriple,
-        hi_blue:   [Palette.Blue,   100, 90] as ColourTriple,
+        hi_red: [Palette.Red, 100, 60] as ColourTriple,
+        hi_green: [Palette.Green, 100, 90] as ColourTriple,
+        hi_blue: [Palette.Blue, 100, 90] as ColourTriple,
         hi_yellow: [Palette.Yellow, 100, 95] as ColourTriple,
         hi_orange: [Palette.Orange, 100, 70] as ColourTriple,
-        hi_pink:   [Palette.Pink,   100, 80] as ColourTriple,
+        hi_pink: [Palette.Pink, 100, 80] as ColourTriple,
         hi_purple: [Palette.Purple, 100, 70] as ColourTriple,
 
-        fg_red:    [Palette.Red,    seeds.colouredTextS, seeds.colouredTextL] as ColourTriple,
-        fg_green:  [Palette.Green,  seeds.colouredTextS, seeds.colouredTextL] as ColourTriple,
-        fg_blue:   [Palette.Blue,   seeds.colouredTextS, seeds.colouredTextL] as ColourTriple,
-        fg_yellow: [Palette.Yellow, seeds.colouredTextS, seeds.colouredTextL] as ColourTriple,
-        fg_orange: [Palette.Orange, seeds.colouredTextS, seeds.colouredTextL] as ColourTriple,
-        fg_pink:   [Palette.Pink,   seeds.colouredTextS, seeds.colouredTextL + 20] as ColourTriple,
-        fg_purple: [Palette.Purple, seeds.colouredTextS, seeds.colouredTextL] as ColourTriple,
+        fg_red: [
+            Palette.Red,
+            seeds.colouredTextS,
+            seeds.colouredTextL,
+        ] as ColourTriple,
+        fg_green: [
+            Palette.Green,
+            seeds.colouredTextS,
+            seeds.colouredTextL,
+        ] as ColourTriple,
+        fg_blue: [
+            Palette.Blue,
+            seeds.colouredTextS,
+            seeds.colouredTextL,
+        ] as ColourTriple,
+        fg_yellow: [
+            Palette.Yellow,
+            seeds.colouredTextS,
+            seeds.colouredTextL,
+        ] as ColourTriple,
+        fg_orange: [
+            Palette.Orange,
+            seeds.colouredTextS,
+            seeds.colouredTextL,
+        ] as ColourTriple,
+        fg_pink: [
+            Palette.Pink,
+            seeds.colouredTextS,
+            seeds.colouredTextL + 20,
+        ] as ColourTriple,
+        fg_purple: [
+            Palette.Purple,
+            seeds.colouredTextS,
+            seeds.colouredTextL,
+        ] as ColourTriple,
 
         numbered_side: [
             15.1,
