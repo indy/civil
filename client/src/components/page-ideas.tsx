@@ -13,6 +13,7 @@ import DeleteDeckConfirmation from "./delete-deck-confirmation";
 import { HeadedSegment } from "./headed-segment";
 import { listItemSlimDeck } from "./list-items";
 import Pagination from "./pagination";
+import RecentlyVisited from "./recently-visited";
 import SegmentArrivals from "./segment-arrivals";
 import SegmentDeckRefs from "./segment-deck-refs";
 import SegmentGraph from "./segment-graph";
@@ -23,7 +24,12 @@ import TopMatter from "./top-matter";
 import useDeckManager from "./use-deck-manager";
 
 function Ideas({ path }: { path?: string }) {
-    return <IdeasModule />;
+    return (
+        <div>
+            <IdeasModule />
+            <RecentlyVisited deckKind={DeckKind.Idea} numRecent={30} />
+        </div>
+    );
 }
 
 function IdeasModule() {
@@ -173,4 +179,4 @@ function Idea({ path, id }: { path?: string; id?: string }) {
     }
 }
 
-export { Idea, Ideas, IdeasModule };
+export { Idea, Ideas };

@@ -82,18 +82,6 @@ pub async fn recent(
 
     let user_id = session::user_id(&session)?;
 
-    fn resource_string_to_deck_kind(resource: &str) -> crate::Result<DeckKind> {
-        match resource {
-            "articles" => Ok(DeckKind::Article),
-            "dialogues" => Ok(DeckKind::Dialogue),
-            "ideas" => Ok(DeckKind::Idea),
-            "people" => Ok(DeckKind::Person),
-            "quotes" => Ok(DeckKind::Quote),
-            "timelines" => Ok(DeckKind::Timeline),
-            _ => Err(Error::InvalidResource),
-        }
-    }
-
     let deck_kind = resource_string_to_deck_kind(&query.resource)?;
     let results = db::recent(&sqlite_pool, user_id, deck_kind)?;
 
@@ -106,14 +94,35 @@ pub struct RecentNum {
     num: i32,
 }
 
-pub async fn recently_visited(
+pub async fn recently_visited_any(
     sqlite_pool: Data<SqlitePool>,
     session: actix_session::Session,
     Query(query): Query<RecentNum>,
 ) -> crate::Result<HttpResponse> {
     let user_id = session::user_id(&session)?;
 
-    let results = db::recently_visited(&sqlite_pool, user_id, query.num)?;
+    let results = db::recently_visited_any(&sqlite_pool, user_id, query.num)?;
+
+    let res = SlimResults { results };
+    Ok(HttpResponse::Ok().json(res))
+}
+
+#[derive(Deserialize)]
+pub struct RecentKindNum {
+    resource: String,
+    num: i32,
+}
+
+pub async fn recently_visited(
+    sqlite_pool: Data<SqlitePool>,
+    session: actix_session::Session,
+    Query(query): Query<RecentKindNum>,
+) -> crate::Result<HttpResponse> {
+    let user_id = session::user_id(&session)?;
+
+    let deck_kind = resource_string_to_deck_kind(&query.resource)?;
+
+    let results = db::recently_visited(&sqlite_pool, user_id, deck_kind, query.num)?;
 
     let res = SlimResults { results };
     Ok(HttpResponse::Ok().json(res))
@@ -310,4 +319,17 @@ pub(crate) async fn pagination(
     )?;
 
     Ok(HttpResponse::Ok().json(pagination_results))
+}
+
+fn resource_string_to_deck_kind(resource: &str) -> crate::Result<DeckKind> {
+    match resource {
+        "articles" => Ok(DeckKind::Article),
+        "people" => Ok(DeckKind::Person),
+        "ideas" => Ok(DeckKind::Idea),
+        "timelines" => Ok(DeckKind::Timeline),
+        "quotes" => Ok(DeckKind::Quote),
+        "dialogues" => Ok(DeckKind::Dialogue),
+        "events" => Ok(DeckKind::Event),
+        _ => Err(Error::InvalidResource),
+    }
 }

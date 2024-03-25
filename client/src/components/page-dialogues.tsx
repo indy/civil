@@ -40,6 +40,7 @@ import InsigniaSelector from "./insignia-selector";
 import { HeadedSegment } from "./headed-segment";
 import { listItemSlimDeck } from "./list-items";
 import Pagination from "./pagination";
+import RecentlyVisited from "./recently-visited";
 import SegmentArrivals from "./segment-arrivals";
 import SegmentDeckRefs from "./segment-deck-refs";
 import SegmentGraph from "./segment-graph";
@@ -68,7 +69,12 @@ type MessageChoice = {
 };
 
 function Dialogues({ path }: { path?: string }) {
-    return <DialoguesModule />;
+    return (
+        <div>
+            <DialoguesModule />
+            <RecentlyVisited deckKind={DeckKind.Dialogue} numRecent={30} />
+        </div>
+    );
 }
 
 function DialoguesModule() {
@@ -608,4 +614,4 @@ function DialogueUpdater({
     );
 }
 
-export { Dialogue, DialogueChat, Dialogues, DialoguesModule };
+export { Dialogue, DialogueChat, Dialogues };

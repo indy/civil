@@ -35,6 +35,7 @@ import LifespanForm from "./lifespan-form";
 import { listItemSlimDeck } from "./list-items";
 import Pagination from "./pagination";
 import PointForm from "./point-form";
+import RecentlyVisited from "./recently-visited";
 import RollableSegment from "./rollable-segment";
 import SegmentArrivals from "./segment-arrivals";
 import SegmentDeckRefs from "./segment-deck-refs";
@@ -57,7 +58,12 @@ import useDeckManager from "./use-deck-manager";
 import WhenEditMode from "./when-edit-mode";
 
 function People({ path }: { path?: string }) {
-    return <PeopleModule />;
+    return (
+        <div>
+            <PeopleModule />
+            <RecentlyVisited deckKind={DeckKind.Person} numRecent={30} />
+        </div>
+    );
 }
 
 function PeopleModule() {
@@ -562,4 +568,4 @@ function SegmentPersonPoints({
     );
 }
 
-export { People, PeopleModule, Person };
+export { People, Person };

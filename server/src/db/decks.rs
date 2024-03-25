@@ -93,7 +93,7 @@ impl FromRow for Font {
     }
 }
 
-pub fn recently_visited(
+pub fn recently_visited_any(
     sqlite_pool: &SqlitePool,
     user_id: Key,
     num: i32,
@@ -108,6 +108,24 @@ pub fn recently_visited(
                 LIMIT ?2";
 
     sqlite::many(&conn, stmt, params![&user_id, &num])
+}
+
+pub fn recently_visited(
+    sqlite_pool: &SqlitePool,
+    user_id: Key,
+    deck_kind: interop::DeckKind,
+    num: i32,
+) -> crate::Result<Vec<interop::SlimDeck>> {
+    let conn = sqlite_pool.get()?;
+
+    let stmt = "SELECT decks.id, decks.name, decks.kind, decks.created_at, decks.graph_terminator, decks.insignia, decks.font, decks.impact, max(hits.created_at) as most_recent_visit
+                FROM hits INNER JOIN decks ON decks.id = hits.deck_id
+                WHERE decks.user_id = ?1 AND decks.kind=?2
+                GROUP BY hits.deck_id
+                ORDER BY most_recent_visit DESC
+                LIMIT ?3";
+
+    sqlite::many(&conn, stmt, params![&user_id, &deck_kind.to_string(), &num])
 }
 
 fn num_decks_for_deck_kind(

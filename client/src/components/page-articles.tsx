@@ -18,6 +18,7 @@ import FontSelector from "./font-selector";
 import InsigniaSelector from "./insignia-selector";
 import LeftMarginHeadingNoWrap from "./left-margin-heading-no-wrap";
 import Pagination from "./pagination";
+import RecentlyVisited from "./recently-visited";
 import SegmentArrivals from "./segment-arrivals";
 import SegmentDeckRefs from "./segment-deck-refs";
 import SegmentGraph from "./segment-graph";
@@ -38,7 +39,12 @@ import { ImpactPartial } from "./impact";
 import { listItemArticle } from "./list-items";
 
 function Articles({ path }: { path?: string }) {
-    return <ArticlesModule />;
+    return (
+        <div>
+            <ArticlesModule />
+            <RecentlyVisited deckKind={DeckKind.Article} numRecent={30} />
+        </div>
+    );
 }
 
 function ArticlesModule() {
@@ -462,4 +468,4 @@ function ArticleUpdater({ article, onUpdate, onCancel }: ArticleUpdaterProps) {
     );
 }
 
-export { Article, Articles, ArticlesModule };
+export { Article, Articles };

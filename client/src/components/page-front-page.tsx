@@ -1,69 +1,20 @@
-import { type ComponentChildren } from "preact";
-import { useEffect, useState } from "preact/hooks";
+import { useState } from "preact/hooks";
 
-import type { SlimDeck, SlimResults } from "../types";
-
-import Net from "../shared/net";
-
-import ListingLink from "./listing-link";
 import { HeadedSegment } from "./headed-segment";
 import Paginator from "./paginator";
 import InsigniaSelector from "./insignia-selector";
 import { listItemSlimDeck } from "./list-items";
 import Pagination from "./pagination";
+import RecentlyVisited from "./recently-visited";
 
 export default function FrontPage({ path }: { path?: string }) {
     return (
         <div>
             <Paginator />
-            <RecentlyVisitedModule />
+            <RecentlyVisited numRecent={30} />
             <InsigniasModule />
         </div>
     );
-}
-
-function RecentlyVisitedModule() {
-    return (
-        <HeadedSegment
-            extraClasses="margin-top-5"
-            heading="Recently Visited"
-            extraHeadingClasses="hack-margin-top-minus-half"
-        >
-            <EagerLoadedGrouping url="/api/decks/recently_visited?num=30" />
-        </HeadedSegment>
-    );
-}
-
-type EagerLoadedGroupingProps = {
-    url: string;
-};
-
-function EagerLoadedGrouping({ url }: EagerLoadedGroupingProps) {
-    type State = {
-        fetchedData: boolean;
-        list: Array<SlimDeck>;
-    };
-
-    let [localState, setLocalState] = useState<State>({
-        fetchedData: false,
-        list: [],
-    });
-
-    useEffect(() => {
-        Net.get<SlimResults>(url).then((resultList) => {
-            setLocalState({
-                ...localState,
-                fetchedData: true,
-                list: resultList.results,
-            });
-        });
-    }, []);
-
-    return <ul class="compacted-list">{buildListing(localState.list)}</ul>;
-}
-
-function buildListing(list: Array<SlimDeck>): Array<ComponentChildren> {
-    return list.map((deck) => <ListingLink slimDeck={deck} />);
 }
 
 function InsigniasModule() {

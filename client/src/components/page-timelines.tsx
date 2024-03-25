@@ -13,6 +13,7 @@ import DeleteDeckConfirmation from "./delete-deck-confirmation";
 import { HeadedSegment } from "./headed-segment";
 import { listItemSlimDeck } from "./list-items";
 import Pagination from "./pagination";
+import RecentlyVisited from "./recently-visited";
 import RollableSegment from "./rollable-segment";
 import SegmentArrivals from "./segment-arrivals";
 import SegmentDeckRefs from "./segment-deck-refs";
@@ -32,7 +33,12 @@ import useDeckManager from "./use-deck-manager";
 import WhenEditMode from "./when-edit-mode";
 
 function Timelines({ path }: { path?: string }) {
-    return <TimelinesModule />;
+    return (
+        <div>
+            <TimelinesModule />
+            <RecentlyVisited deckKind={DeckKind.Timeline} numRecent={30} />
+        </div>
+    );
 }
 
 function TimelinesModule() {
@@ -261,4 +267,4 @@ function SegmentPoints({
     );
 }
 
-export { Timeline, Timelines, TimelinesModule };
+export { Timeline, Timelines };

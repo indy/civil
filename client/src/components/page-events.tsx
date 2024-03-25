@@ -27,6 +27,7 @@ import InsigniaSelector from "./insignia-selector";
 import { HeadedSegment } from "./headed-segment";
 import { listItemSlimDeck } from "./list-items";
 import Pagination from "./pagination";
+import RecentlyVisited from "./recently-visited";
 import SegmentArrivals from "./segment-arrivals";
 import SegmentDeckRefs from "./segment-deck-refs";
 import SegmentGraph from "./segment-graph";
@@ -46,7 +47,12 @@ import {
 } from "./civil-layout";
 
 function Events({ path }: { path?: string }) {
-    return <EventsModule />;
+    return (
+        <div>
+            <EventsModule />
+            <RecentlyVisited deckKind={DeckKind.Event} numRecent={30} />
+        </div>
+    );
 }
 
 function EventsModule() {
@@ -578,4 +584,4 @@ function EventUpdater({ event, onUpdate, onCancel }: EventUpdaterProps) {
     );
 }
 
-export { CivEvent, Events, EventsModule };
+export { CivEvent, Events };
