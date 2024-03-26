@@ -21,9 +21,9 @@ use crate::db::notes as db_notes;
 use crate::db::sqlite::SqlitePool;
 use crate::error::Error;
 use crate::handler::PaginationQuery;
-use crate::interop::decks::{DeckKind, SlimDeck, SlimResults};
+use crate::interop::decks::{DeckKind, Pagination, SlimDeck, SlimResults};
 use crate::interop::dialogues::AiKind;
-use crate::interop::{IdParam, InsigParam, Key};
+use crate::interop::{IdParam, Key};
 use crate::session;
 use actix_web::web::{Data, Json, Path, Query};
 use actix_web::HttpResponse;
@@ -47,23 +47,43 @@ pub async fn hits(
     Ok(HttpResponse::Ok().json(hits))
 }
 
-pub async fn insignia_filter(
+#[derive(serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct InsigniasArgs {
+    resource: Option<String>,
+    insignia: i32,
+    offset: i32,    // for pagination
+    num_items: i32, // for pagination
+}
+
+pub async fn insignias(
     sqlite_pool: Data<SqlitePool>,
-    params: Path<InsigParam>,
     session: actix_session::Session,
-    Query(query): Query<PaginationQuery>,
+    Query(query): Query<InsigniasArgs>,
 ) -> crate::Result<HttpResponse> {
-    info!("insignia_filter {:?}", params.insig);
+    info!("insignia_filter {:?}", query.insignia);
 
     let user_id = session::user_id(&session)?;
 
-    let paginated = db::insignia_filter(
-        &sqlite_pool,
-        user_id,
-        params.insig,
-        query.offset,
-        query.num_items,
-    )?;
+    let paginated: Pagination<SlimDeck> = if let Some(resource_string) = query.resource {
+        let deck_kind = resource_string_to_deck_kind(&resource_string)?;
+        db::insignia_filter(
+            &sqlite_pool,
+            user_id,
+            deck_kind,
+            query.insignia,
+            query.offset,
+            query.num_items,
+        )?
+    } else {
+        db::insignia_filter_any(
+            &sqlite_pool,
+            user_id,
+            query.insignia,
+            query.offset,
+            query.num_items,
+        )?
+    };
 
     Ok(HttpResponse::Ok().json(paginated))
 }

@@ -3,10 +3,10 @@ import { useEffect, useState } from "preact/hooks";
 import { DeckKind, DeckManagerFlags, NoteKind } from "../enums";
 import type { DeckArticle, DM, Note, ProtoArticle, SlimDeck } from "../types";
 
-import { buildUrl } from "../shared/civil";
-import { impactAsStarText } from "../shared/impact";
 import Net from "../shared/net";
+import { buildUrl } from "../shared/civil";
 import { formattedDate } from "../shared/time";
+import { impactAsStarText } from "../shared/impact";
 
 import AutoSummarize from "./auto-summarize";
 import CivilButton from "./civil-button";
@@ -23,6 +23,7 @@ import SegmentArrivals from "./segment-arrivals";
 import SegmentDeckRefs from "./segment-deck-refs";
 import SegmentGraph from "./segment-graph";
 import SegmentHits from "./segment-hits";
+import SegmentInsignias from "./segment-insignias";
 import SegmentNotes from "./segment-notes";
 import SegmentSearchResults from "./segment-search-results";
 import TopMatter from "./top-matter";
@@ -43,6 +44,7 @@ function Articles({ path }: { path?: string }) {
         <div>
             <ArticlesModule />
             <RecentlyVisited deckKind={DeckKind.Article} numRecent={30} />
+            <SegmentInsignias deckKind={DeckKind.Article} />
         </div>
     );
 }

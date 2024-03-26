@@ -21,12 +21,14 @@ export default function Pagination({
     itemsPerPage,
     upperContent,
     lowerContent,
+    urlHasArguments,
 }: {
     url: string;
     renderItem: (s: SlimDeck, i: number) => ComponentChildren;
     itemsPerPage: number;
     upperContent?: ComponentChildren;
     lowerContent?: ComponentChildren;
+    urlHasArguments?: boolean;
 }) {
     const [localState, setLocalState] = useState<LocalState>({
         offset: 0,
@@ -40,7 +42,8 @@ export default function Pagination({
         const offset = localState.offset;
         const numItems = localState.itemsPerPage;
 
-        const fullUrl = `${url}?offset=${offset}&numItems=${numItems}`;
+        const sep = urlHasArguments ? "&" : "?";
+        const fullUrl = `${url}${sep}offset=${offset}&numItems=${numItems}`;
         // don't fetch the same data that we already have
         //
         if (fullUrl !== localState.lastUrl) {

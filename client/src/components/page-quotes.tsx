@@ -31,6 +31,7 @@ import DeleteConfirmation from "./delete-confirmation";
 import ModalKeyboardHelp from "./modal-keyboard-help";
 import RecentlyVisited from "./recently-visited";
 import SegmentArrivals from "./segment-arrivals";
+import SegmentInsignias from "./segment-insignias";
 import SegmentNotes from "./segment-notes";
 import useDeckManager from "./use-deck-manager";
 import useLocalReducer from "./use-local-reducer";
@@ -95,6 +96,7 @@ function Quotes({ path }: { path?: string }) {
             </CivContainer>
             <ViewSearchResults searchResults={results} timing={timing} />
             <RecentlyVisited deckKind={DeckKind.Quote} numRecent={30} />
+            <SegmentInsignias deckKind={DeckKind.Quote} />
         </article>
     );
 }

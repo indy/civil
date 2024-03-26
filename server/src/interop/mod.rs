@@ -44,11 +44,6 @@ pub struct IdParam {
 }
 
 #[derive(serde::Deserialize)]
-pub struct InsigParam {
-    pub insig: i32,
-}
-
-#[derive(serde::Deserialize)]
 pub struct AtLeastParam {
     pub at_least: u8,
 }

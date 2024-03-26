@@ -18,6 +18,7 @@ import SegmentArrivals from "./segment-arrivals";
 import SegmentDeckRefs from "./segment-deck-refs";
 import SegmentGraph from "./segment-graph";
 import SegmentHits from "./segment-hits";
+import SegmentInsignias from "./segment-insignias";
 import SegmentNotes from "./segment-notes";
 import SegmentSearchResults from "./segment-search-results";
 import TopMatter from "./top-matter";
@@ -28,6 +29,7 @@ function Ideas({ path }: { path?: string }) {
         <div>
             <IdeasModule />
             <RecentlyVisited deckKind={DeckKind.Idea} numRecent={30} />
+            <SegmentInsignias deckKind={DeckKind.Idea} />
         </div>
     );
 }

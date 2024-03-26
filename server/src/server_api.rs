@@ -56,7 +56,7 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
         .service(
             scope("/decks")
                 .route("/recent", get().to(decks::recent))
-                .route("/insignia_filter/{insig}", get().to(decks::insignia_filter))
+                .route("/insignias", get().to(decks::insignias))
                 .route("/recently_visited", get().to(decks::recently_visited))
                 .route(
                     "/{id}/additional_search",

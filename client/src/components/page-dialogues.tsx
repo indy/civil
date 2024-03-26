@@ -45,6 +45,7 @@ import SegmentArrivals from "./segment-arrivals";
 import SegmentDeckRefs from "./segment-deck-refs";
 import SegmentGraph from "./segment-graph";
 import SegmentHits from "./segment-hits";
+import SegmentInsignias from "./segment-insignias";
 import SegmentNotes from "./segment-notes";
 import SegmentSearchResults from "./segment-search-results";
 import TopMatter from "./top-matter";
@@ -73,6 +74,7 @@ function Dialogues({ path }: { path?: string }) {
         <div>
             <DialoguesModule />
             <RecentlyVisited deckKind={DeckKind.Dialogue} numRecent={30} />
+            <SegmentInsignias deckKind={DeckKind.Dialogue} />
         </div>
     );
 }

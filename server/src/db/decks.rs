@@ -316,6 +316,47 @@ pub(crate) fn get_slimdeck(
 pub(crate) fn insignia_filter(
     sqlite_pool: &SqlitePool,
     user_id: Key,
+    deck_kind: interop::DeckKind,
+    insignia: i32,
+    offset: i32,
+    num_items: i32,
+) -> crate::Result<interop::Pagination<interop::SlimDeck>> {
+    let conn = sqlite_pool.get()?;
+
+    let stmt = "SELECT id, name, kind, created_at, graph_terminator, insignia, font, impact
+                FROM decks
+                WHERE user_id = ?1 AND insignia & ?2 AND kind = ?3
+                ORDER BY created_at DESC
+                LIMIT ?4
+                OFFSET ?5";
+
+    let items = sqlite::many(
+        &conn,
+        stmt,
+        params![
+            &user_id,
+            &insignia,
+            &deck_kind.to_string(),
+            &num_items,
+            &offset
+        ],
+    )?;
+
+    let stmt = "SELECT count(*) FROM decks where user_id=?1 AND insignia & ?2 AND kind=?3;";
+    let total_items = sqlite::one(
+        &conn,
+        stmt,
+        params![user_id, &insignia, &deck_kind.to_string()],
+    )?;
+
+    let res = interop::Pagination::<interop::SlimDeck> { items, total_items };
+
+    Ok(res)
+}
+
+pub(crate) fn insignia_filter_any(
+    sqlite_pool: &SqlitePool,
+    user_id: Key,
     insignia: i32,
     offset: i32,
     num_items: i32,
