@@ -21,7 +21,7 @@ use crate::db::notes as db_notes;
 use crate::db::sqlite::SqlitePool;
 use crate::error::Error;
 use crate::handler::PaginationQuery;
-use crate::interop::decks::{DeckKind, SlimResults};
+use crate::interop::decks::{DeckKind, SlimDeck, SlimResults};
 use crate::interop::dialogues::AiKind;
 use crate::interop::{IdParam, InsigParam, Key};
 use crate::session;
@@ -90,26 +90,8 @@ pub async fn recent(
 }
 
 #[derive(Deserialize)]
-pub struct RecentNum {
-    num: i32,
-}
-
-pub async fn recently_visited_any(
-    sqlite_pool: Data<SqlitePool>,
-    session: actix_session::Session,
-    Query(query): Query<RecentNum>,
-) -> crate::Result<HttpResponse> {
-    let user_id = session::user_id(&session)?;
-
-    let results = db::recently_visited_any(&sqlite_pool, user_id, query.num)?;
-
-    let res = SlimResults { results };
-    Ok(HttpResponse::Ok().json(res))
-}
-
-#[derive(Deserialize)]
 pub struct RecentKindNum {
-    resource: String,
+    resource: Option<String>,
     num: i32,
 }
 
@@ -120,9 +102,12 @@ pub async fn recently_visited(
 ) -> crate::Result<HttpResponse> {
     let user_id = session::user_id(&session)?;
 
-    let deck_kind = resource_string_to_deck_kind(&query.resource)?;
-
-    let results = db::recently_visited(&sqlite_pool, user_id, deck_kind, query.num)?;
+    let results: Vec<SlimDeck> = if let Some(resource_string) = query.resource {
+        let deck_kind = resource_string_to_deck_kind(&resource_string)?;
+        db::recently_visited(&sqlite_pool, user_id, deck_kind, query.num)?
+    } else {
+        db::recently_visited_any(&sqlite_pool, user_id, query.num)?
+    };
 
     let res = SlimResults { results };
     Ok(HttpResponse::Ok().json(res))

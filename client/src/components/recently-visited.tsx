@@ -14,12 +14,10 @@ export default function RecentlyVisited({
     deckKind,
     numRecent,
 }: RecentlyVisitedProps) {
-    let url = "/api/decks/";
+    let url = "/api/decks/recently_visited?";
     if (deckKind) {
         let resource = deckKindToResourceString(deckKind);
-        url += `recently_visited?resource=${resource}&`;
-    } else {
-        url += "recently_visited_any?";
+        url += `resource=${resource}&`;
     }
     url += `num=${numRecent}`;
 
