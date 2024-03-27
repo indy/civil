@@ -42,61 +42,57 @@ export default function ViewReference({
 
     const [expanded, setExpanded] = useState(true);
 
-    if (reference) {
-        const { id, deckKind, refKind, annotation } = reference;
+    const { id, deckKind, refKind, annotation } = reference;
 
-        // clicked on the ref kind label toggles the annotation
-        function clickedToggleAnnotation() {
-            if (annotation) {
-                setExpanded(!expanded);
-            }
+    // clicked on the ref kind label toggles the annotation
+    function clickedToggleAnnotation() {
+        if (annotation) {
+            setExpanded(!expanded);
         }
+    }
 
-        function clickedCopyRefBelow() {
-            if (onCopyRefBelow && nextNote) {
-                onCopyRefBelow(reference, nextNote);
-            }
+    function clickedCopyRefBelow() {
+        if (onCopyRefBelow && nextNote) {
+            onCopyRefBelow(reference, nextNote);
         }
+    }
 
-        let showCopyBelow = appState.mode.value === CivilMode.Refs;
-        if (showCopyBelow) {
-            // in the right toolbar mode, now determine if we actually have to show the "copy below" UI
-            if (nextNote) {
-                // check in case the next note already includes this ref
-                const found = nextNote.refs.find((r) => r.id === id);
-                if (found) {
-                    showCopyBelow = false;
-                }
-            } else {
+    let showCopyBelow = appState.mode.value === CivilMode.Refs;
+    if (showCopyBelow) {
+        // in the right toolbar mode, now determine if we actually have to show the "copy below" UI
+        if (nextNote) {
+            // check in case the next note already includes this ref
+            const found = nextNote.refs.find((r) => r.id === id);
+            if (found) {
                 showCopyBelow = false;
             }
+        } else {
+            showCopyBelow = false;
         }
-
-        let klass = fontClass(reference.font, RenderingDeckPart.UiInterleaved);
-        klass += " " + extraClasses;
-
-        const scribbleClasses = `ref-scribble pigment-fg-${deckKindToResourceString(
-            deckKind,
-        )}`;
-
-        return (
-            <div class={klass} key={id}>
-                {showCopyBelow && (
-                    <span onClick={clickedCopyRefBelow}>&#8595;</span>
-                )}
-
-                <span class="ref-kind" onClick={clickedToggleAnnotation}>
-                    ({refKindToString(refKind)}){!expanded && "+"}
-                </span>
-
-                <DeckLink extraClasses="ref" slimDeck={reference} />
-
-                {annotation && expanded && (
-                    <div class={scribbleClasses}>{annotation}</div>
-                )}
-            </div>
-        );
-    } else {
-        return <div></div>;
     }
+
+    let klass = fontClass(reference.font, RenderingDeckPart.UiInterleaved);
+    klass += " " + extraClasses;
+
+    const scribbleClasses = `ref-scribble pigment-fg-${deckKindToResourceString(
+        deckKind,
+    )}`;
+
+    return (
+        <div class={klass} key={id}>
+            {showCopyBelow && (
+                <span onClick={clickedCopyRefBelow}>&#8595;</span>
+            )}
+
+            <span class="ref-kind" onClick={clickedToggleAnnotation}>
+                ({refKindToString(refKind)}){!expanded && "+"}
+            </span>
+
+            <DeckLink extraClasses="ref" slimDeck={reference} />
+
+            {annotation && expanded && (
+                <div class={scribbleClasses}>{annotation}</div>
+            )}
+        </div>
+    );
 }

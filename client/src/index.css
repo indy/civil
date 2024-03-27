@@ -2013,6 +2013,11 @@ section > form {
     color: var(--fg-lighter-1);
 }
 
+.arrival-ref-kind {
+    font-size: 100%;
+    color: var(--fg-lighter-1);
+}
+
 .ref {
     padding: 0.1rem 0rem 0.1rem 0.5rem;
     border-radius: var(--coloured-deck-border-radius);

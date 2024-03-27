@@ -4,6 +4,7 @@ import DeckLink from "./deck-link";
 import Expandable from "./expandable";
 import buildMarkup from "./build-markup";
 import ViewReference from "./view-reference";
+import ViewSelfReference from "./view-self-reference";
 import { CivContainer, CivMain, CivLeft } from "./civil-layout";
 import useFlashcards from "./use-flashcards";
 
@@ -88,18 +89,23 @@ function ArrivalNote({ deck, note, renderDivider }: ArrivalNoteProps) {
     let linkingRef = note.refs.find((r) => {
         return r.id === deck.id;
     });
-    let annotation: string | undefined = undefined;
-    if (linkingRef) {
-        annotation = linkingRef.annotation;
-    } else {
+
+    if (!linkingRef) {
         console.error(`Deck not a ref in Arrival ???? id:${deck.id}???`);
+        return <div></div>;
     }
+
+    let annotation = linkingRef.annotation;
 
     return (
         <div>
             {annotation && buildTopAnnotation(annotation!)}
             <CivContainer>
                 <CivLeft>
+                    <ViewSelfReference
+                        reference={linkingRef}
+                        extraClasses="left-margin-entry"
+                    />
                     {flashcardIndicators}
                     {note.refs
                         .filter((r) => {
