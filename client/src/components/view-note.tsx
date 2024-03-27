@@ -537,12 +537,16 @@ const ViewNote = <T extends FatDeck>({
             localDispatch(ActionType.EditedFont, font);
         }
 
+        const modified = hasNoteBeenModified(local);
+        const extra = modified ? "inline-edit-button-extras" : "inline-phantom-border";
+
         return (
             <div class="form-margin">
                 <CivilButton onClick={onCancelClicked}>Cancel</CivilButton>
                 <CivilButton
-                    disabled={!hasNoteBeenModified(local)}
+                    disabled={!modified}
                     onClick={onSaveEditsClicked}
+                    extraClasses={extra}
                 >
                     Save Edits
                 </CivilButton>
@@ -682,6 +686,6 @@ function buildNoteReferences(
     return entries;
 }
 
-function hasNoteBeenModified(local: LocalState) {
+function hasNoteBeenModified(local: LocalState): boolean {
     return local.note.content !== local.originalContent;
 }

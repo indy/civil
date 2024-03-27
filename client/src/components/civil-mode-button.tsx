@@ -25,7 +25,7 @@ export default function CivilModeButton({
 
     return (
         <CivilButton
-            extraClasses={`inline-${modeWord}-button-extras`}
+            extraClasses={`inline-${modeWord}-button-extras margin-left-1rem`}
             onClick={onClick}
         >
             {getModeSvg(mode)}

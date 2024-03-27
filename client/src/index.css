@@ -1973,28 +1973,30 @@ section > form {
     margin-right: 0.5rem;
 }
 
-.inline-view-button-extras {
+.margin-left-1rem {
     margin-left: 1rem;
+}
+
+.inline-phantom-border {
+  border: var(--ui-element-border-radius) solid rgba(255, 255, 255, 0) !important;
+}
+
+.inline-view-button-extras {
     border: var(--ui-element-border-radius) solid var(--fg-toolbar-view) !important;
 }
 .inline-edit-button-extras {
-    margin-left: 1rem;
     border: var(--ui-element-border-radius) solid var(--fg-toolbar-edit) !important;
 }
 .inline-ref-button-extras {
-    margin-left: 1rem;
     border: var(--ui-element-border-radius) solid var(--fg-toolbar-refs) !important;
 }
 .inline-memorise-button-extras {
-    margin-left: 1rem;
     border: var(--ui-element-border-radius) solid var(--fg-toolbar-memorise) !important;
 }
 .inline-upper-insert-button-extras {
-    margin-left: 1rem;
     border: var(--ui-element-border-radius) solid var(--fg-toolbar-upper-insert) !important;
 }
 .inline-bookmark-button-extras {
-    margin-left: 1rem;
     border: var(--ui-element-border-radius) solid var(--fg-toolbar-bookmark) !important;
 }
 
