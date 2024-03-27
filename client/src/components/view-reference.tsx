@@ -1,12 +1,13 @@
 import { useState } from "preact/hooks";
 
-import { CivilMode, RefKind, RenderingDeckPart } from "../enums";
+import { CivilMode, RenderingDeckPart } from "../enums";
 import type { Note, Reference } from "../types";
 
 import { getAppState } from "../app-state";
 
 import { deckKindToResourceString } from "../shared/deck";
 import { fontClass } from "../shared/font";
+import { refKindToString } from "../shared/ref-kind";
 
 import DeckLink from "./deck-link";
 
@@ -16,21 +17,6 @@ type Props = {
     nextNote?: Note;
     onCopyRefBelow?: (r: Reference, nextNote: Note) => void;
 };
-
-function refKindToString(refKind: RefKind): string {
-    switch (refKind) {
-        case RefKind.Ref:
-            return "Ref";
-        case RefKind.RefToParent:
-            return "RefToParent";
-        case RefKind.RefToChild:
-            return "RefToChild";
-        case RefKind.RefInContrast:
-            return "RefInContrast";
-        case RefKind.RefCritical:
-            return "RefCritical";
-    }
-}
 
 export default function ViewReference({
     reference,

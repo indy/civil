@@ -67,6 +67,7 @@ import {
 } from "./shared/colour-creator";
 import { passageForNoteKind } from "./shared/passage";
 import { basicUiConfig } from "./shared/ui-config";
+import { opposingKind } from "./shared/ref-kind";
 
 const emptyUser: User = {
     username: "",
@@ -796,21 +797,6 @@ function packedToKind(packed: number): RefKind {
             console.log(`packed_to_kind invalid value: ${packed}`);
             return RefKind.Ref;
         }
-    }
-}
-
-function opposingKind(kind: RefKind): RefKind {
-    switch (kind) {
-        case RefKind.Ref:
-            return RefKind.Ref;
-        case RefKind.RefToParent:
-            return RefKind.RefToChild;
-        case RefKind.RefToChild:
-            return RefKind.RefToParent;
-        case RefKind.RefInContrast:
-            return RefKind.RefInContrast;
-        case RefKind.RefCritical:
-            return RefKind.RefCritical;
     }
 }
 

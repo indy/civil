@@ -21,6 +21,7 @@ import {
 import { fontClass } from "../shared/font";
 import { indexFromCode } from "../shared/keys";
 import Net from "../shared/net";
+import { stringToRefKind } from "../shared/ref-kind";
 
 import CivilInput from "./civil-input";
 import { CivMain, CivRight } from "./civil-layout";
@@ -653,25 +654,6 @@ type SelectedReferenceProps = {
     onChangeKind: (r: Reference, rk: RefKind) => void;
     onChangeAnnotation: (r: Reference, s: string) => void;
 };
-
-function stringToRefKind(s: string): RefKind | undefined {
-    if (s === "Ref") {
-        return RefKind.Ref;
-    }
-    if (s === "RefToParent") {
-        return RefKind.RefToParent;
-    }
-    if (s === "RefToChild") {
-        return RefKind.RefToChild;
-    }
-    if (s === "RefInContrast") {
-        return RefKind.RefInContrast;
-    }
-    if (s === "RefCritical") {
-        return RefKind.RefCritical;
-    }
-    return undefined;
-}
 
 function SelectedReference({
     reference,
