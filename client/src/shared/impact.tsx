@@ -38,9 +38,9 @@ export function impactAsStarText(impact: number): string {
         case 2:
             return "One Star";
         case 3:
-            return "Two Star";
+            return "Two Stars";
         case 4:
-            return "Three Star";
+            return "Three Stars";
         default:
             return "unknown impact value!!!!";
     }
