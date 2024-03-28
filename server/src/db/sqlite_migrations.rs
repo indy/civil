@@ -31,7 +31,6 @@ CREATE TABLE IF NOT EXISTS users (
        username TEXT NOT NULL,
 
        image_count INTEGER DEFAULT 0,
-       theme TEXT NOT NULL DEFAULT 'light',
        ui_config_json TEXT NOT NULL DEFAULT '{}', -- an opaque json string used exclusively by the client
 
        password TEXT NOT NULL
@@ -846,6 +845,12 @@ pub fn migration_check(db_name: &str) -> crate::Result<()> {
                FROM event_extras e, decks d
                WHERE d.id = e.deck_id;
                DROP TABLE event_extras;"),
+
+
+        ///////////////////
+        // user_version 26: users.ui_config_json contains the colour theme
+        ///////////////////
+        M::up("ALTER TABLE users DROP COLUMN theme;"),
     ]);
 
     let mut conn = Connection::open(db_name)?;
