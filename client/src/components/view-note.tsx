@@ -538,7 +538,9 @@ const ViewNote = <T extends FatDeck>({
         }
 
         const modified = hasNoteBeenModified(local);
-        const extra = modified ? "inline-edit-button-extras" : "inline-phantom-border";
+        const extra = modified
+            ? "inline-edit-button-extras"
+            : "inline-phantom-border";
 
         return (
             <div class="form-margin">

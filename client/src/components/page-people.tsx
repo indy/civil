@@ -1,6 +1,7 @@
 import { useState } from "preact/hooks";
 
 import {
+    CivilMode,
     DeckKind,
     DeckManagerFlags,
     PointKind,
@@ -26,6 +27,7 @@ import { slimDeckFromPoint } from "../shared/deck";
 import CivilButton from "./civil-button";
 import CivilButtonCreateDeck from "./civil-button-create-deck";
 import { CivContainer, CivLeft, CivMain } from "./civil-layout";
+import CivilModeButton from "./civil-mode-button";
 import CivilTabButton from "./civil-tab-button";
 import DeckLink from "./deck-link";
 import DeckUpdater from "./deck-updater";
@@ -52,7 +54,6 @@ import {
     svgPointAdd,
     svgTickedCheckBox,
     svgUntickedCheckBox,
-    svgX,
 } from "./svg-icons";
 import TopMatter from "./top-matter";
 import useDeckManager from "./use-deck-manager";
@@ -418,8 +419,7 @@ function SegmentPersonPoints({
         e.preventDefault();
         setShowBirthsDeaths(!showBirthsDeaths);
     }
-    function onAddPointClicked(e: Event) {
-        e.preventDefault();
+    function onAddPointClicked() {
         showAddPointForm
             ? AppStateChange.hideAddPointForm()
             : AppStateChange.showAddPointForm();
@@ -488,7 +488,7 @@ function SegmentPersonPoints({
         />
     ));
 
-    const formSidebarText = showAddPointForm
+    const formButtonText = showAddPointForm
         ? "Hide Form"
         : `Add Point for ${deckTitle}`;
     const hasDied =
@@ -547,24 +547,23 @@ function SegmentPersonPoints({
                 </CivLeft>
                 <WhenEditMode>{showDeathForm && deathForm()}</WhenEditMode>
 
-                <CivMain>
-                    <ul class="unstyled-list hug-left">{dps}</ul>
-                </CivMain>
+
                 <WhenEditMode>
-                    <CivLeft ui>
-                        <div
-                            class="left-margin-entry fadeable clickable"
-                            onClick={onAddPointClicked}
-                        >
-                            <span class="left-margin-icon-label">
-                                {formSidebarText}
-                            </span>
-                            {showAddPointForm ? svgX() : svgPointAdd()}
-                        </div>
-                    </CivLeft>
+                    <CivilModeButton
+                        mode={CivilMode.Edit}
+                        onClick={onAddPointClicked}
+                    >
+                        {formButtonText}
+                    </CivilModeButton>
+
                     {showAddPointForm &&
                         deckManager.buildPointForm(onPointCreated)}
                 </WhenEditMode>
+
+
+                <CivMain>
+                    <ul class="unstyled-list hug-left">{dps}</ul>
+                </CivMain>
             </CivContainer>
         </RollableSegment>
     );

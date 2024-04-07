@@ -1978,7 +1978,7 @@ section > form {
 }
 
 .inline-phantom-border {
-  border: var(--ui-element-border-radius) solid rgba(255, 255, 255, 0) !important;
+    border: var(--ui-element-border-radius) solid rgba(255, 255, 255, 0) !important;
 }
 
 .inline-view-button-extras {

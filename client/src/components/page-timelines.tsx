@@ -1,12 +1,13 @@
 import { useState } from "preact/hooks";
 
-import { DeckKind, DeckManagerFlags } from "../enums";
+import { CivilMode, DeckKind, DeckManagerFlags } from "../enums";
 import type { DeckTimeline, DM, PassageType, Point, SlimDeck } from "../types";
 
 import { AppStateChange, getAppState, immutableState } from "../app-state";
 import CivilButton from "./civil-button";
 import CivilButtonCreateDeck from "./civil-button-create-deck";
-import { CivContainer, CivLeft, CivMain } from "./civil-layout";
+import { CivContainer, CivMain } from "./civil-layout";
+import CivilModeButton from "./civil-mode-button";
 import CivilTabButton from "./civil-tab-button";
 import DeckUpdater from "./deck-updater";
 import DeleteDeckConfirmation from "./delete-deck-confirmation";
@@ -26,8 +27,6 @@ import {
     svgCaretDown,
     svgCaretRight,
     svgCaretRightEmpty,
-    svgPointAdd,
-    svgX,
 } from "./svg-icons";
 import TopMatter from "./top-matter";
 import useDeckManager from "./use-deck-manager";
@@ -215,8 +214,7 @@ function SegmentPoints({
     deckManager: DM<DeckTimeline>;
     showAddPointForm: boolean;
 }) {
-    function onAddPointClicked(e: Event) {
-        e.preventDefault();
+    function onAddPointClicked() {
         showAddPointForm
             ? AppStateChange.hideAddPointForm()
             : AppStateChange.showAddPointForm();
@@ -237,7 +235,7 @@ function SegmentPoints({
         />
     ));
 
-    let formSidebarText = showAddPointForm
+    let formButtonText = showAddPointForm
         ? "Hide Form"
         : `Add Point for ${title}`;
 
@@ -247,23 +245,19 @@ function SegmentPoints({
     return (
         <RollableSegment heading="Timeline" font={font}>
             <CivContainer>
+                <WhenEditMode>
+                    <CivilModeButton
+                        mode={CivilMode.Edit}
+                        onClick={onAddPointClicked}
+                    >
+                        {formButtonText}
+                    </CivilModeButton>
+                    {showAddPointForm && deckManager.buildPointForm(onPointCreated)}
+                </WhenEditMode>
+
                 <CivMain>
                     <ul class="unstyled-list hug-left">{dps}</ul>
                 </CivMain>
-                <WhenEditMode>
-                    <CivLeft>
-                        <div
-                            class="left-margin-entry fadeable clickable"
-                            onClick={onAddPointClicked}
-                        >
-                            <span class="left-margin-icon-label">
-                                {formSidebarText}
-                            </span>
-                            {showAddPointForm ? svgX() : svgPointAdd()}
-                        </div>
-                    </CivLeft>
-                </WhenEditMode>
-                {showAddPointForm && deckManager.buildPointForm(onPointCreated)}
             </CivContainer>
         </RollableSegment>
     );
