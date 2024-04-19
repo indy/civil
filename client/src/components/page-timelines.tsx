@@ -153,7 +153,6 @@ function Timeline({ path, id }: { path?: string; id?: string }) {
                     canShowPassage={deckManager.canShowPassage}
                     onUpdateDeck={deckManager.update}
                 />
-                <SegmentArrivals deck={deck} />
 
                 <SegmentPoints
                     points={deck.points}
@@ -161,6 +160,8 @@ function Timeline({ path, id }: { path?: string; id?: string }) {
                     title={deck.title}
                     showAddPointForm={appState.showAddPointForm.value}
                 />
+
+                <SegmentArrivals deck={deck} />
 
                 <SegmentSearchResults slimdeck={deck as SlimDeck} />
 
