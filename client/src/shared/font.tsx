@@ -36,6 +36,8 @@ export function fontClass(font: Font, rdp: RenderingDeckPart): string {
                 return "three-lines-pica";
             case Font.LibreBaskerville:
                 return "libre-baskerville";
+            case Font.Essays1743:
+                return "essays-1743";
         }
     }
 

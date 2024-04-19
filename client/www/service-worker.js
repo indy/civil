@@ -55,6 +55,11 @@ var precacheConfig = [
     "/fonts/LibreBaskerville/LibreBaskerville-Italic.ttf",
     "/fonts/LibreBaskerville/LibreBaskerville-Bold.ttf",
 
+    "/fonts/Essays1743/essays1743.bolditalic.ttf",
+    "/fonts/Essays1743/essays1743.bold.ttf",
+    "/fonts/Essays1743/essays1743.italic.ttf",
+    "/fonts/Essays1743/essays1743.medium.ttf",
+
     "/fonts/Fell/IMFeDPit29P.ttf",
     "/fonts/Fell/IMFeDPrm29P.ttf",
     "/fonts/Fell/IMFeDPsc29P.ttf",

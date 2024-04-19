@@ -94,6 +94,13 @@ export default function FontSelector({
                 >
                     Libre Baskerville &mdash; default beautiful typeface
                 </option>
+                <option
+                    class="typeface-essays-1743  font-size-2rem"
+                    value={Font.Essays1743}
+                    selected={font === Font.Essays1743}
+                >
+                    Essays1743 &mdash; default 18th Century typeface
+                </option>
             </select>
         </span>
     );

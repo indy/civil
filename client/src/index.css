@@ -281,6 +281,34 @@
 }
 
 @font-face {
+    font-family: "Essays1743";
+    src: url("fonts/Essays1743/essays1743.medium.ttf") format("truetype");
+    font-weight: 400;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "Essays1743";
+    src: url("fonts/Essays1743/essays1743.italic.ttf") format("truetype");
+    font-weight: 400;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: "Essays1743";
+    src: url("fonts/Essays1743/essays1743.bold.ttf") format("truetype");
+    font-weight: 600;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "Essays1743";
+    src: url("fonts/Essays1743/essays1743.bolditalic.ttf") format("truetype");
+    font-weight: 600;
+    font-style: italic;
+}
+
+@font-face {
     font-family: "Fell-Flowers-1";
     src: url("fonts/Fell/IMFeFlow1.ttf") format("truetype");
     font-weight: 400;
@@ -357,6 +385,9 @@
 }
 .typeface-libre-baskerville {
     font-family: Libre-Baskerville;
+}
+.typeface-essays-1743 {
+    font-family: Essays1743;
 }
 
 /* -------------------------------------------------------------------------------- */
