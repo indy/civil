@@ -48,6 +48,7 @@ function SearchModule({ encodedQuery }: { encodedQuery: string }) {
     }, [encodedQuery]);
 
     function getSearchResults(query: string) {
+        AppStateChange.urlTitle({ title: query });
         const url = `/api/search/full?q=${query}`;
         Net.getTimed<SearchResults>(url).then(([response, duration]) => {
             setResults(response);
