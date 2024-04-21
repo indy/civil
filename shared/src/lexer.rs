@@ -21,10 +21,6 @@ use strum_macros::EnumDiscriminants;
 #[derive(Copy, Clone, Debug, Eq, PartialEq, EnumDiscriminants)]
 #[strum_discriminants(name(TokenIdent))]
 pub enum Token<'a> {
-    BlockQuoteBegin(usize),
-    BlockQuoteEnd(usize),
-    BracketBegin(usize),
-    BracketEnd(usize),
     Colon(usize),
     Digits(usize, &'a str),
     DoubleQuote(usize, &'a str),
@@ -40,10 +36,6 @@ pub enum Token<'a> {
 
 pub(crate) fn get_token_value<'a>(token: &'a Token) -> &'a str {
     match token {
-        Token::BlockQuoteBegin(_) => ">>>",
-        Token::BlockQuoteEnd(_) => "<<<",
-        Token::BracketEnd(_) => "]",
-        Token::BracketBegin(_) => "[",
         Token::Colon(_) => ":",
         Token::Digits(_, s) => s,
         Token::DoubleQuote(_, s) => s,
@@ -60,10 +52,6 @@ pub(crate) fn get_token_value<'a>(token: &'a Token) -> &'a str {
 
 pub(crate) fn get_token_pos(token: &Token) -> usize {
     match token {
-        Token::BlockQuoteBegin(pos) => *pos,
-        Token::BlockQuoteEnd(pos) => *pos,
-        Token::BracketEnd(pos) => *pos,
-        Token::BracketBegin(pos) => *pos,
         Token::Colon(pos) => *pos,
         Token::Digits(pos, _) => *pos,
         Token::DoubleQuote(pos, _) => *pos,
@@ -86,8 +74,6 @@ pub fn tokenize(s: &str) -> crate::Result<Vec<Token>> {
     while !input.is_empty() {
         if let Some(ch) = input.chars().next() {
             let (token, characters, bytes) = match ch {
-                '[' => (Token::BracketBegin(index), 1, 1),
-                ']' => (Token::BracketEnd(index), 1, 1),
                 ':' => (Token::Colon(index), 1, 1),
                 '"' | '“' | '”' => eat_doublequote(index, input)?,
                 '-' => (Token::Hyphen(index), 1, 1),
@@ -95,8 +81,6 @@ pub fn tokenize(s: &str) -> crate::Result<Vec<Token>> {
                 '(' => (Token::ParenBegin(index), 1, 1),
                 ')' => (Token::ParenEnd(index), 1, 1),
                 '.' => (Token::Period(index), 1, 1),
-                '>' => eat_blockquote_begin_or_greater_than_character(index, input)?,
-                '<' => eat_blockquote_end_or_less_than_character(index, input)?,
                 '0'..='9' => eat_digits(index, input)?,
                 ch if ch.is_whitespace() => eat_whitespace(index, input)?,
                 _ => eat_text(index, input)?,
@@ -125,30 +109,6 @@ fn eat_doublequote(index: usize, input: &str) -> crate::Result<(Token, usize, us
         }
     }
     Ok((Token::DoubleQuote(index, input), input.chars().count(), input.len()))
-}
-
-fn eat_blockquote_begin_or_greater_than_character(index: usize, input: &str) -> crate::Result<(Token, usize, usize)> {
-    // check if the next three characters are '>'
-    let count = input.chars().count();
-    let mut chars = input.chars();
-    if count >= 3 && chars.next() == Some('>') && chars.next() == Some('>') && chars.next() == Some('>') {
-        Ok((Token::BlockQuoteBegin(index), 3, 3))
-    } else {
-        // we know that the first character is definitely a >
-        Ok((Token::Text(index, &input[..1]), 1, 1))
-    }
-}
-
-fn eat_blockquote_end_or_less_than_character(index: usize, input: &str) -> crate::Result<(Token, usize, usize)> {
-    // check if the next three characters are '<'
-    let count = input.chars().count();
-    let mut chars = input.chars();
-    if count >= 3 && chars.next() == Some('<') && chars.next() == Some('<') && chars.next() == Some('<') {
-        Ok((Token::BlockQuoteEnd(index), 3, 3))
-    } else {
-        // we know that the first character is definitely a <
-        Ok((Token::Text(index, &input[..1]), 1, 1))
-    }
 }
 
 fn eat_digits(index: usize, input: &str) -> crate::Result<(Token, usize, usize)> {
@@ -187,7 +147,7 @@ fn eat_text(index: usize, input: &str) -> crate::Result<(Token, usize, usize)> {
 
 fn is_text(ch: char) -> bool {
     match ch {
-        '\n' | '[' | ']' | '(' | ')' | '"' | '“' | '”' | ':' | '>' | '<' => false,
+        '\n' | '(' | ')' | '"' | '“' | '”' | ':' => false,
         _ => true,
     }
 }
@@ -244,8 +204,6 @@ mod tests {
 
     #[test]
     fn test_lexer() {
-        tok("[]", &[Token::BracketBegin(0), Token::BracketEnd(1), Token::Eos(2)]);
-
         tok(
             "here are some words",
             &[Token::Text(0, "here are some words"), Token::Eos(19)],
@@ -267,50 +225,6 @@ mod tests {
                 Token::Eos(18),
             ],
         );
-    }
-
-    #[test]
-    fn test_lexer_blockquote() {
-        {
-            tok(
-                ">>> only a blockquote <<<",
-                &[
-                    Token::BlockQuoteBegin(0),
-                    Token::Whitespace(3, " "),
-                    Token::Text(4, "only a blockquote "),
-                    Token::BlockQuoteEnd(22),
-                    Token::Eos(25),
-                ],
-            );
-        }
-        {
-            // not a blockquote
-            tok(
-                ">> not quite a blockquote",
-                &[
-                    Token::Text(0, ">"),
-                    Token::Text(1, ">"),
-                    Token::Whitespace(2, " "),
-                    Token::Text(3, "not quite a blockquote"),
-                    Token::Eos(25),
-                ],
-            );
-        }
-        {
-            tok(
-                "prefix words >>> blockquote <<< suffix words",
-                &[
-                    Token::Text(0, "prefix words "),
-                    Token::BlockQuoteBegin(13),
-                    Token::Whitespace(16, " "),
-                    Token::Text(17, "blockquote "),
-                    Token::BlockQuoteEnd(28),
-                    Token::Whitespace(31, " "),
-                    Token::Text(32, "suffix words"),
-                    Token::Eos(44),
-                ],
-            );
-        }
     }
 
     #[test]

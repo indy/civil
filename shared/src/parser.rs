@@ -137,11 +137,7 @@ fn is_img(tokens: &'_ [Token]) -> bool {
     is_colon_specifier(tokens) && is_text_at_index(tokens, 1, "img")
 }
 
-fn is_blockquote_start<'a>(tokens: &'a [Token<'a>]) -> bool {
-    is_token_at_index(tokens, 0, TokenIdent::BlockQuoteBegin)
-}
-
-// need: parse until a terminator token (Eos, BlockQuoteEnd) is reached
+// need: parse until a terminator token Eos is reached
 //
 pub fn parse<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Vec<Node>> {
     let mut tokens: &[Token] = tokens;
@@ -157,8 +153,6 @@ pub fn parse<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Vec<Node>> {
             eat_colon(tokens)?
         } else if is_img(tokens) {
             eat_img(tokens)?
-        } else if is_blockquote_start(tokens) {
-            eat_blockquote(tokens)?
         } else {
             // by default a lot of stuff will get wrapped in a paragraph
             eat_paragraph(tokens)?
@@ -202,7 +196,7 @@ fn eat_ordered_list<'a>(mut tokens: &'a [Token<'a>], halt_at: Option<TokenIdent>
     while !tokens.is_empty() && !is_head_option(tokens, halt_at) {
         tokens = &tokens[3..]; // digits, period, whitespace
 
-        let (remaining, list_item_children) = eat_to_newline_or_blockquote(tokens, halt_at)?;
+        let (remaining, list_item_children) = eat_to_newline(tokens, halt_at)?;
         tokens = remaining;
 
         if !list_item_children.is_empty() {
@@ -226,7 +220,7 @@ fn eat_unordered_list<'a>(mut tokens: &'a [Token<'a>], halt_at: Option<TokenIden
     while !tokens.is_empty() && !is_head_option(tokens, halt_at) {
         tokens = &tokens[2..]; // hyphen, whitespace
 
-        let (remaining, list_item_children) = eat_to_newline_or_blockquote(tokens, halt_at)?;
+        let (remaining, list_item_children) = eat_to_newline(tokens, halt_at)?;
         tokens = remaining;
 
         if !list_item_children.is_empty() {
@@ -243,23 +237,17 @@ fn eat_unordered_list<'a>(mut tokens: &'a [Token<'a>], halt_at: Option<TokenIden
 }
 
 fn eat_paragraph<'a>(tokens: &'a [Token]) -> ParserResult<'a, Node> {
-    let (remaining, children) = eat_to_newline_or_blockquote(tokens, None)?;
+    let (remaining, children) = eat_to_newline(tokens, None)?;
     Ok((remaining, Node::Paragraph(get_node_pos(&children[0]), children)))
 }
 
-fn eat_to_newline_or_blockquote<'a>(
-    mut tokens: &'a [Token<'a>],
-    halt_at: Option<TokenIdent>,
-) -> ParserResult<Vec<Node>> {
+fn eat_to_newline<'a>(mut tokens: &'a [Token<'a>], halt_at: Option<TokenIdent>) -> ParserResult<Vec<Node>> {
     let mut nodes: Vec<Node> = vec![];
 
     while !tokens.is_empty() && !is_head_option(tokens, halt_at) && !is_terminator(tokens) {
         if is_head(tokens, TokenIdent::Newline) {
             let rest = skip_leading_newlines(tokens)?;
             return Ok((rest, nodes));
-        }
-        if is_head(tokens, TokenIdent::BlockQuoteBegin) {
-            return Ok((tokens, nodes));
         }
         let (rest, tok) = eat_item(tokens)?;
         tokens = rest;
@@ -286,8 +274,6 @@ fn inside_pair<'a>(tokens: &'a [Token]) -> ParserResult<'a, Vec<Node>> {
 
 fn eat_item<'a>(tokens: &'a [Token]) -> ParserResult<'a, Node> {
     match tokens[0] {
-        Token::BracketBegin(_) => eat_text_including(tokens),
-        Token::BracketEnd(_) => eat_text_including(tokens),
         Token::Colon(_) => eat_colon(tokens),
         Token::DoubleQuote(pos, _) => {
             if let Ok((toks, inside)) = inside_pair(tokens) {
@@ -394,6 +380,11 @@ fn eat_disagree<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
     Ok((tokens, Node::MarginDisagree(pos, parsed_content)))
 }
 
+fn eat_blockquote<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
+    let (tokens, (pos, content)) = eat_basic_colon_command(tokens)?;
+    Ok((tokens, Node::BlockQuote(pos, content)))
+}
+
 fn eat_code<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
     let (tokens, (pos, code)) = eat_basic_colon_command_as_string(tokens)?;
     Ok((tokens, Node::Codeblock(pos, code)))
@@ -449,6 +440,7 @@ fn eat_colon<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Node> {
             Token::Text(_, "h7") => eat_header(7, tokens),
             Token::Text(_, "h8") => eat_header(8, tokens),
             Token::Text(_, "h9") => eat_header(9, tokens),
+            Token::Text(_, "blockquote") => eat_blockquote(tokens),
             Token::Text(_, "code") => eat_code(tokens),
             Token::Text(_, "comment") => eat_comment(tokens),
             Token::Text(_, "deleted") => eat_deleted(tokens),
@@ -680,20 +672,6 @@ fn eat_as_image_description_pair<'a>(tokens: &'a [Token<'a>]) -> ParserResult<(S
     }
 }
 
-fn eat_blockquote<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Node> {
-    let pos = get_token_pos(&tokens[0]);
-
-    tokens = &tokens[1..]; // skip past the BlockQuoteBegin token
-
-    let (remaining, nodes) = parse(tokens)?;
-
-    let remaining = &remaining[1..]; // skip past the BlockQuoteEnd token
-
-    let rem = skip_leading_whitespace_and_newlines(remaining)?;
-
-    Ok((rem, Node::BlockQuote(pos, nodes)))
-}
-
 // treat the first token as Text and then append any further Text tokens
 fn eat_text_including<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
     let pos = get_token_pos(&tokens[0]);
@@ -759,7 +737,7 @@ fn skip_leading<'a>(tokens: &'a [Token], token_ident: TokenIdent) -> crate::Resu
 }
 
 fn is_terminator<'a>(tokens: &'a [Token<'a>]) -> bool {
-    is_token_at_index(tokens, 0, TokenIdent::Eos) || is_token_at_index(tokens, 0, TokenIdent::BlockQuoteEnd)
+    is_token_at_index(tokens, 0, TokenIdent::Eos)
 }
 
 fn is_head<'a>(tokens: &'a [Token<'a>], token_ident: TokenIdent) -> bool {
@@ -1521,19 +1499,6 @@ some other lines) more words afterwards",
     }
 
     #[test]
-    fn test_square_bracket_in_normal_text() {
-        let nodes = build("on account of the certitude and evidence of [its] reasoning");
-
-        assert_eq!(1, nodes.len());
-        let children = paragraph_children(&nodes[0]).unwrap();
-        assert_eq!(children.len(), 3);
-
-        assert_text(&children[0], "on account of the certitude and evidence of ");
-        assert_text(&children[1], "[its");
-        assert_text(&children[2], "] reasoning");
-    }
-
-    #[test]
     fn test_normal_text_with_tilde_bug() {
         // tilde used to mean scribbled-out but that was later removed
         //
@@ -1558,13 +1523,15 @@ some other lines) more words afterwards",
 
     #[test]
     fn test_skip_leading_whitespace_and_newlines() {
-        let mut toks = tokenize("foo [bar]").unwrap();
+        let mut toks = tokenize("foo bar").unwrap();
         let mut res = skip_leading_whitespace_and_newlines(&toks).unwrap();
-        assert_eq!(5, res.len());
+        dbg!(&res);
+        assert_eq!(2, res.len()); // text + Eos
 
-        toks = tokenize("    foo [bar]").unwrap();
+        toks = tokenize("    foo bar").unwrap();
         res = skip_leading_whitespace_and_newlines(&toks).unwrap();
-        assert_eq!(5, res.len());
+        dbg!(&res);
+        assert_eq!(2, res.len());
     }
 
     #[test]
@@ -1755,12 +1722,13 @@ some other lines) more words afterwards",
         }
     }
 
-    // test that the given Node is a blockquote, with the expected number of children
+    // test that the given Node is a paragraph with a blockquote with the expected number of children
     // return the children
-    fn blockquote_with_children<'a>(blockquote: &'a Node, expected: usize) -> &'a Vec<Node> {
-        assert_blockquote(blockquote);
+    fn paragraph_with_blockquote_with_children<'a>(node: &'a Node, expected: usize) -> &'a Vec<Node> {
+        let kids = paragraph_children(&node).unwrap();
+        assert_blockquote(&kids[0]);
 
-        let children = blockquote_children(blockquote).unwrap();
+        let children = blockquote_children(&kids[0]).unwrap();
         assert_eq!(children.len(), expected);
 
         children
@@ -1828,41 +1796,42 @@ some other lines) more words afterwards",
 
     #[test]
     fn test_parsing_paragraph_and_blockquote_on_same_line() {
-        {
-            let nodes = build("hi >>> hello world <<<");
-            dbg!(&nodes);
-            assert_eq!(2, nodes.len());
+        let nodes = build("hi :blockquote(hello world)");
+        // dbg!(&nodes);
+        assert_eq!(1, nodes.len());
 
-            paragraph_with_single_text(&nodes[0], "hi ");
+        let children = paragraph_children(&nodes[0]).unwrap();
+        assert_eq!(2, children.len());
 
-            let children = blockquote_with_children(&nodes[1], 1);
-            paragraph_with_single_text(&children[0], "hello world ");
-        }
+        assert_text(&children[0], "hi ");
+
+        let bq_children = blockquote_children(&children[1]).unwrap();
+        assert_single_paragraph_text(&bq_children[0], "hello world");
     }
 
     #[test]
     fn test_parsing_blockquote() {
         {
-            let nodes = build(">>> hello world <<<");
+            let nodes = build(":blockquote(hello world)");
             assert_eq!(1, nodes.len());
 
-            let children = blockquote_with_children(&nodes[0], 1);
-            paragraph_with_single_text(&children[0], "hello world ");
+            let children = paragraph_with_blockquote_with_children(&nodes[0], 1);
+            paragraph_with_single_text(&children[0], "hello world");
         }
 
         {
             let nodes = build(
-                ">>>
-hello world
+                ":blockquote(
+        hello world
 
-another paragraph
+        another paragraph
 
-third paragraph
-<<<",
+        third paragraph
+        )",
             );
             assert_eq!(1, nodes.len());
 
-            let children = blockquote_with_children(&nodes[0], 3);
+            let children = paragraph_with_blockquote_with_children(&nodes[0], 3);
             paragraph_with_single_text(&children[0], "hello world");
             paragraph_with_single_text(&children[1], "another paragraph");
             paragraph_with_single_text(&children[2], "third paragraph");
@@ -1870,17 +1839,17 @@ third paragraph
         {
             let nodes = build(
                 "opening paragraph
->>>
-quoted paragraph 1
-quoted paragraph 2
-<<<
-closing paragraph",
+        :blockquote(
+        quoted paragraph 1
+        quoted paragraph 2
+        )
+        closing paragraph",
             );
 
             assert_eq!(3, nodes.len());
 
             paragraph_with_single_text(&nodes[0], "opening paragraph");
-            let children = blockquote_with_children(&nodes[1], 2);
+            let children = paragraph_with_blockquote_with_children(&nodes[1], 2);
             paragraph_with_single_text(&children[0], "quoted paragraph 1");
             paragraph_with_single_text(&children[1], "quoted paragraph 2");
             paragraph_with_single_text(&nodes[2], "closing paragraph");
@@ -1982,7 +1951,7 @@ third paragraph",
         // the space inbetween the colon and the newline would result
         // in an infinite loop.
         //
-        let s = "hello: \n>>>\nhi\n<<<\n";
+        let s = "hello: \n:blockquote(\nhi\n)\n";
         let nodes = build(s);
         assert_eq!(2, nodes.len());
 
@@ -1993,7 +1962,7 @@ third paragraph",
         assert_text(&children[0], "hello");
         assert_text(&children[1], ": ");
 
-        let children = blockquote_with_children(&nodes[1], 1);
+        let children = paragraph_with_blockquote_with_children(&nodes[1], 1);
         paragraph_with_single_text(&children[0], "hi");
     }
 }
