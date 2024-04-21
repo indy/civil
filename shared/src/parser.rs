@@ -202,7 +202,7 @@ fn eat_ordered_list<'a>(mut tokens: &'a [Token<'a>], halt_at: Option<TokenIdent>
     while !tokens.is_empty() && !is_head_option(tokens, halt_at) {
         tokens = &tokens[3..]; // digits, period, whitespace
 
-        let (remaining, list_item_children) = eat_to_newline(tokens, halt_at)?;
+        let (remaining, list_item_children) = eat_to_newline_or_blockquote(tokens, halt_at)?;
         tokens = remaining;
 
         if !list_item_children.is_empty() {
@@ -226,7 +226,7 @@ fn eat_unordered_list<'a>(mut tokens: &'a [Token<'a>], halt_at: Option<TokenIden
     while !tokens.is_empty() && !is_head_option(tokens, halt_at) {
         tokens = &tokens[2..]; // hyphen, whitespace
 
-        let (remaining, list_item_children) = eat_to_newline(tokens, halt_at)?;
+        let (remaining, list_item_children) = eat_to_newline_or_blockquote(tokens, halt_at)?;
         tokens = remaining;
 
         if !list_item_children.is_empty() {
@@ -243,17 +243,23 @@ fn eat_unordered_list<'a>(mut tokens: &'a [Token<'a>], halt_at: Option<TokenIden
 }
 
 fn eat_paragraph<'a>(tokens: &'a [Token]) -> ParserResult<'a, Node> {
-    let (remaining, children) = eat_to_newline(tokens, None)?;
+    let (remaining, children) = eat_to_newline_or_blockquote(tokens, None)?;
     Ok((remaining, Node::Paragraph(get_node_pos(&children[0]), children)))
 }
 
-fn eat_to_newline<'a>(mut tokens: &'a [Token<'a>], halt_at: Option<TokenIdent>) -> ParserResult<Vec<Node>> {
+fn eat_to_newline_or_blockquote<'a>(
+    mut tokens: &'a [Token<'a>],
+    halt_at: Option<TokenIdent>,
+) -> ParserResult<Vec<Node>> {
     let mut nodes: Vec<Node> = vec![];
 
     while !tokens.is_empty() && !is_head_option(tokens, halt_at) && !is_terminator(tokens) {
         if is_head(tokens, TokenIdent::Newline) {
             let rest = skip_leading_newlines(tokens)?;
             return Ok((rest, nodes));
+        }
+        if is_head(tokens, TokenIdent::BlockQuoteBegin) {
+            return Ok((tokens, nodes));
         }
         let (rest, tok) = eat_item(tokens)?;
         tokens = rest;
@@ -1818,6 +1824,20 @@ some other lines) more words afterwards",
 
         assert_text(&children[0], expected);
         assert_eq!(get_node_pos(&children[0]), loc);
+    }
+
+    #[test]
+    fn test_parsing_paragraph_and_blockquote_on_same_line() {
+        {
+            let nodes = build("hi >>> hello world <<<");
+            dbg!(&nodes);
+            assert_eq!(2, nodes.len());
+
+            paragraph_with_single_text(&nodes[0], "hi ");
+
+            let children = blockquote_with_children(&nodes[1], 1);
+            paragraph_with_single_text(&children[0], "hello world ");
+        }
     }
 
     #[test]
