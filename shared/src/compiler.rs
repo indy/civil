@@ -80,11 +80,15 @@ fn compile_node_to_struct(node: &Node, key: usize, note_id: usize) -> crate::Res
         }
         Node::Italic(_, ns) => element_hoisted("i", key, note_id, ns)?,
         Node::ListItem(_, ns) => element("li", key, note_id, ns)?,
-        Node::MarginComment(_, ns) => compile_sidenote("right-margin-scribble fg-blue", key, note_id, ns)?,
-        Node::MarginDisagree(_, ns) => compile_sidenote("right-margin-scribble fg-red", key, note_id, ns)?,
-        Node::MarginText(_, numbered, ns) => match numbered {
-            MarginTextLabel::Numbered => compile_numbered_sidenote(key, note_id, ns)?,
-            MarginTextLabel::UnNumbered => compile_sidenote("right-margin", key, note_id, ns)?,
+        Node::MarginComment(offset, ns) => {
+            compile_sidenote("right-margin-scribble fg-blue", key, note_id, ns, *offset)?
+        }
+        Node::MarginDisagree(offset, ns) => {
+            compile_sidenote("right-margin-scribble fg-red", key, note_id, ns, *offset)?
+        }
+        Node::MarginText(offset, numbered, ns) => match numbered {
+            MarginTextLabel::Numbered => compile_numbered_sidenote(key, note_id, ns, *offset)?,
+            MarginTextLabel::UnNumbered => compile_sidenote("right-margin", key, note_id, ns, *offset)?,
         },
         Node::OrderedList(_, ns, start) => compile_ordered_list(start, key, note_id, ns)?,
         Node::Paragraph(_, ns) => element("p", key, note_id, ns)?,
@@ -107,11 +111,17 @@ fn compile_node_to_struct(node: &Node, key: usize, note_id: usize) -> crate::Res
     Ok(res)
 }
 
-fn compile_sidenote(class_name: &str, key: usize, note_id: usize, ns: &[Node]) -> crate::Result<Vec<Element>> {
+fn compile_sidenote(
+    class_name: &str,
+    key: usize,
+    note_id: usize,
+    ns: &[Node],
+    unique: usize,
+) -> crate::Result<Vec<Element>> {
     let mut res: Vec<Element> = vec![];
 
     let mut id = String::new();
-    write!(&mut id, "sidenote-{}-{}", note_id, key)?;
+    write!(&mut id, "sidenote-{note_id}-{unique}")?;
 
     // the right-margin-toggle character is 'circled times': https://www.htmlsymbols.xyz/unicode/U+2297
     res.append(&mut element_class_for(
@@ -135,11 +145,11 @@ fn compile_sidenote(class_name: &str, key: usize, note_id: usize, ns: &[Node]) -
     Ok(res)
 }
 
-fn compile_numbered_sidenote(key: usize, note_id: usize, ns: &[Node]) -> crate::Result<Vec<Element>> {
+fn compile_numbered_sidenote(key: usize, note_id: usize, ns: &[Node], unique: usize) -> crate::Result<Vec<Element>> {
     let mut res: Vec<Element> = vec![];
 
     let mut id = String::new();
-    write!(&mut id, "numbered-sidenote-{}-{}", note_id, key)?;
+    write!(&mut id, "numbered-sidenote-{note_id}-{unique}")?;
 
     res.append(&mut element_class_for(
         "label",
