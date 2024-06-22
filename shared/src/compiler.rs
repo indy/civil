@@ -23,21 +23,23 @@ use std::fmt::Write;
 pub fn compile_to_struct(nodes: &[Node], note_id: usize) -> crate::Result<Vec<Element>> {
     let mut res: Vec<Element> = Vec::new();
 
-    for (i, n) in nodes.iter().enumerate() {
-        res.append(&mut compile_node_to_struct(n, i, note_id)?);
+    for n in nodes.iter() {
+        res.append(&mut compile_node_to_struct(n, note_id)?);
     }
 
     Ok(res)
 }
 
-fn compile_node_to_struct(node: &Node, key: usize, note_id: usize) -> crate::Result<Vec<Element>> {
+fn compile_node_to_struct(node: &Node, note_id: usize) -> crate::Result<Vec<Element>> {
+    // note: the node offset is being re-used as the element key
+
     let res = match node {
-        Node::BlockQuote(_, ns) => element("blockquote", key, note_id, ns)?,
-        Node::ColouredText(_, col, ns) => coloured_text(col, key, note_id, ns)?,
-        Node::Codeblock(_, code) => {
+        Node::BlockQuote(key, ns) => element("blockquote", *key, note_id, ns)?,
+        Node::ColouredText(key, col, ns) => coloured_text(col, *key, note_id, ns)?,
+        Node::Codeblock(key, code) => {
             vec![Element {
                 name: String::from("pre"),
-                key: Some(key),
+                key: Some(*key),
                 children: vec![Element {
                     name: String::from("code"),
                     children: vec![Element {
@@ -50,11 +52,11 @@ fn compile_node_to_struct(node: &Node, key: usize, note_id: usize) -> crate::Res
                 ..Default::default()
             }]
         }
-        Node::Deleted(_, ns) => element_hoisted("del", key, note_id, ns)?,
-        Node::Header(_, level, ns) => header_key(*level, key, note_id, ns)?,
-        Node::Highlight(_, col, ns) => coloured_highlight(col, key, note_id, ns)?,
-        Node::HorizontalRule(_) => element_class("hr", "hr-inline", key, note_id, &[])?,
-        Node::Image(_, src, ns) => {
+        Node::Deleted(key, ns) => element_hoisted("del", *key, note_id, ns)?,
+        Node::Header(key, level, ns) => header_key(*level, *key, note_id, ns)?,
+        Node::Highlight(key, col, ns) => coloured_highlight(col, *key, note_id, ns)?,
+        Node::HorizontalRule(key) => element_class("hr", "hr-inline", *key, note_id, &[])?,
+        Node::Image(key, src, ns) => {
             let img = Element {
                 name: String::from("img"),
                 src: Some(String::from(src)),
@@ -66,7 +68,7 @@ fn compile_node_to_struct(node: &Node, key: usize, note_id: usize) -> crate::Res
             } else {
                 // if there is a text description provided then treat this as a figure
                 // <figure><img/><figcaption>ns contents</figcaption></figure>
-                let mut figcaption = element_hoisted("figcaption", key, note_id, ns)?;
+                let mut figcaption = element_hoisted("figcaption", *key, note_id, ns)?;
                 let mut figure_children = vec![img];
 
                 figure_children.append(&mut figcaption);
@@ -78,50 +80,40 @@ fn compile_node_to_struct(node: &Node, key: usize, note_id: usize) -> crate::Res
                 }]
             }
         }
-        Node::Italic(_, ns) => element_hoisted("i", key, note_id, ns)?,
-        Node::ListItem(_, ns) => element("li", key, note_id, ns)?,
-        Node::MarginComment(offset, ns) => {
-            compile_sidenote("right-margin-scribble fg-blue", key, note_id, ns, *offset)?
-        }
-        Node::MarginDisagree(offset, ns) => {
-            compile_sidenote("right-margin-scribble fg-red", key, note_id, ns, *offset)?
-        }
-        Node::MarginText(offset, numbered, ns) => match numbered {
-            MarginTextLabel::Numbered => compile_numbered_sidenote(key, note_id, ns, *offset)?,
-            MarginTextLabel::UnNumbered => compile_sidenote("right-margin", key, note_id, ns, *offset)?,
+        Node::Italic(key, ns) => element_hoisted("i", *key, note_id, ns)?,
+        Node::ListItem(key, ns) => element("li", *key, note_id, ns)?,
+        Node::MarginComment(key, ns) => compile_sidenote("right-margin-scribble fg-blue", *key, note_id, ns)?,
+        Node::MarginDisagree(key, ns) => compile_sidenote("right-margin-scribble fg-red", *key, note_id, ns)?,
+        Node::MarginText(key, numbered, ns) => match numbered {
+            MarginTextLabel::Numbered => compile_numbered_sidenote(*key, note_id, ns)?,
+            MarginTextLabel::UnNumbered => compile_sidenote("right-margin", *key, note_id, ns)?,
         },
-        Node::OrderedList(_, ns, start) => compile_ordered_list(start, key, note_id, ns)?,
-        Node::Paragraph(_, ns) => element("p", key, note_id, ns)?,
-        Node::Quotation(_, ns) => element_hoisted("em", key, note_id, ns)?,
-        Node::Searched(_, ns) => element_hoisted_class("span", "searched-text", key, note_id, ns)?,
-        Node::Strong(_, ns) => element_hoisted("strong", key, note_id, ns)?,
-        Node::Subscript(_, ns) => element_hoisted("sub", key, note_id, ns)?,
-        Node::Superscript(_, ns) => element_hoisted("sup", key, note_id, ns)?,
+        Node::OrderedList(key, ns, start) => compile_ordered_list(start, *key, note_id, ns)?,
+        Node::Paragraph(key, ns) => element("p", *key, note_id, ns)?,
+        Node::Quotation(key, ns) => element_hoisted("em", *key, note_id, ns)?,
+        Node::Searched(key, ns) => element_hoisted_class("span", "searched-text", *key, note_id, ns)?,
+        Node::Strong(key, ns) => element_hoisted("strong", *key, note_id, ns)?,
+        Node::Subscript(key, ns) => element_hoisted("sub", *key, note_id, ns)?,
+        Node::Superscript(key, ns) => element_hoisted("sup", *key, note_id, ns)?,
         Node::Text(_, text) => vec![Element {
             name: String::from("text"),
             text: Some(String::from(text)),
             ..Default::default()
         }],
-        Node::Underlined(_, ns) => element_hoisted_class("span", "underlined", key, note_id, ns)?,
-        Node::UnorderedList(_, ns) => element("ul", key, note_id, ns)?,
-        Node::Url(_, url, ns) => element_href("a", url, key, note_id, ns)?,
-        Node::YouTube(_, id, start) => element_youtube("youtube", key, id, start)?,
+        Node::Underlined(key, ns) => element_hoisted_class("span", "underlined", *key, note_id, ns)?,
+        Node::UnorderedList(key, ns) => element("ul", *key, note_id, ns)?,
+        Node::Url(key, url, ns) => element_href("a", url, *key, note_id, ns)?,
+        Node::YouTube(key, id, start) => element_youtube("youtube", *key, id, start)?,
     };
 
     Ok(res)
 }
 
-fn compile_sidenote(
-    class_name: &str,
-    key: usize,
-    note_id: usize,
-    ns: &[Node],
-    unique: usize,
-) -> crate::Result<Vec<Element>> {
+fn compile_sidenote(class_name: &str, key: usize, note_id: usize, ns: &[Node]) -> crate::Result<Vec<Element>> {
     let mut res: Vec<Element> = vec![];
 
     let mut id = String::new();
-    write!(&mut id, "sidenote-{note_id}-{unique}")?;
+    write!(&mut id, "sidenote-{note_id}-{key}")?;
 
     // the right-margin-toggle character is 'circled times': https://www.htmlsymbols.xyz/unicode/U+2297
     res.append(&mut element_class_for(
@@ -134,22 +126,22 @@ fn compile_sidenote(
     )?);
     res.append(&mut element_class_type(
         "input",
-        key + 100,
+        key + 1,
         "right-margin-toggle",
         &id,
         "checkbox",
         note_id,
     )?);
-    res.append(&mut element_class("span", class_name, key + 200, note_id, ns)?);
+    res.append(&mut element_class("span", class_name, key + 2, note_id, ns)?);
 
     Ok(res)
 }
 
-fn compile_numbered_sidenote(key: usize, note_id: usize, ns: &[Node], unique: usize) -> crate::Result<Vec<Element>> {
+fn compile_numbered_sidenote(key: usize, note_id: usize, ns: &[Node]) -> crate::Result<Vec<Element>> {
     let mut res: Vec<Element> = vec![];
 
     let mut id = String::new();
-    write!(&mut id, "numbered-sidenote-{note_id}-{unique}")?;
+    write!(&mut id, "numbered-sidenote-{note_id}-{key}")?;
 
     res.append(&mut element_class_for(
         "label",
@@ -161,7 +153,7 @@ fn compile_numbered_sidenote(key: usize, note_id: usize, ns: &[Node], unique: us
     )?);
     res.append(&mut element_class_type(
         "input",
-        key + 100,
+        key + 1,
         "right-margin-toggle",
         &id,
         "checkbox",
@@ -170,7 +162,7 @@ fn compile_numbered_sidenote(key: usize, note_id: usize, ns: &[Node], unique: us
     res.append(&mut element_class(
         "span",
         "right-margin-numbered",
-        key + 200,
+        key + 2,
         note_id,
         ns,
     )?);
@@ -333,9 +325,9 @@ fn base_element(name: &str, key: usize, note_id: usize, ns: &[Node]) -> crate::R
 fn base_element_hoisted(name: &str, key: usize, note_id: usize, ns: &[Node]) -> crate::Result<Element> {
     if ns.len() == 1 {
         match &ns[0] {
-            Node::Paragraph(_, pns) => Ok(Element {
+            Node::Paragraph(key2, pns) => Ok(Element {
                 name: String::from(name),
-                key: Some(key),
+                key: Some(*key2),
                 children: if pns.is_empty() {
                     vec![]
                 } else {
