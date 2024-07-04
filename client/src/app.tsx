@@ -9,7 +9,8 @@ import Net from "./shared/net";
 import Previewer from "./components/previewer";
 import Bookmarks from "./components/bookmarks";
 import CommandBar from "./components/command-bar";
-import { DeluxeToolbar } from "./components/deluxe-toolbar";
+import DeluxeToolbar from "./components/deluxe-toolbar";
+import HelpOverlay from "./components/help-overlay";
 
 import AccountSettings from "./components/page-account-settings";
 import BusyIndicator from "./components/busy-indicator";
@@ -105,6 +106,7 @@ const AppUI = () => {
             <CommandBar />
             <DeluxeToolbar />
             <Previewer />
+            <HelpOverlay />
             <Router onChange={handleRoute}>
                 <FrontPage path="/" />
                 <Login path="/login" loginCallback={loginHandler} />

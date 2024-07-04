@@ -367,6 +367,8 @@ export default function CommandBar() {
                 /*
                   shortcut keys
                   -------- ----
+
+                  ? : show help overlay
                   Escape : toolbar: view mode
                   Comma: quotes: prev quote
                   Period: quotes: next quote
@@ -402,6 +404,16 @@ export default function CommandBar() {
 
                 // ignore ctrl and shift so shortcuts like Ctrl-C or Ctrl-Shift-I aren't intercepted here
                 let kb = !appState.componentRequiresFullKeyboardAccess.value;
+
+                if (kb && shiftKey && code === "Slash") {
+                    // this is the question mark key: ?
+                    if (appState.showingHelpOverlay.value) {
+                        AppStateChange.helpOverlayHide();
+                    } else {
+                        AppStateChange.helpOverlayShow();
+                    }
+                }
+
                 if (kb && !ctrlKey && !shiftKey) {
                     // we can treat any keypresses as modal commands for the app
                     switch (code) {

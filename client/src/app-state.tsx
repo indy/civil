@@ -211,6 +211,7 @@ const state: State = {
     canNarrowWidth: true,
 
     componentRequiresFullKeyboardAccess: signal(false),
+    showingHelpOverlay: signal(false),
     showingCommandBar: signal(false),
     commandBarState: signal(cleanCommandBarState()),
 
@@ -329,11 +330,20 @@ export const AppStateChange = {
         },
     ),
 
+    helpOverlayShow: build(Scope.Local, "helpOverlayShow", () => {
+        state.showingHelpOverlay.value = true;
+    }),
+
+    helpOverlayHide: build(Scope.Local, "helpOverlayHide", () => {
+        state.showingHelpOverlay.value = false;
+    }),
+
     commandBarResetAndShow: build(Scope.Local, "commandBarResetAndShow", () => {
         commandBarReset(state, true);
     }),
 
     commandBarResetAndHide: build(Scope.Local, "commandBarResetAndHide", () => {
+        state.showingHelpOverlay.value = false; // when showing help, pressing escape should hide the overlay
         commandBarReset(state, false);
     }),
 

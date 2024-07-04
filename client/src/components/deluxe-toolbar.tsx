@@ -31,7 +31,7 @@ type LocalState = {
     showGrid: boolean;
 };
 
-export function DeluxeToolbar({}) {
+export default function DeluxeToolbar({}) {
     const appState = getAppState();
 
     const [localState, setLocalState] = useState<LocalState>({

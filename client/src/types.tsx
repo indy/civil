@@ -344,6 +344,7 @@ export type State = {
     //
     componentRequiresFullKeyboardAccess: Signal<boolean>;
 
+    showingHelpOverlay: Signal<boolean>;
     showingCommandBar: Signal<boolean>;
     commandBarState: Signal<CommandBarState>;
 

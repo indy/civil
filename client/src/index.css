@@ -322,6 +322,43 @@
     font-style: normal;
 }
 
+.help-overlay {
+    display: flex;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+}
+
+.help-overlay-content {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    font-family: var(--font-ui);
+    font-weight: 400;
+    background-color: var(--bg);
+    padding: 2rem;
+    border-radius: var(--ui-control-border-radius);
+    text-align: center;
+    max-width: 40rem;
+    width: 90%;
+}
+
+.help-overlay-key {
+    padding-left: 5rem;
+}
+
+.help-overlay-desc {
+    text-align: left;
+    padding-left: 5rem;
+}
+
 .typeface-serif {
     font-family: Crimson, Palatino, "Palatino Linotype", "Palatino LT STD",
         "Book Antiqua", Georgia, serif;
@@ -712,9 +749,15 @@ h3,
 h4,
 h5,
 h6 {
-    transition: font-size 0.15s, background 0.15s;
-    -moz-transition: font-size 0.15s, background 0.15s; /* Firefox 4 */
-    -webkit-transition: font-size 0.15s, background 0.15s; /* Safari and Chrome */
+    transition:
+        font-size 0.15s,
+        background 0.15s;
+    -moz-transition:
+        font-size 0.15s,
+        background 0.15s; /* Firefox 4 */
+    -webkit-transition:
+        font-size 0.15s,
+        background 0.15s; /* Safari and Chrome */
 
     font-weight: 400;
     margin-top: 2rem;
@@ -1525,8 +1568,10 @@ textarea {
 }
 
 .c-civil-button:hover {
-    box-shadow: inset 0 0.2rem 0.4rem var(--ui-highlight),
-        0 0.2rem 0.4rem var(--ui-shadow), 0 0.2rem 0.4rem var(--ui-shadow-2);
+    box-shadow:
+        inset 0 0.2rem 0.4rem var(--ui-highlight),
+        0 0.2rem 0.4rem var(--ui-shadow),
+        0 0.2rem 0.4rem var(--ui-shadow-2);
 }
 
 .c-civil-button:disabled {
@@ -1625,7 +1670,9 @@ textarea {
     width: var(--command-bar-width);
     z-index: 1000;
 
-    transition: max-width 250ms linear 50ms, opacity 200ms ease-out;
+    transition:
+        max-width 250ms linear 50ms,
+        opacity 200ms ease-out;
 }
 
 .command-bar-invisible {
