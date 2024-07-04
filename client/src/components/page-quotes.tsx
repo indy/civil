@@ -28,7 +28,7 @@ import {
 } from "./civil-layout";
 import CivilTextArea from "./civil-text-area";
 import DeleteConfirmation from "./delete-confirmation";
-import ModalKeyboardHelp from "./modal-keyboard-help";
+import AlwaysVisibleKeyboardHelp from "./always-visible-keyboard-help";
 import RecentlyVisited from "./recently-visited";
 import SegmentArrivals from "./segment-arrivals";
 import SegmentInsignias from "./segment-insignias";
@@ -448,11 +448,11 @@ function Quote({ path, id }: { path?: string; id?: string }) {
                     <QuoteButtons quoteId={quoteId} />
                 </WhenNoPhysicalKeyboard>
 
-                <ModalKeyboardHelp>
+                <AlwaysVisibleKeyboardHelp>
                     <pre>,: previous quote</pre>
                     <pre>.: next quote</pre>
                     <pre>j: jump to random quote</pre>
-                </ModalKeyboardHelp>
+                </AlwaysVisibleKeyboardHelp>
             </article>
         );
     } else {

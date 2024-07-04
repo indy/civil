@@ -17,7 +17,7 @@ import Net from "../shared/net";
 
 import { CivContainer, CivLeft } from "./civil-layout";
 import { graphPhysics } from "./graph-physics";
-import ModalKeyboardHelp from "./modal-keyboard-help";
+import AlwaysVisibleKeyboardHelp from "./always-visible-keyboard-help";
 import { svgTickedCheckBox, svgUntickedCheckBox } from "./svg-icons";
 import useLocalReducer from "./use-local-reducer";
 import useModalKeyboard from "./use-modal-keyboard";
@@ -441,11 +441,11 @@ export default function Graph({ id }: { id: Key }) {
                 onMouseMove={onMouseMove}
             />
 
-            <ModalKeyboardHelp>
+            <AlwaysVisibleKeyboardHelp>
                 <pre>h: toggle hyperlinks</pre>
                 <pre>p: previous quote</pre>
                 <pre>r: random quote</pre>
-            </ModalKeyboardHelp>
+            </AlwaysVisibleKeyboardHelp>
         </CivContainer>
     );
 }

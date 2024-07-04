@@ -2,7 +2,7 @@ import { type ComponentChildren } from "preact";
 
 import WhenPhysicalKeyboard from "./when-physical-keyboard";
 
-export default function ModalKeyboardHelp({
+export default function AlwaysVisibleKeyboardHelp({
     children,
 }: {
     children: ComponentChildren;
