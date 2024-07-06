@@ -98,7 +98,9 @@ export default function HelpOverlay({}) {
                         <tr>
                             <td></td>
                             <td class="help-overlay-key">s</td>
-                            <td class="help-overlay-desc">Full search page</td>
+                            <td class="help-overlay-desc">
+                                Search selected text
+                            </td>
                         </tr>
                         <tr>
                             <td></td>

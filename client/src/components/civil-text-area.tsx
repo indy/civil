@@ -4,8 +4,10 @@ import type { UserUploadedImage } from "../types";
 
 import { AppStateChange } from "../app-state";
 
+import { CivRight } from "./civil-layout";
 import uploadImages from "./image-upload";
 import useDragDrop from "./use-drag-drop";
+import HelpMarkupSyntax from "./help-markup-syntax";
 
 type Props = {
     id?: string;
@@ -76,6 +78,10 @@ export default function CivilTextArea({
     }
 
     return (
+        <div>
+        <CivRight>
+            <HelpMarkupSyntax />
+        </CivRight>
         <textarea
             class={klasses}
             id={id}
@@ -86,6 +92,7 @@ export default function CivilTextArea({
             onFocus={onTextAreaFocus}
             onBlur={onTextAreaBlur}
             onInput={onInput}
-        />
+            />
+        </div>
     );
 }
