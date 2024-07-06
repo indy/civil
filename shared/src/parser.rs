@@ -442,6 +442,7 @@ fn eat_colon<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Node> {
             Token::Text(_, "h9") => eat_header(9, tokens),
             Token::Text(_, "blockquote") => eat_blockquote(tokens),
             Token::Text(_, "code") => eat_code(tokens),
+            Token::Text(_, "verbatim") => eat_code(tokens),
             Token::Text(_, "comment") => eat_comment(tokens),
             Token::Text(_, "deleted") => eat_deleted(tokens),
             Token::Text(_, "disagree") => eat_disagree(tokens),
