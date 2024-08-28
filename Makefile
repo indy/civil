@@ -1,3 +1,5 @@
+default: run;
+
 ########################################
 #
 #   BUILDING
@@ -120,14 +122,37 @@ staging/systemd/isg-civil.sh: $(SYSTEMD_FILES)
 # top-level public targets
 ################################################################################
 
-.DEFAULT_GOAL := run
-
 .PHONY: run download-images download-db clean-staging run-note_parser run-note_linked_list run-note_prev typescript-watch typescript-typecheck typescript-format deps
+
+# copied from https://rosszurowski.com/log/2022/makefiles#self-documenting-makefiles
+#
+help: ## show this help
+
+	@printf "one time initialisation:\n\n"
+	@printf " make deps\n\n"
+	@printf "run locally:\n\n"
+	@printf " make run\n\n"
+	@printf "during development also run 'make typescript-watch' alongside 'make run' to enable automatic typescript compilation\n\n"
+	@printf "public make commands:\n\n"
+	@grep -E '^[0-9a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[0;32m%-17s\033[m %s\n", $$1, $$2}'
+	@printf "\n"
+
+# based on https://github.com/stripe/stripe-cli/blob/master/Makefile
+#
+todo: ## show to-do items per file
+	@grep \
+		--color=always \
+		-nRo -P '(?<=todo:).*' client/src | \
+		awk -F: '{printf "%-36s %-31s %s\n", $$1, $$2, $$3}'
+	@grep \
+		--color=always \
+		-nRo -P '(?<=todo:).*' server/src | \
+		awk -F: '{printf "%-36s %-31s %s\n", $$1, $$2, $$3}'
 
 deps:
 	cd client; yarn install
 
-typescript-watch:
+typescript-watch: ## rebuild client code on code change
 	while true; do inotifywait -e close_write --quiet --recursive ./$(CLIENT_FOLDER)/src; make typescript-build-and-typecheck; done
 
 typescript-build-and-typecheck: $(CLIENT_FOLDER)/www/index.js typescript-typecheck
@@ -135,10 +160,10 @@ typescript-build-and-typecheck: $(CLIENT_FOLDER)/www/index.js typescript-typeche
 typescript-typecheck:
 	./$(CLIENT_FOLDER)/node_modules/typescript/bin/tsc -p ./$(CLIENT_FOLDER)/tsconfig.json --noEmit
 
-typescript-format:
+typescript-format: ## format the typescript code
 	cd client; yarn prettier --write src
 
-run: $(CLIENT_FOLDER)/www/index.js $(WWW_FOLDER)/$(CLIENT_WASM_BG) server
+run: $(CLIENT_FOLDER)/www/index.js $(WWW_FOLDER)/$(CLIENT_WASM_BG) server ## build debug server and run
 	cargo run --manifest-path $(SERVER_FOLDER)/Cargo.toml --bin $(SERVER_BINARY)
 
 # collect stats on each user's content, stores the stats in the db
@@ -158,19 +183,19 @@ server-release: $(SERVER_FOLDER)/target/release/$(SERVER_BINARY) $(SERVER_FOLDER
 
 staging: clean-staging staging/www/index.html staging/$(SERVER_BINARY) staging/systemd/isg-civil.sh staging/www/$(CLIENT_WASM_BG)
 
-upload: staging
+upload: staging ## upload the client and server onto indy.io
 	rsync -avzhe ssh staging/. indy@indy.io:/home/indy/work/civil
 
-upload-client: staging
+upload-client: staging ## upload just the client onto indy.io
 	rsync -avzhe ssh staging/www/. indy@indy.io:/home/indy/work/civil/www
 
 clean-staging:
 	rm -rf staging
 
-download-images:
+download-images: ## download images to local machine from indy.io
 	rsync -avzhe ssh indy@indy.io:/home/indy/work/civil/user-content .
 
-download-db:
+download-db: ## download sqlite db to local machine from indy.io
 	rm -f civil.db
 	rm -f civil.db-shm
 	rm -f civil.db-wal
