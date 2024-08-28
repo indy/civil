@@ -30,7 +30,7 @@ export default function InsigniaSelector({
 
     return (
         <div class={klass}>
-            {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((i) => (
+            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => (
                 <SingleInsignia
                     value={insigniaId}
                     bit={i}

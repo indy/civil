@@ -1948,6 +1948,17 @@ third paragraph",
     }
 
     #[test]
+    fn test_weird_unicode_bug() {
+        // E2 80 8A: This sequence represents a single character in UTF-8 encoding,
+        // specifically the Hair Space (U+200A), which is a very narrow space.
+        //
+        let s = ".  In the same book";
+        let nodes = build(s);
+        dbg!("{:?}", &nodes);
+        assert_eq!(1, nodes.len());
+    }
+
+    #[test]
     fn test_colon_syntax_bug() {
         // the space inbetween the colon and the newline would result
         // in an infinite loop.
