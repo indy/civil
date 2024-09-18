@@ -33,6 +33,7 @@ export enum Font {
     ThreeLinesPica,
     LibreBaskerville,
     Essays1743,
+    Hyperlegible,
 }
 
 export enum ColourScheme {

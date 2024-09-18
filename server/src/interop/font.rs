@@ -34,6 +34,7 @@ pub enum Font {
     ThreeLinesPica,
     LibreBaskerville,
     Essays1743,
+    Hyperlegible,
 }
 
 impl From<Font> for i32 {
@@ -51,6 +52,7 @@ impl From<Font> for i32 {
             Font::ThreeLinesPica => 10,
             Font::LibreBaskerville => 11,
             Font::Essays1743 => 12,
+            Font::Hyperlegible => 13,
         }
     }
 }
@@ -71,6 +73,7 @@ impl FromSql for Font {
             10 => Ok(Font::ThreeLinesPica),
             11 => Ok(Font::LibreBaskerville),
             12 => Ok(Font::Essays1743),
+            13 => Ok(Font::Hyperlegible),
             _ => Err(FromSqlError::OutOfRange(i)),
         }
     }

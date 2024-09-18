@@ -60,6 +60,11 @@ var precacheConfig = [
     "/fonts/Essays1743/essays1743.italic.ttf",
     "/fonts/Essays1743/essays1743.medium.ttf",
 
+    "/fonts/Atkinson-Hyperlegible/Atkinson-Hyperlegible-Bold-102.ttf",
+    "/fonts/Atkinson-Hyperlegible/Atkinson-Hyperlegible-BoldItalic-102.ttf",
+    "/fonts/Atkinson-Hyperlegible/Atkinson-Hyperlegible-Italic-102.ttf",
+    "/fonts/Atkinson-Hyperlegible/Atkinson-Hyperlegible-Regular-102.ttf",
+
     "/fonts/Fell/IMFeDPit29P.ttf",
     "/fonts/Fell/IMFeDPrm29P.ttf",
     "/fonts/Fell/IMFeDPsc29P.ttf",

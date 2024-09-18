@@ -38,6 +38,8 @@ export function fontClass(font: Font, rdp: RenderingDeckPart): string {
                 return "libre-baskerville";
             case Font.Essays1743:
                 return "essays-1743";
+            case Font.Hyperlegible:
+                return "hyperlegible";
         }
     }
 

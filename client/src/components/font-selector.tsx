@@ -101,6 +101,13 @@ export default function FontSelector({
                 >
                     Essays1743 &mdash; default 18th Century typeface
                 </option>
+                <option
+                    class="typeface-hyperlegible  font-size-2rem"
+                    value={Font.Hyperlegible}
+                    selected={font === Font.Hyperlegible}
+                >
+                    Hyperlegible &mdash; improved legibility and readability
+                </option>
             </select>
         </span>
     );

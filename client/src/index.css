@@ -308,6 +308,36 @@
     font-style: italic;
 }
 
+
+@font-face {
+    font-family: "Atkinson-Hyperlegible";
+    src: url("fonts/Atkinson-Hyperlegible/Atkinson-Hyperlegible-Regular-102.ttf") format("truetype");
+    font-weight: 400;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "Atkinson-Hyperlegible";
+    src: url("fonts/Atkinson-Hyperlegible/Atkinson-Hyperlegible-Italic-102.ttf") format("truetype");
+    font-weight: 400;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: "Atkinson-Hyperlegible";
+    src: url("fonts/Atkinson-Hyperlegible/Atkinson-Hyperlegible-Bold-102.ttf") format("truetype");
+    font-weight: 600;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "Atkinson-Hyperlegible";
+    src: url("fonts/Atkinson-Hyperlegible/Atkinson-Hyperlegible-BoldItalic-102.ttf") format("truetype");
+    font-weight: 600;
+    font-style: italic;
+}
+
+
 @font-face {
     font-family: "Fell-Flowers-1";
     src: url("fonts/Fell/IMFeFlow1.ttf") format("truetype");
@@ -425,6 +455,9 @@
 }
 .typeface-essays-1743 {
     font-family: Essays1743;
+}
+.typeface-hyperlegible {
+    font-family: Atkinson-Hyperlegible;
 }
 
 /* -------------------------------------------------------------------------------- */
