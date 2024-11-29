@@ -107,22 +107,23 @@ pub async fn delete(
 0 - complete blackout.
 */
 fn sqlite_update_easiness_factor(mut card: FlashCard, rating: i16) -> crate::Result<FlashCard> {
+    // note: repetition starts at 1, that's the initial value given to a new card
     if rating < 3 {
         // start repetitions for the item from the beginning without changing the E-Factor (i.e. use intervals I(1), I(2) etc. as if the item was memorized anew
         card.interval = 1;
-        card.repetition = 0;
+        card.repetition = 1;
     } else {
         // according to https://www.supermemo.com/en/archives1990-2015/english/ol/sm2
         // calculate the inter_repetition_interval using the existing easiness_factor, then update the easiness_factor
         //
-        if card.repetition == 0 {
+        if card.repetition == 1 {
             // a new card hasn't been recalled yet
             card.interval = 1;
-            card.repetition = 1;
-        } else if card.repetition == 1 {
+            card.repetition = 2;
+        } else if card.repetition == 2 {
             // a card that's been recalled once
             card.interval = 6;
-            card.repetition = 2;
+            card.repetition = 3;
         } else {
             let interval_f32: f32 = (card.interval as f32) * card.easiness_factor;
             let mut new_interval = interval_f32 as i32;
@@ -133,16 +134,13 @@ fn sqlite_update_easiness_factor(mut card: FlashCard, rating: i16) -> crate::Res
             }
 
             card.interval = new_interval;
-            card.repetition = card.repetition + 1;
+            card.repetition += 1;
         }
     }
 
     let rating_f32: f32 = rating as f32;
-    // card.easiness_factor =
-    //     card.easiness_factor - 0.8 + (0.28 * rating_f32) - (0.02 * rating_f32 * rating_f32);
 
-    card.easiness_factor =
-        card.easiness_factor + (0.1 - (5.0 - rating_f32) * (0.08 + (5.0 - rating_f32) * 0.02));
+    card.easiness_factor += 0.1 - (5.0 - rating_f32) * (0.08 + (5.0 - rating_f32) * 0.02);
 
     if card.easiness_factor < 1.3 {
         card.easiness_factor = 1.3;
