@@ -2318,7 +2318,8 @@ input:required {
     border-color: var(--fg-lighter-7);
     border-radius: var(--coloured-deck-border-radius);
 
-    padding: 1rem 1.5rem 1rem 1.5rem;
+    padding-left: 2rem;
+    padding-right: 2rem;
 }
 
 .c-point-form {

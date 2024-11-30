@@ -1,9 +1,11 @@
 import type { FlashCard } from "../types";
+import { Font } from "../enums";
 
 import { plural } from "../shared/english";
 import Net from "../shared/net";
 import { daysUntil } from "../shared/time";
 
+import buildMarkup from "./build-markup";
 import CivilButton from "./civil-button";
 import CivilTextArea from "./civil-text-area";
 import DeleteConfirmation from "./delete-confirmation";
@@ -142,27 +144,7 @@ export default function ViewFlashCard({
         localDispatch(ActionType.EditingCancelled);
     }
 
-    if (!local.isEditingFlashCard) {
-        // Normal View
-        //
-        return (
-            <CivMain>
-                <p>
-                    <span class="right-margin">
-                        Next test in {local.daysUntilNextTest} (
-                        {local.nextTestDateString})
-                    </span>
-                    <div class="in-note-flash-card-prompt">
-                        {flashcard.prompt}
-                    </div>
-                </p>
-                <div>
-                    <button onClick={editToggleClicked}>Edit FlashCard</button>
-                    <DeleteConfirmation onDelete={confirmedDeleteClicked} />
-                </div>
-            </CivMain>
-        );
-    } else {
+    if (local.isEditingFlashCard) {
         // Editing
         //
         return (
@@ -184,6 +166,28 @@ export default function ViewFlashCard({
                     <CivilButton onClick={cancelClicked}>
                         Cancel Editing
                     </CivilButton>
+                </div>
+            </CivMain>
+        );
+    } else {
+        let font: Font = Font.Serif;
+        // Normal View
+        //
+        return (
+            <CivMain>
+                <p>
+                    <span class="right-margin">
+                        Next test in {local.daysUntilNextTest} (
+                        {local.nextTestDateString})
+                    </span>
+                    <div class="in-note-flash-card-prompt">
+                        {buildMarkup(flashcard.prompt, font, flashcard.noteId)}
+                    </div>
+
+                </p>
+                <div>
+                    <button onClick={editToggleClicked}>Edit FlashCard</button>
+                    <DeleteConfirmation onDelete={confirmedDeleteClicked} />
                 </div>
             </CivMain>
         );
