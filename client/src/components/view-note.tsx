@@ -1,5 +1,5 @@
+import type { RefObject } from "preact";
 import {
-    type Ref as PreactRef,
     useEffect,
     useRef,
     useState,
@@ -70,7 +70,7 @@ type LocalState = {
 };
 
 type ActionDataImagePasted = {
-    textAreaRef: PreactRef<HTMLTextAreaElement>;
+    textAreaRef: RefObject<HTMLTextAreaElement>;
     markup: string;
 };
 
@@ -82,13 +82,13 @@ type ActionDataDecksCommit = {
 type Action = {
     type: ActionType;
     data?:
-        | Note
-        | FlashCard
-        | number
-        | boolean
-        | ActionDataImagePasted
-        | ActionDataDecksCommit
-        | any;
+    | Note
+    | FlashCard
+    | number
+    | boolean
+    | ActionDataImagePasted
+    | ActionDataDecksCommit
+    | any;
 };
 
 function reducer(state: LocalState, action: Action): LocalState {

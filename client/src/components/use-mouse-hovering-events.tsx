@@ -1,7 +1,8 @@
-import { type Ref, useEffect } from "preact/hooks";
+import type { RefObject } from "preact";
+import { useEffect } from "preact/hooks";
 
 export default function useMouseHoveringEvents(
-    hoveringRef: Ref<HTMLElement>,
+    hoveringRef: RefObject<HTMLElement>,
     onEnter: () => void,
     onLeave: () => void,
 ) {
@@ -16,6 +17,6 @@ export default function useMouseHoveringEvents(
             };
         }
         // added to please tsc
-        return () => {};
+        return () => { };
     });
 }

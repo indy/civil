@@ -1,5 +1,6 @@
+import type { RefObject } from "preact";
 import { route } from "preact-router";
-import { type Ref, useEffect, useRef } from "preact/hooks";
+import { useEffect, useRef } from "preact/hooks";
 
 import {
     CivilMode,
@@ -263,7 +264,7 @@ let gCommandBarAbortController = new AbortController();
 
 export default function CommandBar() {
     const appState = getAppState();
-    const commandBarRef: Ref<HTMLInputElement> = useRef(null);
+    const commandBarRef: RefObject<HTMLInputElement> = useRef(null);
 
     const inputElement = commandBarRef.current;
     if (inputElement) {
@@ -669,7 +670,7 @@ export default function CommandBar() {
         ) {
             let classes =
                 appState.hasPhysicalKeyboard &&
-                appState.commandBarState.value.showKeyboardShortcuts
+                    appState.commandBarState.value.showKeyboardShortcuts
                     ? "command-bar-important "
                     : "";
             classes += "command-bar-listing";

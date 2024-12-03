@@ -1,5 +1,6 @@
+import { type RefObject } from "preact";
 import { route } from "preact-router";
-import { type Ref, useEffect, useState, useRef } from "preact/hooks";
+import { useEffect, useState, useRef } from "preact/hooks";
 
 import { DeckKind, Font, NoteKind } from "../enums";
 import type { DeckQuote, DM, Key, ProtoQuote, SearchResults } from "../types";
@@ -137,7 +138,7 @@ function QuoteNew({ path }: { path?: string }) {
         attribution: "",
     });
 
-    const textAreaRef: Ref<HTMLTextAreaElement> = useRef(null);
+    const textAreaRef: RefObject<HTMLTextAreaElement> = useRef(null);
     useEffect(() => {
         if (textAreaRef && textAreaRef.current) {
             textAreaRef.current.focus();

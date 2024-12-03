@@ -1,4 +1,5 @@
-import { type Ref, useState } from "preact/hooks";
+import type { RefObject } from "preact";
+import { useState } from "preact/hooks";
 
 import type { UserUploadedImage } from "../types";
 
@@ -12,7 +13,7 @@ import HelpMarkupSyntax from "./help-markup-syntax";
 type Props = {
     id?: string;
     value: string;
-    elementRef?: Ref<HTMLTextAreaElement>;
+    elementRef?: RefObject<HTMLTextAreaElement>;
     elementClass?: string;
     onFocus?: () => void;
     onBlur?: (e?: Event) => void;
@@ -79,19 +80,19 @@ export default function CivilTextArea({
 
     return (
         <div>
-        <CivRight>
-            <HelpMarkupSyntax />
-        </CivRight>
-        <textarea
-            class={klasses}
-            id={id}
-            type="text"
-            name={id}
-            value={value}
-            ref={elementRef}
-            onFocus={onTextAreaFocus}
-            onBlur={onTextAreaBlur}
-            onInput={onInput}
+            <CivRight>
+                <HelpMarkupSyntax />
+            </CivRight>
+            <textarea
+                class={klasses}
+                id={id}
+                type="text"
+                name={id}
+                value={value}
+                ref={elementRef}
+                onFocus={onTextAreaFocus}
+                onBlur={onTextAreaBlur}
+                onInput={onInput}
             />
         </div>
     );
