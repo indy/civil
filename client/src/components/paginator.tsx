@@ -1,6 +1,6 @@
 import { type ComponentChildren } from "preact";
 import { route } from "preact-router";
-import { useState } from "preact/hooks";
+import { useEffect, useState } from "preact/hooks";
 
 import { DeckKind } from "../enums";
 import type { SlimDeck } from "../types";
@@ -12,6 +12,7 @@ import {
     deckKindToResourceString,
 } from "../shared/deck";
 import { capitalise } from "../shared/english";
+import { getUrlParamDeckKind, setUrlParamDeckKind, getUrlParamNumber, setUrlParam } from "../shared/url-params";
 
 import CivilButtonCreateDeck from "./civil-button-create-deck";
 import CivilTabButton from "./civil-tab-button";
@@ -19,8 +20,22 @@ import { HeadedSegment } from "./headed-segment";
 import { listItemArticle, listItemSlimDeck } from "./list-items";
 import Pagination from "./pagination";
 
-export default function Paginator({}) {
-    const [selected, setSelected] = useState(DeckKind.Idea);
+export default function Paginator({ }) {
+    const [selected, setSelected] = useState(getUrlParamDeckKind());
+    const [offset, setOffset] = useState(getUrlParamNumber("deck-offset", 0));
+
+    useEffect(() => {
+        setUrlParamDeckKind(selected);
+    }, [selected]);
+
+    useEffect(() => {
+        setUrlParam("deck-offset", `${offset}`);
+    }, [offset]);
+
+    function setSelectedAndResetOffset(dk: DeckKind) {
+        setSelected(dk);
+        setOffset(0);
+    }
 
     return (
         <HeadedSegment
@@ -29,10 +44,10 @@ export default function Paginator({}) {
             extraHeadingClasses="margin-top-0"
         >
             <PaginatorTopSelector
-                setSelected={setSelected}
+                setSelected={setSelectedAndResetOffset}
                 selected={selected}
             />
-            <DeckPaginator deckKind={selected} />
+            <DeckPaginator deckKind={selected} offset={offset} setOffset={setOffset} />
         </HeadedSegment>
     );
 }
@@ -89,9 +104,11 @@ function PaginatorTopSelector({
 
 type DeckPaginatorProps = {
     deckKind: DeckKind;
+    offset: number;
+    setOffset: (o: number) => void
 };
 
-function DeckPaginator({ deckKind }: DeckPaginatorProps) {
+function DeckPaginator({ deckKind, offset, setOffset }: DeckPaginatorProps) {
     const appState = getAppState();
 
     const deckName = deckKindToResourceString(deckKind);
@@ -144,6 +161,8 @@ function DeckPaginator({ deckKind }: DeckPaginatorProps) {
         <Pagination
             url={url}
             renderItem={renderItem}
+            offset={offset}
+            changedOffset={setOffset}
             itemsPerPage={itemsPerPage}
             upperContent={upperContent}
             lowerContent={lowerContent}

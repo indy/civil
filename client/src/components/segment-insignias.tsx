@@ -1,9 +1,10 @@
-import { useState } from "preact/hooks";
+import { useEffect, useState } from "preact/hooks";
 
 import { DeckKind } from "../enums";
 
 import { deckKindToResourceString } from "../shared/deck";
 import { capitalise } from "../shared/english";
+import { getUrlParamNumber, setUrlParam } from "../shared/url-params";
 
 import { HeadedSegment } from "./headed-segment";
 import InsigniaSelector from "./insignia-selector";
@@ -15,36 +16,38 @@ type SegmentInsigniasProps = {
 };
 
 export default function SegmentInsignias({ deckKind }: SegmentInsigniasProps) {
-    type LocalState = {
-        insigniaVal: number;
-        url: string;
-    };
 
-    function buildState(val: number): LocalState {
-        let url = `/api/decks/insignias?insignia=${val}`;
+    const [mask, setMask] = useState(getUrlParamNumber("insignia-mask", 2));
+    const [offset, setOffset] = useState(getUrlParamNumber("insignia-offset", 0));
+
+    useEffect(() => {
+        setUrlParam("insignia-mask", `${mask}`);
+    }, [mask]);
+
+    useEffect(() => {
+        setUrlParam("insignia-offset", `${offset}`);
+    }, [offset]);
+
+    function setMaskAndResetOffset(m: number) {
+        // only select one insignia at a time
+        let diff = m ^ mask;
+        setMask(diff);
+        setOffset(0);
+    }
+
+    function buildUrl() {
+        let url = `/api/decks/insignias?insignia=${mask}`;
         if (deckKind) {
             const resource = deckKindToResourceString(deckKind);
             url += `&resource=${resource}`;
         }
-
-        return {
-            insigniaVal: val,
-            url,
-        };
+        return url;
     }
-
-    let [localState, setLocalState] = useState<LocalState>(buildState(2));
 
     let heading = "Insignias";
     if (deckKind) {
         let resource = deckKindToResourceString(deckKind);
         heading = `${capitalise(resource)} with Insignias`;
-    }
-
-    function onChangeInsignia(val: number): void {
-        // only select one insignia at a time
-        let diff = val ^ localState.insigniaVal;
-        setLocalState(buildState(diff));
     }
 
     return (
@@ -54,13 +57,15 @@ export default function SegmentInsignias({ deckKind }: SegmentInsigniasProps) {
             extraHeadingClasses="hack-margin-top-point-2"
         >
             <InsigniaSelector
-                insigniaId={localState.insigniaVal}
-                onChange={onChangeInsignia}
+                insigniaId={mask}
+                onChange={setMaskAndResetOffset}
                 extraClasses="hack-force-space-around"
             />
             <Pagination
-                url={localState.url}
+                url={buildUrl()}
                 renderItem={listItemSlimDeck}
+                offset={offset}
+                changedOffset={setOffset}
                 itemsPerPage={15}
                 urlHasArguments={true}
             />

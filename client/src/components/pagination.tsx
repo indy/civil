@@ -8,7 +8,6 @@ import Net from "../shared/net";
 import CivilButton from "./civil-button";
 
 type LocalState = {
-    offset: number;
     itemsPerPage: number;
     items: Array<any>;
     totalItems: number;
@@ -18,6 +17,8 @@ type LocalState = {
 export default function Pagination({
     url,
     renderItem,
+    offset,
+    changedOffset,
     itemsPerPage,
     upperContent,
     lowerContent,
@@ -25,13 +26,14 @@ export default function Pagination({
 }: {
     url: string;
     renderItem: (s: SlimDeck, i: number) => ComponentChildren;
+    offset: number;
+    changedOffset: (o: number) => void;
     itemsPerPage: number;
     upperContent?: ComponentChildren;
     lowerContent?: ComponentChildren;
     urlHasArguments?: boolean;
 }) {
     const [localState, setLocalState] = useState<LocalState>({
-        offset: 0,
         itemsPerPage,
         items: [],
         totalItems: 0,
@@ -39,7 +41,6 @@ export default function Pagination({
     });
 
     function fetchData() {
-        const offset = localState.offset;
         const numItems = localState.itemsPerPage;
 
         const sep = urlHasArguments ? "&" : "?";
@@ -47,7 +48,7 @@ export default function Pagination({
         // don't fetch the same data that we already have
         //
         if (fullUrl !== localState.lastUrl) {
-            // console.log("fetching: " + fullUrl);
+            console.log("fetching: " + fullUrl);
             Net.get<PaginationResults>(fullUrl).then((paginationResults) => {
                 // console.log(paginationResults);
                 setLocalState({
@@ -61,43 +62,34 @@ export default function Pagination({
     }
 
     useEffect(() => {
+        // FIXME: reduce the number of fetchData calls
+        console.log("fetching data 1");
         fetchData();
-    }, [localState.offset]);
+    }, [offset]);
 
     useEffect(() => {
-        if (localState.offset !== 0) {
-            // changing offset will invoke the useEffect which will fetchData
-            setLocalState({
-                ...localState,
-                offset: 0,
-            });
-        } else {
+        if (offset === 0) {
+            // FIXME: reduce the number of fetchData calls
+            console.log("fetching data 2");
             fetchData();
         }
     }, [url]);
 
-    function changedOffset(offset: number) {
-        setLocalState({
-            ...localState,
-            offset,
-        });
-    }
-
     function onPrevClicked() {
-        changedOffset(Math.max(localState.offset - localState.itemsPerPage, 0));
+        changedOffset(Math.max(offset - localState.itemsPerPage, 0));
     }
 
     function onNextClicked() {
-        changedOffset(localState.offset + localState.itemsPerPage);
+        changedOffset(offset + localState.itemsPerPage);
     }
 
     function isPrevDisabled(): boolean {
-        return localState.offset === 0;
+        return offset === 0;
     }
 
     function isNextDisabled(): boolean {
         return (
-            localState.offset + localState.itemsPerPage >= localState.totalItems
+            offset + localState.itemsPerPage >= localState.totalItems
         );
     }
 
@@ -107,7 +99,7 @@ export default function Pagination({
     }
     maxPages = Math.floor(maxPages);
 
-    const pageNumber = 1 + localState.offset / localState.itemsPerPage;
+    const pageNumber = 1 + offset / localState.itemsPerPage;
 
     return (
         <div class="c-pagination">

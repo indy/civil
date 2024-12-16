@@ -16,6 +16,7 @@ import {
     parseDateStringAsYearOnly,
     normaliseDateString,
 } from "../shared/time";
+import { getUrlParamNumber, setUrlParam } from "../shared/url-params";
 
 import CivilButton from "./civil-button";
 import CivilButtonCreateDeck from "./civil-button-create-deck";
@@ -58,6 +59,12 @@ function Events({ path }: { path?: string }) {
 }
 
 function EventsModule() {
+    const [offset, setOffset] = useState(getUrlParamNumber("event-offset", 0));
+
+    useEffect(() => {
+        setUrlParam("event-offset", `${offset}`);
+    }, [offset]);
+
     const url = `/api/events/pagination`;
 
     const lowerContent = (
@@ -86,6 +93,8 @@ function EventsModule() {
             <Pagination
                 url={url}
                 renderItem={listItemSlimDeck}
+                offset={offset}
+                changedOffset={setOffset}
                 itemsPerPage={10}
                 lowerContent={lowerContent}
             />

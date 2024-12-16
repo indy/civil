@@ -7,6 +7,7 @@ import Net from "../shared/net";
 import { buildUrl } from "../shared/civil";
 import { formattedDate } from "../shared/time";
 import { impactAsStarText } from "../shared/impact";
+import { getUrlParamNumber, getUrlParamString, setUrlParam } from "../shared/url-params";
 
 import AutoSummarize from "./auto-summarize";
 import CivilButton from "./civil-button";
@@ -50,7 +51,21 @@ function Articles({ path }: { path?: string }) {
 }
 
 function ArticlesModule() {
-    const [selected, setSelected] = useState("recent");
+    const [selected, setSelected] = useState(getUrlParamString("article-type", "recent"));
+    const [offset, setOffset] = useState(getUrlParamNumber("article-offset", 0));
+
+    useEffect(() => {
+        setUrlParam("article-type", selected);
+    }, [selected]);
+
+    useEffect(() => {
+        setUrlParam("article-offset", `${offset}`);
+    }, [offset]);
+
+    function setSelectedAndResetOffset(s: string) {
+        setSelected(s);
+        setOffset(0);
+    }
 
     return (
         <HeadedSegment
@@ -58,8 +73,8 @@ function ArticlesModule() {
             heading="Articles"
             extraHeadingClasses="margin-top-0"
         >
-            <ArticlesSelector setSelected={setSelected} selected={selected} />
-            <ArticlesPaginator selected={selected} />
+            <ArticlesSelector selected={selected} setSelected={setSelectedAndResetOffset} />
+            <ArticlesPaginator selected={selected} offset={offset} setOffset={setOffset} />
         </HeadedSegment>
     );
 }
@@ -103,7 +118,7 @@ function ArticlesSelector({
     );
 }
 
-function ArticlesPaginator({ selected }: { selected: string }) {
+function ArticlesPaginator({ selected, offset, setOffset }: { selected: string, offset: number, setOffset: (o: number) => void }) {
     const url = `/api/articles/${selected}`;
 
     const lowerContent = (
@@ -116,6 +131,8 @@ function ArticlesPaginator({ selected }: { selected: string }) {
         <Pagination
             url={url}
             renderItem={listItemArticle}
+            offset={offset}
+            changedOffset={setOffset}
             itemsPerPage={10}
             lowerContent={lowerContent}
         />
@@ -184,11 +201,11 @@ function Article({ path, id }: { path?: string; id?: string }) {
                                 {deckManager.canShowPassage(
                                     NoteKind.NoteSummary,
                                 ) && (
-                                    <AutoSummarize
-                                        deck={deck}
-                                        onFinish={onAutoSummarizeFinish}
-                                    />
-                                )}
+                                        <AutoSummarize
+                                            deck={deck}
+                                            onFinish={onAutoSummarizeFinish}
+                                        />
+                                    )}
                                 <CivilButton
                                     onClick={deckManager.onShowSummaryClicked}
                                     disabled={

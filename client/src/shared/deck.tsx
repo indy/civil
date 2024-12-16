@@ -63,6 +63,29 @@ export function deckKindToResourceString(deckKind: DeckKind): string {
     }
 }
 
+export function stringToDeckKind(s: string | null): DeckKind {
+    if (s) {
+        switch (s) {
+            case "articles":
+                return DeckKind.Article;
+            case "ideas":
+                return DeckKind.Idea;
+            case "people":
+                return DeckKind.Person;
+            case "timelines":
+                return DeckKind.Timeline;
+            case "quotes":
+                return DeckKind.Quote;
+            case "dialogues":
+                return DeckKind.Dialogue;
+            case "events":
+                return DeckKind.Event;
+        }
+    }
+    // FIXME: dodgy to return a default value
+    return DeckKind.Idea;
+}
+
 export function deckKindToHeadingString(deckKind: DeckKind): string {
     return capitalise(deckKindToResourceString(deckKind));
 }

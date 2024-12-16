@@ -29,6 +29,7 @@ import { capitalise } from "../shared/english";
 import { fontForRole } from "../shared/font";
 import { impactAsStarText } from "../shared/impact";
 import Net from "../shared/net";
+import { getUrlParamNumber, setUrlParam } from "../shared/url-params";
 
 import buildMarkup from "./build-markup";
 import CivilButton from "./civil-button";
@@ -80,6 +81,12 @@ function Dialogues({ path }: { path?: string }) {
 }
 
 function DialoguesModule() {
+    const [offset, setOffset] = useState(getUrlParamNumber("dialogue-offset", 0));
+
+    useEffect(() => {
+        setUrlParam("dialogue-offset", `${offset}`);
+    }, [offset]);
+
     const url = `/api/dialogues/pagination`;
 
     function onClick() {
@@ -110,6 +117,8 @@ function DialoguesModule() {
             <Pagination
                 url={url}
                 renderItem={listItemSlimDeck}
+                offset={offset}
+                changedOffset={setOffset}
                 itemsPerPage={10}
                 lowerContent={lowerContent}
             />

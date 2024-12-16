@@ -1,7 +1,9 @@
-import { useState } from "preact/hooks";
+import { useEffect, useState } from "preact/hooks";
 
 import { CivilMode, DeckKind, DeckManagerFlags } from "../enums";
 import type { DeckTimeline, DM, PassageType, Point, SlimDeck } from "../types";
+
+import { getUrlParamNumber, setUrlParam } from "../shared/url-params";
 
 import { AppStateChange, getAppState, immutableState } from "../app-state";
 import CivilButton from "./civil-button";
@@ -43,6 +45,12 @@ function Timelines({ path }: { path?: string }) {
 }
 
 function TimelinesModule() {
+    const [offset, setOffset] = useState(getUrlParamNumber("timeline-offset", 0));
+
+    useEffect(() => {
+        setUrlParam("timeline-offset", `${offset}`);
+    }, [offset]);
+
     const url = `/api/timelines/pagination`;
 
     const lowerContent = (
@@ -71,6 +79,8 @@ function TimelinesModule() {
             <Pagination
                 url={url}
                 renderItem={listItemSlimDeck}
+                offset={offset}
+                changedOffset={setOffset}
                 itemsPerPage={10}
                 lowerContent={lowerContent}
             />
@@ -195,8 +205,8 @@ function TimelinePoint({
                 {expanded
                     ? svgCaretDown()
                     : hasNotes
-                    ? svgCaretRight()
-                    : svgCaretRightEmpty()}
+                        ? svgCaretRight()
+                        : svgCaretRightEmpty()}
             </span>
             {point.title} {point.dateTextual}
             {expanded && <div class="point-notes">{passage}</div>}

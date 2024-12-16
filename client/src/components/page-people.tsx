@@ -1,4 +1,4 @@
-import { useState } from "preact/hooks";
+import { useEffect, useState } from "preact/hooks";
 
 import {
     CivilMode,
@@ -23,6 +23,7 @@ import { fontClass } from "../shared/font";
 import Net from "../shared/net";
 import { calcAgeInYears, dateStringAsTriple } from "../shared/time";
 import { slimDeckFromPoint } from "../shared/deck";
+import { getUrlParamNumber, getUrlParamString, setUrlParam } from "../shared/url-params";
 
 import CivilButton from "./civil-button";
 import CivilButtonCreateDeck from "./civil-button-create-deck";
@@ -70,7 +71,21 @@ function People({ path }: { path?: string }) {
 }
 
 function PeopleModule() {
-    const [selected, setSelected] = useState("ancient");
+    const [selected, setSelected] = useState(getUrlParamString("person-type", "ancient"));
+    const [offset, setOffset] = useState(getUrlParamNumber("person-offset", 0));
+
+    useEffect(() => {
+        setUrlParam("person-type", selected);
+    }, [selected]);
+
+    useEffect(() => {
+        setUrlParam("person-offset", `${offset}`);
+    }, [offset]);
+
+    function setSelectedAndResetOffset(s: string) {
+        setSelected(s);
+        setOffset(0);
+    }
 
     return (
         <HeadedSegment
@@ -78,8 +93,8 @@ function PeopleModule() {
             heading="People"
             extraHeadingClasses="margin-top-0"
         >
-            <PeopleSelector setSelected={setSelected} selected={selected} />
-            <PeoplePaginator selected={selected} />
+            <PeopleSelector setSelected={setSelectedAndResetOffset} selected={selected} />
+            <PeoplePaginator selected={selected} offset={offset} setOffset={setOffset} />
         </HeadedSegment>
     );
 }
@@ -129,7 +144,7 @@ function PeopleSelector({
     );
 }
 
-function PeoplePaginator({ selected }: { selected: string }) {
+function PeoplePaginator({ selected, offset, setOffset }: { selected: string, offset: number, setOffset: (o: number) => void }) {
     const url = `/api/people/${selected}`;
 
     const lowerContent = (
@@ -142,6 +157,8 @@ function PeoplePaginator({ selected }: { selected: string }) {
         <Pagination
             url={url}
             renderItem={listItemSlimDeck}
+            offset={offset}
+            changedOffset={setOffset}
             itemsPerPage={10}
             lowerContent={lowerContent}
         />
@@ -375,8 +392,8 @@ function PersonPoint({
                     {expanded
                         ? svgCaretDown()
                         : hasNotes
-                        ? svgCaretRight()
-                        : svgCaretRightEmpty()}
+                            ? svgCaretRight()
+                            : svgCaretRightEmpty()}
                 </span>
                 {point.deckTitle} - {pointText}
                 {expanded && <div class="point-notes">{passage}</div>}

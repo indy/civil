@@ -1,9 +1,10 @@
-import { useState } from "preact/hooks";
+import { useEffect, useState } from "preact/hooks";
 
 import { DeckKind } from "../enums";
 import type { DM, DeckIdea, SlimDeck } from "../types";
 
 import { formattedDate } from "../shared/time";
+import { getUrlParamNumber, getUrlParamString, setUrlParam } from "../shared/url-params";
 
 import CivilButtonCreateDeck from "./civil-button-create-deck";
 import { CivContainer, CivMain } from "./civil-layout";
@@ -35,7 +36,21 @@ function Ideas({ path }: { path?: string }) {
 }
 
 function IdeasModule() {
-    const [selected, setSelected] = useState("recent");
+    const [selected, setSelected] = useState(getUrlParamString("idea-type", "recent"));
+    const [offset, setOffset] = useState(getUrlParamNumber("idea-offset", 0));
+
+    useEffect(() => {
+        setUrlParam("idea-type", selected);
+    }, [selected]);
+
+    useEffect(() => {
+        setUrlParam("idea-offset", `${offset}`);
+    }, [offset]);
+
+    function setSelectedAndResetOffset(s: string) {
+        setSelected(s);
+        setOffset(0);
+    }
 
     return (
         <HeadedSegment
@@ -43,8 +58,8 @@ function IdeasModule() {
             heading="Ideas"
             extraHeadingClasses="margin-top-0"
         >
-            <IdeasSelector setSelected={setSelected} selected={selected} />
-            <IdeasPaginator selected={selected} />
+            <IdeasSelector setSelected={setSelectedAndResetOffset} selected={selected} />
+            <IdeasPaginator selected={selected} offset={offset} setOffset={setOffset} />
         </HeadedSegment>
     );
 }
@@ -88,7 +103,7 @@ function IdeasSelector({
     );
 }
 
-function IdeasPaginator({ selected }: { selected: string }) {
+function IdeasPaginator({ selected, offset, setOffset }: { selected: string, offset: number, setOffset: (o: number) => void }) {
     const url = `/api/ideas/${selected}`;
 
     const lowerContent = (
@@ -99,6 +114,8 @@ function IdeasPaginator({ selected }: { selected: string }) {
         <Pagination
             url={url}
             renderItem={listItemSlimDeck}
+            offset={offset}
+            changedOffset={setOffset}
             itemsPerPage={10}
             lowerContent={lowerContent}
         />
