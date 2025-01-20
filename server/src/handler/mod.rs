@@ -30,6 +30,7 @@ pub struct PaginationQuery {
 
 pub mod articles;
 pub mod bookmarks;
+pub mod concepts;
 pub mod decks;
 pub mod dialogues;
 pub mod events;

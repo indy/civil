@@ -131,6 +131,7 @@ pub fn generate_stats(conn: &Connection, user_id: Key) -> crate::Result<()> {
         DeckKind::Quote,
         DeckKind::Dialogue,
         DeckKind::Event,
+        DeckKind::Concept,
     ];
 
     for deck_kind in deck_kinds {

@@ -37,6 +37,7 @@ pub enum DeckKind {
     Quote,
     Dialogue,
     Event,
+    Concept,
 }
 
 impl fmt::Display for DeckKind {
@@ -49,6 +50,7 @@ impl fmt::Display for DeckKind {
             DeckKind::Quote => write!(f, "quote"),
             DeckKind::Dialogue => write!(f, "dialogue"),
             DeckKind::Event => write!(f, "event"),
+            DeckKind::Concept => write!(f, "concept"),
         }
     }
 }
@@ -64,6 +66,7 @@ impl FromSql for DeckKind {
             "quote" => Ok(DeckKind::Quote),
             "dialogue" => Ok(DeckKind::Dialogue),
             "event" => Ok(DeckKind::Event),
+            "concept" => Ok(DeckKind::Concept),
             _ => Err(FromSqlError::InvalidType),
         }
     }

@@ -17,6 +17,7 @@
 
 use crate::handler::articles;
 use crate::handler::bookmarks;
+use crate::handler::concepts;
 use crate::handler::decks;
 use crate::handler::dialogues;
 use crate::handler::events;
@@ -87,6 +88,18 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
                 .route("/{id}", get().to(ideas::get))
                 .route("/{id}", put().to(ideas::edit))
                 .route("/{id}", delete().to(ideas::delete)),
+        )
+        .service(
+            scope("/concepts")
+                .route("", post().to(concepts::create))
+                .route("", get().to(concepts::get_all))
+                .route("/pagination", get().to(concepts::pagination))
+                .route("/recent", get().to(concepts::recent))
+                .route("/orphans", get().to(concepts::orphans))
+                .route("/unnoted", get().to(concepts::unnoted))
+                .route("/{id}", get().to(concepts::get))
+                .route("/{id}", put().to(concepts::edit))
+                .route("/{id}", delete().to(concepts::delete)),
         )
         .service(
             scope("/people")

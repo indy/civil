@@ -48,7 +48,7 @@ CREATE TABLE IF NOT EXISTS decks (
        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 
        user_id INTEGER NOT NULL,
-       kind TEXT NOT NULL, -- 'article', 'person', 'idea', 'timeline', 'quote', 'dialogue', 'event'
+       kind TEXT NOT NULL, -- 'article', 'person', 'idea', 'timeline', 'quote', 'dialogue', 'event', 'concept'
 
        graph_terminator BOOLEAN DEFAULT FALSE,
 
