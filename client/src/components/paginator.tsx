@@ -76,6 +76,7 @@ function PaginatorTopSelector({
 
     const deckKinds: Array<DeckKind> = [
         DeckKind.Idea,
+        DeckKind.Concept,
         DeckKind.Article,
         DeckKind.Person,
         DeckKind.Event,
@@ -144,6 +145,9 @@ function DeckPaginator({ deckKind, offset, setOffset }: DeckPaginatorProps) {
             renderItem = listItemSlimDeck;
             break;
         case DeckKind.Idea:
+            renderItem = listItemSlimDeck;
+            break;
+        case DeckKind.Concept:
             renderItem = listItemSlimDeck;
             break;
         case DeckKind.Dialogue:

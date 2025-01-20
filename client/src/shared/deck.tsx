@@ -41,6 +41,8 @@ export function deckKindToSingularString(deckKind: DeckKind): string {
             return "dialogue";
         case DeckKind.Event:
             return "event";
+        case DeckKind.Concept:
+            return "concept";
     }
 }
 
@@ -60,6 +62,8 @@ export function deckKindToResourceString(deckKind: DeckKind): string {
             return "dialogues";
         case DeckKind.Event:
             return "events";
+        case DeckKind.Concept:
+            return "concepts";
     }
 }
 
@@ -80,6 +84,8 @@ export function stringToDeckKind(s: string | null): DeckKind {
                 return DeckKind.Dialogue;
             case "events":
                 return DeckKind.Event;
+            case "concepts":
+                return DeckKind.Concept;
         }
     }
     // FIXME: dodgy to return a default value

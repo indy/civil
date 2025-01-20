@@ -44,6 +44,14 @@ type BarEntry = Command | Spacer;
 //
 const BarEntries: Array<BarEntry> = [
     {
+        command: "k",
+        description: "goto concepts or add ",
+        quoteAround: "title",
+        fn: (args) => {
+            return routeOrCreate(DeckKind.Concept, args);
+        },
+    },
+    {
         command: "i",
         description: "goto ideas or add ",
         quoteAround: "title",
@@ -384,7 +392,7 @@ export default function CommandBar() {
                   h : toolbar: home
                   i : route: ideas
                   j : quotes: jump to random quote
-                  k :
+                  k : route: concepts
                   l :
                   m : special: toggle showing deck metadata form
                   n : toolbar: edit mode

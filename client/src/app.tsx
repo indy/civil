@@ -23,6 +23,7 @@ import Stats from "./components/page-stats";
 import { Article, Articles } from "./components/page-articles";
 import { Dialogue, DialogueChat, Dialogues } from "./components/page-dialogues";
 import { Ideas, Idea } from "./components/page-ideas";
+import { Concepts, Concept } from "./components/page-concepts";
 import { Person, People } from "./components/page-people";
 import { Quote, Quotes, QuoteNew } from "./components/page-quotes";
 import { Timeline, Timelines } from "./components/page-timelines";
@@ -117,6 +118,8 @@ const AppUI = () => {
                 <Stats path="/stats" />
                 <Ideas path="/ideas" />
                 <Idea path="/ideas/:id" />
+                <Concepts path="/concepts" />
+                <Concept path="/concepts/:id" />
                 <Articles path="/articles" />
                 <Article path="/articles/:id" />
                 <People path="/people" />

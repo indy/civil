@@ -536,6 +536,10 @@ a:visited.pigment-inherit {
     background: var(--bg-clock-12);
 }
 
+.pigment-concepts {
+    color: var(--fg-concepts) !important;
+    background: var(--bg-concepts);
+}
 .pigment-ideas {
     color: var(--fg-ideas) !important;
     background: var(--bg-ideas);
@@ -566,6 +570,9 @@ a:visited.pigment-inherit {
 }
 
 /* above colours don't work on hyperlinks, have to explicitly specify them  */
+.pigment-concepts a {
+    color: var(--fg-concepts);
+}
 .pigment-ideas a {
     color: var(--fg-ideas);
 }
@@ -588,6 +595,9 @@ a:visited.pigment-inherit {
     color: var(--fg-events);
 }
 
+.pigment-fg-concepts {
+    color: var(--fg-concepts) !important;
+}
 .pigment-fg-ideas {
     color: var(--fg-ideas) !important;
 }

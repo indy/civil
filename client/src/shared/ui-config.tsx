@@ -28,6 +28,7 @@ export function basicUiConfig(): UiConfig {
             [DeckKind.Quote]: 15,
             [DeckKind.Dialogue]: 15,
             [DeckKind.Event]: 15,
+            [DeckKind.Concept]: 15,
         },
     };
 }

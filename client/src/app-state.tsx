@@ -101,6 +101,7 @@ export const immutableState: ImmutableState = {
     deckKindOrder: [
         DeckKind.Quote,
         DeckKind.Idea,
+        DeckKind.Concept,
         DeckKind.Event,
         DeckKind.Timeline,
         DeckKind.Person,

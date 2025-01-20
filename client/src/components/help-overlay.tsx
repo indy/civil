@@ -77,6 +77,11 @@ export default function HelpOverlay({}) {
                         </tr>
                         <tr>
                             <td></td>
+                            <td class="help-overlay-key">k</td>
+                            <td class="help-overlay-desc">Concepts</td>
+                        </tr>
+                        <tr>
+                            <td></td>
                             <td class="help-overlay-key">p</td>
                             <td class="help-overlay-desc">People</td>
                         </tr>

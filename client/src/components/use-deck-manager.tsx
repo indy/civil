@@ -571,6 +571,7 @@ function buildGroupedArrivals<T extends FatDeck>(deck: T): T {
         [DeckKind.Quote]: [],
         [DeckKind.Dialogue]: [],
         [DeckKind.Event]: [],
+        [DeckKind.Concept]: [],
     };
 
     deck.arrivals.forEach((bn: Arrival) => {

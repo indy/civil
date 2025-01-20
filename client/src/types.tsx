@@ -126,6 +126,7 @@ export type QuoteExtras = {
     attribution: string;
 };
 
+export type DeckConcept = FatDeck;
 export type DeckIdea = FatDeck;
 export type DeckPerson = FatDeck & PersonExtras;
 export type DeckArticle = FatDeck & ArticleExtras;
@@ -136,6 +137,7 @@ export type DeckQuote = FatDeck & QuoteExtras;
 
 // used for creating/editing various deck types
 //
+export type ProtoConcept = ProtoSlimDeck;
 export type ProtoIdea = ProtoSlimDeck;
 export type ProtoPerson = ProtoSlimDeck & PersonExtras;
 export type ProtoArticle = ProtoSlimDeck & ArticleExtras;

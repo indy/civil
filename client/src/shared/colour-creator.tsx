@@ -171,6 +171,7 @@ function generateColourDefs(seeds: ColourSeeds): ColourDefinitions {
 
         ui_shadow_2: [seeds.hue, seeds.sat, seeds.bgL * 0.1, 0.1] as ColourQuad,
 
+        bg_concepts: "--bg-clock-05",
         bg_ideas: "--bg-clock-06",
         bg_articles: "--bg-clock-12",
         bg_people: "--bg-clock-09",
@@ -179,6 +180,7 @@ function generateColourDefs(seeds: ColourSeeds): ColourDefinitions {
         bg_dialogues: "--bg-clock-11",
         bg_events: "--bg-clock-03",
 
+        fg_concepts: "--fg-clock-05",
         fg_ideas: "--fg-clock-06",
         fg_articles: "--fg-clock-12",
         fg_people: "--fg-clock-09",

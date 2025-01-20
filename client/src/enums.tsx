@@ -59,6 +59,7 @@ export enum DeckKind {
     Quote,
     Dialogue,
     Event,
+    Concept,
 }
 
 export enum NoteKind {
