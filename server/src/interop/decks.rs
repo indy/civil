@@ -24,6 +24,7 @@ use rusqlite::types::{FromSql, FromSqlError, FromSqlResult, ValueRef};
 use std::fmt;
 
 // isg note: update the db/stats.rs when adding a new DeckKind
+// isg note: update resource_string_to_deck_kind when adding a new DeckKind
 //
 #[derive(
     Copy, Clone, Debug, PartialEq, Eq, serde_repr::Serialize_repr, serde_repr::Deserialize_repr,

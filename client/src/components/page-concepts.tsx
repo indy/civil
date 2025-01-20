@@ -9,6 +9,7 @@ import { getUrlParamNumber, getUrlParamString, setUrlParam } from "../shared/url
 import CivilButtonCreateDeck from "./civil-button-create-deck";
 import { CivContainer, CivMain } from "./civil-layout";
 import CivilTabButton from "./civil-tab-button";
+import ConvertDeckConfirmation from "./convert-deck-confirmation";
 import DeckUpdater from "./deck-updater";
 import DeleteDeckConfirmation from "./delete-deck-confirmation";
 import { HeadedSegment } from "./headed-segment";
@@ -149,6 +150,11 @@ function Concept({ path, id }: { path?: string; id?: string }) {
                         <CivContainer>
                             <CivMain>
                                 <DeleteDeckConfirmation
+                                    deckKind={deckManager.getDeckKind()}
+                                    id={deck.id}
+                                />
+                                <ConvertDeckConfirmation
+                                    convertText="Convert to Idea..."
                                     deckKind={deckManager.getDeckKind()}
                                     id={deck.id}
                                 />

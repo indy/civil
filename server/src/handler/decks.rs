@@ -331,6 +331,7 @@ fn resource_string_to_deck_kind(resource: &str) -> crate::Result<DeckKind> {
         "articles" => Ok(DeckKind::Article),
         "people" => Ok(DeckKind::Person),
         "ideas" => Ok(DeckKind::Idea),
+        "concepts" => Ok(DeckKind::Concept),
         "timelines" => Ok(DeckKind::Timeline),
         "quotes" => Ok(DeckKind::Quote),
         "dialogues" => Ok(DeckKind::Dialogue),

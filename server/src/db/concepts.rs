@@ -175,6 +175,34 @@ pub(crate) fn all(sqlite_pool: &SqlitePool, user_id: Key) -> crate::Result<Vec<C
     sqlite::many(&conn, stmt, params![&user_id])
 }
 
+// convert this concept into an idea
+//
+pub(crate) fn convert(
+    sqlite_pool: &SqlitePool,
+    user_id: Key,
+    concept_id: Key,
+) -> crate::Result<Concept> {
+    let conn = sqlite_pool.get()?;
+
+    let deck: Concept = sqlite::one(
+        &conn,
+        decks::DECKBASE_QUERY,
+        params![&user_id, &concept_id, &DeckKind::Concept.to_string()],
+    )?;
+
+    let target_kind = DeckKind::Idea;
+    let stmt = "UPDATE decks
+                SET kind = ?3
+                WHERE user_id = ?1 AND id = ?2";
+    sqlite::zero(
+        &conn,
+        stmt,
+        params![&user_id, &concept_id, &target_kind.to_string()],
+    )?;
+
+    Ok(deck)
+}
+
 pub(crate) fn get(
     sqlite_pool: &SqlitePool,
     user_id: Key,

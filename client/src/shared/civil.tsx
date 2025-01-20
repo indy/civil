@@ -11,6 +11,14 @@ export function buildUrl(deckKind: DeckKind, id: Key, prefix?: string): string {
     }
 }
 
+export function buildConvertUrl(deckKind: DeckKind, id: Key, prefix?: string): string {
+    if (prefix) {
+        return `${prefix}/${deckKindToResourceString(deckKind)}/convert/${id}`;
+    } else {
+        return `/${deckKindToResourceString(deckKind)}/convert/${id}`;
+    }
+}
+
 export function nonEmptyArray<T>(arr: Array<T>) {
     return arr && arr.length > 0;
 }

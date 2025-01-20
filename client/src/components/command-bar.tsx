@@ -447,6 +447,9 @@ export default function CommandBar() {
                         case "KeyI":
                             routeOnly(DeckKind.Idea);
                             break;
+                        case "KeyK":
+                            routeOnly(DeckKind.Concept);
+                            break;
                         case "KeyM":
                             if (appState.wantToShowDeckUpdateForm.value) {
                                 AppStateChange.requestToHideUpdateForm();

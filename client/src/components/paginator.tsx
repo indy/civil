@@ -114,6 +114,7 @@ function DeckPaginator({ deckKind, offset, setOffset }: DeckPaginatorProps) {
 
     const deckName = deckKindToResourceString(deckKind);
     const itemsPerPage = appState.uiConfig.value.decksPerPage[deckKind];
+    console.log(`itemsPerPage = ${itemsPerPage}`);
     const url = `/api/${deckName}/pagination`;
 
     function onClickedHeading() {

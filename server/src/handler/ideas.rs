@@ -108,6 +108,23 @@ pub async fn unnoted(
     Ok(HttpResponse::Ok().json(paginated_unnoted))
 }
 
+pub async fn convert(
+    sqlite_pool: Data<SqlitePool>,
+    params: Path<IdParam>,
+    session: actix_session::Session,
+) -> crate::Result<HttpResponse> {
+    info!("convert to concept ");
+
+    let user_id = session::user_id(&session)?;
+    let idea_id = params.id;
+
+    let mut concept = db::convert(&sqlite_pool, user_id, idea_id)?;
+
+    sqlite_augment(&sqlite_pool, &mut concept, idea_id)?;
+
+    Ok(HttpResponse::Ok().json(concept))
+}
+
 pub async fn get(
     sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,
