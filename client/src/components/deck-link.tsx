@@ -54,9 +54,13 @@ export default function DeckLink({
         AppStateChange.hidePreviewDeck({ deckId: slimDeck.id });
     }
 
-    function clicked(_e: Event) {
-        AppStateChange.setPageState({ pageState: PageState.PageLoading });
-        AppStateChange.hidePreviewDeck({ deckId: slimDeck.id });
+    function clicked(e: MouseEvent) {
+        if (e.button === 1 || e.ctrlKey || e.metaKey) {
+            // console.log("opening link in new tab/window");
+        } else {
+            AppStateChange.setPageState({ pageState: PageState.PageLoading });
+            AppStateChange.hidePreviewDeck({ deckId: slimDeck.id });
+        }
         if (onClick) {
             onClick();
         }

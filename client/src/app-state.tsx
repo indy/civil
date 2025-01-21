@@ -473,11 +473,13 @@ export const AppStateChange = {
 
                 state.visiblePreviewDeck.value = vp;
             } else {
-                console.log(
+                console.error(
                     "calling hidePreviewDeck with a deckId that isn't the current preview deck: " +
                         deckId +
                         " " +
-                        state.visiblePreviewDeck.value.id,
+                        state.visiblePreviewDeck.value.id +
+                        " " +
+                        state.visiblePreviewDeck.value.showing
                 );
             }
         },
