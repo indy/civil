@@ -171,23 +171,23 @@ function generateColourDefs(seeds: ColourSeeds): ColourDefinitions {
 
         ui_shadow_2: [seeds.hue, seeds.sat, seeds.bgL * 0.1, 0.1] as ColourQuad,
 
-        bg_concepts: "--bg-clock-05",
+        bg_concepts: "--bg-clock-03",
         bg_ideas: "--bg-clock-06",
         bg_articles: "--bg-clock-12",
         bg_people: "--bg-clock-09",
         bg_timelines: "--bg-clock-01",
         bg_quotes: "--bg-clock-07",
         bg_dialogues: "--bg-clock-11",
-        bg_events: "--bg-clock-03",
+        bg_events: "--bg-clock-10",
 
-        fg_concepts: "--fg-clock-05",
+        fg_concepts: "--fg-clock-03",
         fg_ideas: "--fg-clock-06",
         fg_articles: "--fg-clock-12",
         fg_people: "--fg-clock-09",
         fg_timelines: "--fg-clock-01",
         fg_quotes: "--fg-clock-07",
         fg_dialogues: "--fg-clock-11",
-        fg_events: "--fg-clock-03",
+        fg_events: "--fg-clock-10",
 
         fg_toolbar_view: [
             seeds.fgH,
