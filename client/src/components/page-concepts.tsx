@@ -7,13 +7,10 @@ import { formattedDate } from "../shared/time";
 import { getUrlParamNumber, getUrlParamString, setUrlParam } from "../shared/url-params";
 
 import CivilButtonCreateDeck from "./civil-button-create-deck";
-import { CivContainer, CivMain } from "./civil-layout";
 import CivilTabButton from "./civil-tab-button";
 import ConvertDeckConfirmation from "./convert-deck-confirmation";
 import DeckUpdater from "./deck-updater";
 import DeleteDeckConfirmation from "./delete-deck-confirmation";
-import { HeadedSegment } from "./headed-segment";
-import { listItemSlimDeck } from "./list-items";
 import Pagination from "./pagination";
 import RecentlyVisited from "./recently-visited";
 import SegmentArrivals from "./segment-arrivals";
@@ -25,6 +22,10 @@ import SegmentNotes from "./segment-notes";
 import SegmentSearchResults from "./segment-search-results";
 import TopMatter from "./top-matter";
 import useDeckManager from "./use-deck-manager";
+import { CivContainer, CivMain } from "./civil-layout";
+import { HeadedSegment } from "./headed-segment";
+import { ImpactPartial } from "./impact";
+import { listItemSlimDeck } from "./list-items";
 
 function Concepts({ path }: { path?: string }) {
     return (
@@ -143,6 +144,7 @@ function Concept({ path, id }: { path?: string; id?: string }) {
                     setEditingDeckRefs={deckManager.setEditingDeckRefs}
                 >
                     {formattedDate(deck.createdAt)}
+                    {deck.impact > 0 && <ImpactPartial impact={deck.impact} />}
                 </TopMatter>
 
                 {deckManager.isShowingUpdateForm() && (

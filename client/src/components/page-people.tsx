@@ -27,16 +27,17 @@ import { getUrlParamNumber, getUrlParamString, setUrlParam } from "../shared/url
 
 import CivilButton from "./civil-button";
 import CivilButtonCreateDeck from "./civil-button-create-deck";
-import { CivContainer, CivLeft, CivMain } from "./civil-layout";
 import CivilModeButton from "./civil-mode-button";
 import CivilTabButton from "./civil-tab-button";
 import DeckLink from "./deck-link";
 import DeckUpdater from "./deck-updater";
 import DeleteDeckConfirmation from "./delete-deck-confirmation";
-import { HeadedSegment } from "./headed-segment";
 import LifespanForm from "./lifespan-form";
-import { listItemSlimDeck } from "./list-items";
 import Pagination from "./pagination";
+import { CivContainer, CivLeft, CivMain } from "./civil-layout";
+import { HeadedSegment } from "./headed-segment";
+import { ImpactPartial } from "./impact";
+import { listItemSlimDeck } from "./list-items";
 import PointForm from "./point-form";
 import RecentlyVisited from "./recently-visited";
 import RollableSegment from "./rollable-segment";
@@ -230,7 +231,9 @@ function Person({ path, id }: { path?: string; id?: string }) {
                     setShowingUpdateForm={deckManager.setShowingUpdateForm}
                     isEditingDeckRefs={deckManager.isEditingDeckRefs()}
                     setEditingDeckRefs={deckManager.setEditingDeckRefs}
-                ></TopMatter>
+                >
+                    {deck.impact > 0 && <ImpactPartial impact={deck.impact} />}
+                </TopMatter>
 
                 {deckManager.isShowingUpdateForm() && (
                     <section>

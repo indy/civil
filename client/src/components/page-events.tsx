@@ -25,8 +25,6 @@ import CivilTabButton from "./civil-tab-button";
 import DeleteDeckConfirmation from "./delete-deck-confirmation";
 import FontSelector from "./font-selector";
 import InsigniaSelector from "./insignia-selector";
-import { HeadedSegment } from "./headed-segment";
-import { listItemSlimDeck } from "./list-items";
 import Pagination from "./pagination";
 import RecentlyVisited from "./recently-visited";
 import SegmentArrivals from "./segment-arrivals";
@@ -39,6 +37,9 @@ import SegmentPoints from "./segment-points";
 import SegmentSearchResults from "./segment-search-results";
 import TopMatter from "./top-matter";
 import useDeckManager from "./use-deck-manager";
+import { HeadedSegment } from "./headed-segment";
+import { ImpactPartial } from "./impact";
+import { listItemSlimDeck } from "./list-items";
 
 import {
     CivContainer,
@@ -128,6 +129,7 @@ function CivEvent({ path, id }: { path?: string; id?: string }) {
                     {deck.dateTextual}
                     <br />
                     {deck.locationTextual}
+                    {deck.impact > 0 && <ImpactPartial impact={deck.impact} />}
                 </TopMatter>
 
                 {deckManager.isShowingUpdateForm() && (
