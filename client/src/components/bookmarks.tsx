@@ -26,7 +26,7 @@ export default function Bookmarks() {
                 {appState.bookmarksMinimised.value ? (
                     <div class="bookmark-menu">
                         <div onClick={clickedToggle}>
-                            {svgChevronDown()}
+                            {svgChevronUp()}
                             <span class="bookmark-menu-tip">
                                 Maximise Bookmarks
                             </span>
@@ -35,7 +35,7 @@ export default function Bookmarks() {
                 ) : (
                     <div class="bookmark-menu">
                         <div onClick={clickedToggle}>
-                            {svgChevronUp()}
+                            {svgChevronDown()}
                             <span class="bookmark-menu-tip">
                                 Minimise Bookmarks
                             </span>
