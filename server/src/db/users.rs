@@ -21,28 +21,29 @@ use crate::interop::Key;
 use rusqlite::{params, Row};
 use tracing::info;
 
+// used by login
+impl FromRow for (Key, String, User) {
+    fn from_row(row: &Row) -> crate::Result<(Key, String, User)> {
+        let id: Key = row.get(0)?;
+        let password: String = row.get(3)?;
+
+        Ok((
+            id,
+            password,
+            User {
+                username: row.get(2)?,
+                email: row.get(1)?,
+                admin: None,
+                ui_config_json: row.get(4)?,
+            },
+        ))
+    }
+}
+
 pub(crate) fn login(
     sqlite_pool: &SqlitePool,
     login_credentials: &LoginCredentials,
 ) -> crate::Result<(Key, String, User)> {
-    impl FromRow for (Key, String, User) {
-        fn from_row(row: &Row) -> crate::Result<(Key, String, User)> {
-            let id: Key = row.get(0)?;
-            let password: String = row.get(3)?;
-
-            Ok((
-                id,
-                password,
-                User {
-                    username: row.get(2)?,
-                    email: row.get(1)?,
-                    admin: None,
-                    ui_config_json: row.get(4)?,
-                },
-            ))
-        }
-    }
-
     let email = login_credentials.email.trim();
 
     let conn = sqlite_pool.get()?;
@@ -57,6 +58,23 @@ pub(crate) fn login(
     )
 }
 
+// used by create
+impl FromRow for (Key, User) {
+    fn from_row(row: &Row) -> crate::Result<(Key, User)> {
+        let id: Key = row.get(0)?;
+
+        Ok((
+            id,
+            User {
+                username: row.get(2)?,
+                email: row.get(1)?,
+                admin: None,
+                ui_config_json: row.get(3)?,
+            },
+        ))
+    }
+}
+
 pub(crate) fn create(
     sqlite_pool: &SqlitePool,
     registration: &Registration,
@@ -65,22 +83,6 @@ pub(crate) fn create(
     info!("create");
 
     let conn = sqlite_pool.get()?;
-
-    impl FromRow for (Key, User) {
-        fn from_row(row: &Row) -> crate::Result<(Key, User)> {
-            let id: Key = row.get(0)?;
-
-            Ok((
-                id,
-                User {
-                    username: row.get(2)?,
-                    email: row.get(1)?,
-                    admin: None,
-                    ui_config_json: row.get(3)?,
-                },
-            ))
-        }
-    }
 
     sqlite::one(
         &conn,
@@ -98,18 +100,19 @@ pub(crate) fn create(
     )
 }
 
-pub(crate) fn get(sqlite_pool: &SqlitePool, user_id: Key) -> crate::Result<User> {
-    impl FromRow for User {
-        fn from_row(row: &Row) -> crate::Result<User> {
-            Ok(User {
-                username: row.get(1)?,
-                email: row.get(0)?,
-                admin: None,
-                ui_config_json: row.get(2)?,
-            })
-        }
+// used by get
+impl FromRow for User {
+    fn from_row(row: &Row) -> crate::Result<User> {
+        Ok(User {
+            username: row.get(1)?,
+            email: row.get(0)?,
+            admin: None,
+            ui_config_json: row.get(2)?,
+        })
     }
+}
 
+pub(crate) fn get(sqlite_pool: &SqlitePool, user_id: Key) -> crate::Result<User> {
     let conn = sqlite_pool.get()?;
     sqlite::one(
         &conn,

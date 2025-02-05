@@ -139,7 +139,7 @@ fn is_img(tokens: &'_ [Token]) -> bool {
 
 // need: parse until a terminator token Eos is reached
 //
-pub fn parse<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Vec<Node>> {
+pub fn parse<'a>(tokens: &'a [Token<'a>]) -> ParserResult<'a, Vec<Node>> {
     let mut tokens: &[Token] = tokens;
     let mut res = Vec::new();
 
@@ -168,7 +168,7 @@ pub fn parse<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Vec<Node>> {
 // a version of parse that treats everything as textual paragraphs. Used
 // when parsing headers as they shouldn't contain numbered lists
 //
-pub fn parse_as_paragraphs<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Vec<Node>> {
+pub fn parse_as_paragraphs<'a>(tokens: &'a [Token<'a>]) -> ParserResult<'a, Vec<Node>> {
     let mut tokens: &[Token] = tokens;
     let mut res = Vec::new();
 
@@ -182,7 +182,7 @@ pub fn parse_as_paragraphs<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Vec<Node
     Ok((tokens, res))
 }
 
-fn eat_ordered_list<'a>(mut tokens: &'a [Token<'a>], halt_at: Option<TokenIdent>) -> ParserResult<Node> {
+fn eat_ordered_list<'a>(mut tokens: &'a [Token<'a>], halt_at: Option<TokenIdent>) -> ParserResult<'a, Node> {
     let mut children: Vec<Node> = vec![];
 
     // tokens should be at a digit, this is the starting number for the ordered list
@@ -212,7 +212,7 @@ fn eat_ordered_list<'a>(mut tokens: &'a [Token<'a>], halt_at: Option<TokenIdent>
     Ok((tokens, Node::OrderedList(ordered_list_pos, children, starts)))
 }
 
-fn eat_unordered_list<'a>(mut tokens: &'a [Token<'a>], halt_at: Option<TokenIdent>) -> ParserResult<Node> {
+fn eat_unordered_list<'a>(mut tokens: &'a [Token<'a>], halt_at: Option<TokenIdent>) -> ParserResult<'a, Node> {
     let mut children: Vec<Node> = vec![];
 
     let unordered_list_pos = get_token_pos(&tokens[0]);
@@ -241,7 +241,7 @@ fn eat_paragraph<'a>(tokens: &'a [Token]) -> ParserResult<'a, Node> {
     Ok((remaining, Node::Paragraph(get_node_pos(&children[0]), children)))
 }
 
-fn eat_to_newline<'a>(mut tokens: &'a [Token<'a>], halt_at: Option<TokenIdent>) -> ParserResult<Vec<Node>> {
+fn eat_to_newline<'a>(mut tokens: &'a [Token<'a>], halt_at: Option<TokenIdent>) -> ParserResult<'a, Vec<Node>> {
     let mut nodes: Vec<Node> = vec![];
 
     while !tokens.is_empty() && !is_head_option(tokens, halt_at) && !is_terminator(tokens) {
@@ -286,78 +286,78 @@ fn eat_item<'a>(tokens: &'a [Token]) -> ParserResult<'a, Node> {
     }
 }
 
-fn eat_img<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
+fn eat_img<'a>(tokens: &'a [Token<'a>]) -> ParserResult<'a, Node> {
     let pos = get_token_pos(&tokens[0]);
     let (tokens, (image_name, description)) = eat_as_image_description_pair(tokens)?;
 
     Ok((tokens, Node::Image(pos, image_name, description)))
 }
 
-fn eat_youtube<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
+fn eat_youtube<'a>(tokens: &'a [Token<'a>]) -> ParserResult<'a, Node> {
     let pos = get_token_pos(&tokens[0]);
     let (tokens, (id, start)) = eat_as_youtube_id_start_pair(tokens)?;
 
     Ok((tokens, Node::YouTube(pos, id, start)))
 }
 
-fn eat_url<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
+fn eat_url<'a>(tokens: &'a [Token<'a>]) -> ParserResult<'a, Node> {
     let pos = get_token_pos(&tokens[0]);
     let (tokens, (url, description)) = eat_as_url_description_pair(tokens)?;
 
     Ok((tokens, Node::Url(pos, url, description)))
 }
 
-fn eat_bold<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
+fn eat_bold<'a>(tokens: &'a [Token<'a>]) -> ParserResult<'a, Node> {
     let (tokens, (pos, parsed_content)) = eat_basic_colon_command(tokens)?;
     Ok((tokens, Node::Strong(pos, parsed_content)))
 }
 
-fn eat_searched<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
+fn eat_searched<'a>(tokens: &'a [Token<'a>]) -> ParserResult<'a, Node> {
     let (tokens, (pos, parsed_content)) = eat_basic_colon_command(tokens)?;
     Ok((tokens, Node::Searched(pos, parsed_content)))
 }
 
-fn eat_highlighted<'a>(colour: ColourPalette, tokens: &'a [Token<'a>]) -> ParserResult<Node> {
+fn eat_highlighted<'a>(colour: ColourPalette, tokens: &'a [Token<'a>]) -> ParserResult<'a, Node> {
     let (tokens, (pos, parsed_content)) = eat_basic_colon_command(tokens)?;
     Ok((tokens, Node::Highlight(pos, colour, parsed_content)))
 }
 
-fn eat_coloured<'a>(colour: ColourPalette, tokens: &'a [Token<'a>]) -> ParserResult<Node> {
+fn eat_coloured<'a>(colour: ColourPalette, tokens: &'a [Token<'a>]) -> ParserResult<'a, Node> {
     let (tokens, (pos, parsed_content)) = eat_basic_colon_command(tokens)?;
     Ok((tokens, Node::ColouredText(pos, colour, parsed_content)))
 }
 
-fn eat_underlined<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
+fn eat_underlined<'a>(tokens: &'a [Token<'a>]) -> ParserResult<'a, Node> {
     let (tokens, (pos, parsed_content)) = eat_basic_colon_command(tokens)?;
     Ok((tokens, Node::Underlined(pos, parsed_content)))
 }
 
-fn eat_italic<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
+fn eat_italic<'a>(tokens: &'a [Token<'a>]) -> ParserResult<'a, Node> {
     let (tokens, (pos, parsed_content)) = eat_basic_colon_command(tokens)?;
     Ok((tokens, Node::Italic(pos, parsed_content)))
 }
 
-fn eat_subscript<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
+fn eat_subscript<'a>(tokens: &'a [Token<'a>]) -> ParserResult<'a, Node> {
     let (tokens, (pos, parsed_content)) = eat_basic_colon_command(tokens)?;
     Ok((tokens, Node::Subscript(pos, parsed_content)))
 }
 
-fn eat_superscript<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
+fn eat_superscript<'a>(tokens: &'a [Token<'a>]) -> ParserResult<'a, Node> {
     let (tokens, (pos, parsed_content)) = eat_basic_colon_command(tokens)?;
     Ok((tokens, Node::Superscript(pos, parsed_content)))
 }
 
-fn eat_deleted<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
+fn eat_deleted<'a>(tokens: &'a [Token<'a>]) -> ParserResult<'a, Node> {
     let (tokens, (pos, parsed_content)) = eat_basic_colon_command(tokens)?;
     Ok((tokens, Node::Deleted(pos, parsed_content)))
 }
 
-fn eat_header<'a>(level: u32, tokens: &'a [Token<'a>]) -> ParserResult<Node> {
+fn eat_header<'a>(level: u32, tokens: &'a [Token<'a>]) -> ParserResult<'a, Node> {
     let (tokens, (pos, parsed_content)) = eat_header_contents(tokens)?;
     Ok((tokens, Node::Header(pos, level, parsed_content)))
 }
 
-fn eat_side<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
+fn eat_side<'a>(tokens: &'a [Token<'a>]) -> ParserResult<'a, Node> {
     let (tokens, (pos, parsed_content)) = eat_basic_colon_command(tokens)?;
     Ok((
         tokens,
@@ -365,32 +365,32 @@ fn eat_side<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
     ))
 }
 
-fn eat_nside<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
+fn eat_nside<'a>(tokens: &'a [Token<'a>]) -> ParserResult<'a, Node> {
     let (tokens, (pos, parsed_content)) = eat_basic_colon_command(tokens)?;
     Ok((tokens, Node::MarginText(pos, MarginTextLabel::Numbered, parsed_content)))
 }
 
-fn eat_comment<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
+fn eat_comment<'a>(tokens: &'a [Token<'a>]) -> ParserResult<'a, Node> {
     let (tokens, (pos, parsed_content)) = eat_basic_colon_command(tokens)?;
     Ok((tokens, Node::MarginComment(pos, parsed_content)))
 }
 
-fn eat_disagree<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
+fn eat_disagree<'a>(tokens: &'a [Token<'a>]) -> ParserResult<'a, Node> {
     let (tokens, (pos, parsed_content)) = eat_basic_colon_command(tokens)?;
     Ok((tokens, Node::MarginDisagree(pos, parsed_content)))
 }
 
-fn eat_blockquote<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
+fn eat_blockquote<'a>(tokens: &'a [Token<'a>]) -> ParserResult<'a, Node> {
     let (tokens, (pos, content)) = eat_basic_colon_command(tokens)?;
     Ok((tokens, Node::BlockQuote(pos, content)))
 }
 
-fn eat_code<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
+fn eat_code<'a>(tokens: &'a [Token<'a>]) -> ParserResult<'a, Node> {
     let (tokens, (pos, code)) = eat_basic_colon_command_as_string(tokens)?;
     Ok((tokens, Node::Codeblock(pos, code)))
 }
 
-fn eat_colon<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Node> {
+fn eat_colon<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<'a, Node> {
     // either a horizontal line or more likely a colon command
 
     // Colon, Hyphen, Whitespace, (Text), Eos | EOL
@@ -492,7 +492,7 @@ fn split_text_token_at_whitespace<'a>(text_token: Token<'a>) -> crate::Result<(T
 
 // returns tokens within the colon command
 //
-fn eat_colon_command_content<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Vec<Token>> {
+fn eat_colon_command_content<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<'a, Vec<Token<'a>>> {
     let mut content: Vec<Token> = vec![];
     let mut paren_balancer = 1;
 
@@ -523,7 +523,7 @@ fn eat_colon_command_content<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Ve
     Ok((tokens, content))
 }
 
-fn eat_basic_colon_command_as_string<'a>(tokens: &'a [Token<'a>]) -> ParserResult<(usize, String)> {
+fn eat_basic_colon_command_as_string<'a>(tokens: &'a [Token<'a>]) -> ParserResult<'a, (usize, String)> {
     let pos = get_token_pos(&tokens[0]);
     let (tokens, content) = eat_colon_command_content(tokens)?;
 
@@ -535,7 +535,7 @@ fn eat_basic_colon_command_as_string<'a>(tokens: &'a [Token<'a>]) -> ParserResul
     Ok((tokens, (pos, text)))
 }
 
-fn eat_basic_colon_command<'a>(tokens: &'a [Token<'a>]) -> ParserResult<(usize, Vec<Node>)> {
+fn eat_basic_colon_command<'a>(tokens: &'a [Token<'a>]) -> ParserResult<'a, (usize, Vec<Node>)> {
     let pos = get_token_pos(&tokens[0]);
     let (tokens, content) = eat_colon_command_content(tokens)?;
 
@@ -547,7 +547,7 @@ fn eat_basic_colon_command<'a>(tokens: &'a [Token<'a>]) -> ParserResult<(usize, 
     Ok((tokens, (pos, parsed_content)))
 }
 
-fn eat_header_contents<'a>(tokens: &'a [Token<'a>]) -> ParserResult<(usize, Vec<Node>)> {
+fn eat_header_contents<'a>(tokens: &'a [Token<'a>]) -> ParserResult<'a, (usize, Vec<Node>)> {
     let pos = get_token_pos(&tokens[0]);
     let (tokens, content) = eat_colon_command_content(tokens)?;
 
@@ -561,7 +561,9 @@ fn eat_header_contents<'a>(tokens: &'a [Token<'a>]) -> ParserResult<(usize, Vec<
 
 // returns found_divide, left tokens, right tokens
 //
-fn eat_colon_command_pairing<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<(bool, Vec<Token>, Vec<Token>)> {
+fn eat_colon_command_pairing<'a>(
+    mut tokens: &'a [Token<'a>],
+) -> ParserResult<'a, (bool, Vec<Token<'a>>, Vec<Token<'a>>)> {
     let mut found_desc_divide = false;
     let mut core_tokens: Vec<Token> = vec![];
     let mut desc_tokens: Vec<Token> = vec![];
@@ -618,7 +620,7 @@ fn eat_colon_command_pairing<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<(b
     Ok((tokens, (found_desc_divide, core_tokens, desc_tokens)))
 }
 
-fn eat_as_youtube_id_start_pair<'a>(tokens: &'a [Token<'a>]) -> ParserResult<(String, String)> {
+fn eat_as_youtube_id_start_pair<'a>(tokens: &'a [Token<'a>]) -> ParserResult<'a, (String, String)> {
     let (tokens, (found_divide, left, right)) = eat_colon_command_pairing(tokens)?;
 
     let mut id = String::from("");
@@ -641,7 +643,7 @@ fn eat_as_youtube_id_start_pair<'a>(tokens: &'a [Token<'a>]) -> ParserResult<(St
 }
 
 // treat every token as Text until we get to a token of the given type
-fn eat_as_url_description_pair<'a>(tokens: &'a [Token<'a>]) -> ParserResult<(String, Vec<Node>)> {
+fn eat_as_url_description_pair<'a>(tokens: &'a [Token<'a>]) -> ParserResult<'a, (String, Vec<Node>)> {
     let (tokens, (found_divide, left, right)) = eat_colon_command_pairing(tokens)?;
 
     let mut res = String::from("");
@@ -655,7 +657,7 @@ fn eat_as_url_description_pair<'a>(tokens: &'a [Token<'a>]) -> ParserResult<(Str
     Ok((tokens, (res, description_nodes)))
 }
 
-fn eat_as_image_description_pair<'a>(tokens: &'a [Token<'a>]) -> ParserResult<(String, Vec<Node>)> {
+fn eat_as_image_description_pair<'a>(tokens: &'a [Token<'a>]) -> ParserResult<'a, (String, Vec<Node>)> {
     let (tokens, (found_divide, left, right)) = eat_colon_command_pairing(tokens)?;
 
     let mut res = String::from("");
@@ -674,7 +676,7 @@ fn eat_as_image_description_pair<'a>(tokens: &'a [Token<'a>]) -> ParserResult<(S
 }
 
 // treat the first token as Text and then append any further Text tokens
-fn eat_text_including<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
+fn eat_text_including<'a>(tokens: &'a [Token<'a>]) -> ParserResult<'a, Node> {
     let pos = get_token_pos(&tokens[0]);
     let (tokens, s) = eat_token_as_str(tokens)?;
     let (tokens, st) = eat_text_as_string(tokens)?;
@@ -682,7 +684,7 @@ fn eat_text_including<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
     Ok((tokens, Node::Text(pos, s.to_string() + &st)))
 }
 
-fn eat_text<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
+fn eat_text<'a>(tokens: &'a [Token<'a>]) -> ParserResult<'a, Node> {
     let pos = get_token_pos(&tokens[0]);
     let (tokens, value) = eat_text_as_string(tokens)?;
     Ok((tokens, Node::Text(pos, value)))
@@ -707,7 +709,7 @@ fn eat_token_as_str<'a>(tokens: &'a [Token<'a>]) -> crate::Result<(&'a [Token<'a
     Ok((&tokens[1..], get_token_value(&tokens[0])))
 }
 
-fn eat_text_as_string<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<String> {
+fn eat_text_as_string<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<'a, String> {
     let mut value: String = "".to_string();
 
     while !tokens.is_empty() {
