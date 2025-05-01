@@ -102,15 +102,6 @@ export default function DeluxeToolbar({}) {
         return (
             <div class="deluxe-toolbar-grid">
                 <span>
-                    <span class="toolbar-item">
-                        <Link
-                            onClick={clickedHome}
-                            class="toolbar-item-icon"
-                            href="/"
-                        >
-                            {svgHome()}
-                        </Link>
-                    </span>
                     <Hicon href="/memorise">
                         {svgReviewCards(memoriseColour)}
                     </Hicon>
@@ -131,6 +122,14 @@ export default function DeluxeToolbar({}) {
                 <div class="toolbar-item" onClick={clickedGrid}>
                     <span class="toolbar-item-icon">{svgGrid()}</span>
                     {localState.showGrid && renderGrid()}
+                </div>
+
+                <div class="toolbar-item">
+                    <Link onClick={clickedHome}
+                          class="toolbar-item-icon"
+                          href="/">
+                        {svgHome()}
+                    </Link>
                 </div>
 
                 <div class="toolbar-item" onClick={searchClicked}>
