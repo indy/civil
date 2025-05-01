@@ -480,8 +480,8 @@ function DialogueUpdater({
     });
 
     useEffect(() => {
-        setLocalState({
-            ...localState,
+        setLocalState(prev => ({
+            ...prev,
             title: dialogue.title.trim(),
             insignia: dialogue.insignia,
             deckKind: dialogue.deckKind,
@@ -490,14 +490,14 @@ function DialogueUpdater({
             impact: dialogue.impact,
             aiKind: dialogue.aiKind,
             messages: dialogue.messages,
-        });
+        }));
     }, [dialogue]);
 
     function handleContentChange(title: string) {
-        setLocalState({
-            ...localState,
+        setLocalState(prev => ({
+            ...prev,
             title,
-        });
+        }));
     }
 
     function handleSubmit(event: Event) {
@@ -519,34 +519,35 @@ function DialogueUpdater({
     function handleCheckbox(event: Event) {
         if (event.target instanceof HTMLInputElement) {
             if (event.target.id === "graph-terminator") {
-                setLocalState({
-                    ...localState,
+                setLocalState(prev => ({
+                    ...prev,
                     graphTerminator: !localState.graphTerminator,
-                });
+                }));
             }
         }
     }
 
     function setInsignia(insignia: number) {
-        setLocalState({
-            ...localState,
+        setLocalState(prev => ({
+            ...prev,
             insignia,
-        });
+        }));
     }
 
     function setFont(font: Font) {
-        setLocalState({
-            ...localState,
+        setLocalState(prev => ({
+            ...prev,
             font,
-        });
+        }));
     }
 
     function onImpactChange(event: Event) {
         if (event.target instanceof HTMLInputElement) {
-            setLocalState({
-                ...localState,
-                impact: event.target.valueAsNumber,
-            });
+            const n = (event.target as HTMLInputElement).valueAsNumber;
+            setLocalState(prev => ({
+                ...prev,
+                impact: n,
+            }));
         }
     }
 

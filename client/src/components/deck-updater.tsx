@@ -42,21 +42,21 @@ const DeckUpdater = <T extends FatDeck>({
     });
 
     useEffect(() => {
-        setLocalState({
-            ...localState,
+        setLocalState(prev => ({
+            ...prev,
             title: deck.title,
             graphTerminator: deck.graphTerminator,
             insignia: deck.insignia,
             font: deck.font,
             impact: deck.impact,
-        });
+        }));
     }, [deck]);
 
     function handleContentChange(title: string) {
-        setLocalState({
-            ...localState,
+        setLocalState(prev => ({
+            ...prev,
             title,
-        });
+        }));
     }
 
     function handleSubmit(event: Event) {
@@ -77,34 +77,35 @@ const DeckUpdater = <T extends FatDeck>({
     function handleCheckbox(event: Event) {
         if (event.target instanceof HTMLInputElement) {
             if (event.target.id === "graph-terminator") {
-                setLocalState({
-                    ...localState,
+                setLocalState(prev => ({
+                    ...prev,
                     graphTerminator: !localState.graphTerminator,
-                });
+                }));
             }
         }
     }
 
     function setInsignia(insignia: number) {
-        setLocalState({
-            ...localState,
+        setLocalState(prev => ({
+            ...prev,
             insignia,
-        });
+        }));
     }
 
     function setFont(font: Font) {
-        setLocalState({
-            ...localState,
+        setLocalState(prev => ({
+            ...prev,
             font,
-        });
+        }));
     }
 
     function onImpactChange(event: Event) {
         if (event.target instanceof HTMLInputElement) {
-            setLocalState({
-                ...localState,
-                impact: event.target.valueAsNumber,
-            });
+            const n = (event.target as HTMLInputElement).valueAsNumber;
+            setLocalState(prev => ({
+                ...prev,
+                impact: n,
+            }));
         }
     }
 

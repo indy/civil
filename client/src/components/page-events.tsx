@@ -286,22 +286,22 @@ function EventUpdater({ event, onUpdate, onCancel }: EventUpdaterProps) {
 
     useEffect(() => {
         if (event.title && event.title !== "" && localState.title === "") {
-            setLocalState({
-                ...localState,
+            setLocalState(prev => ({
+                ...prev,
                 title: event.title,
-            });
+            }));
         }
         if (event.insignia) {
-            setLocalState({
-                ...localState,
+            setLocalState(prev => ({
+                ...prev,
                 insigniaId: event.insignia,
-            });
+            }));
         }
         if (event.font) {
-            setLocalState({
-                ...localState,
+            setLocalState(prev => ({
+                ...prev,
                 font: event.font,
-            });
+            }));
         }
     }, [event]);
 
@@ -369,17 +369,17 @@ function EventUpdater({ event, onUpdate, onCancel }: EventUpdaterProps) {
     };
 
     function setInsigniaId(id: number) {
-        setLocalState({
-            ...localState,
+        setLocalState(prev => ({
+            ...prev,
             insigniaId: id,
-        });
+        }));
     }
 
     function setFont(font: Font) {
-        setLocalState({
-            ...localState,
+        setLocalState(prev => ({
+            ...prev,
             font,
-        });
+        }));
     }
 
     async function onFindLocationClicked(event: Event) {
@@ -413,10 +413,11 @@ function EventUpdater({ event, onUpdate, onCancel }: EventUpdaterProps) {
 
     function onImpactChange(event: Event) {
         if (event.target instanceof HTMLInputElement) {
-            setLocalState({
-                ...localState,
-                impact: event.target.valueAsNumber,
-            });
+            const n = (event.target as HTMLInputElement).valueAsNumber;
+            setLocalState(prev => ({
+                ...prev,
+                impact: n,
+            }));
         }
     }
 
@@ -429,7 +430,7 @@ function EventUpdater({ event, onUpdate, onCancel }: EventUpdaterProps) {
                     id="title"
                     value={localState.title}
                     onContentChange={(title) =>
-                        setLocalState({ ...localState, title })
+                        setLocalState(prev => ({ ...prev, title }))
                     }
                 />
             </CivMain>
@@ -544,7 +545,7 @@ function EventUpdater({ event, onUpdate, onCancel }: EventUpdaterProps) {
                     id="locationTextual"
                     value={localState.locationTextual}
                     onContentChange={(locationTextual) =>
-                        setLocalState({ ...localState, locationTextual })
+                        setLocalState(prev => ({ ...prev, locationTextual }))
                     }
                 />
             </CivMain>

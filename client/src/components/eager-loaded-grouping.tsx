@@ -24,11 +24,11 @@ export default function EagerLoadedGrouping({ url }: EagerLoadedGroupingProps) {
 
     useEffect(() => {
         Net.get<SlimResults>(url).then((resultList) => {
-            setLocalState({
-                ...localState,
+            setLocalState(prev => ({
+                ...prev,
                 fetchedData: true,
                 list: resultList.results,
-            });
+            }));
         });
     }, []);
 

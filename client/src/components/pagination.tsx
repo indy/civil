@@ -51,12 +51,12 @@ export default function Pagination({
             console.log("fetching: " + fullUrl);
             Net.get<PaginationResults>(fullUrl).then((paginationResults) => {
                 // console.log(paginationResults);
-                setLocalState({
-                    ...localState,
+                setLocalState(prev => ({
+                    ...prev,
                     items: paginationResults.items,
                     totalItems: paginationResults.totalItems,
                     lastUrl: url,
-                });
+                }));
             });
         }
     }

@@ -56,10 +56,10 @@ export default function DeluxeToolbar({}) {
     let searchClasses = "toolbar-item-icon";
 
     function toggleActive() {
-        setLocalState({
-            ...localState,
+        setLocalState(prev => ({
+            ...prev,
             active: !localState.active,
-        });
+        }));
     }
 
     function searchClicked() {
@@ -78,16 +78,24 @@ export default function DeluxeToolbar({}) {
     }
 
     function clickedGrid() {
-        setLocalState({
-            ...localState,
+        setLocalState(prev => ({
+            ...prev,
             showGrid: !localState.showGrid,
-        });
+        }));
+    }
+
+    function hideGrid(e: MouseEvent) {
+        e.stopPropagation();
+        setLocalState(prev => ({
+            ...prev,
+            showGrid: false,
+        }));
     }
 
     function Hicon({ href, children }: { href: string; children: any }) {
         return (
             <span class="toolbar-item">
-                <Link href={href} class="toolbar-item-icon">
+                <Link onClick={hideGrid} href={href} class="toolbar-item-icon">
                     {children}
                 </Link>
             </span>
@@ -113,6 +121,7 @@ export default function DeluxeToolbar({}) {
         );
     }
 
+    console.log("showGrid = " + localState.showGrid);
     return (
         <div>
             <div class="deluxe-toolbar-toggle-control" onClick={toggleActive}>

@@ -262,13 +262,11 @@ export default function PointForm({
             );
 
             if (isOk) {
-                let newState = {
-                    ...localState,
+                setLocalState(prev => ({
+                    ...prev,
                     latitude: latitudeNew.toFixed(2) as unknown as number,
                     longitude: longitudeNew.toFixed(2) as unknown as number,
-                };
-                // props.onPointChange(props.id, newState);
-                setLocalState(newState);
+                }));
             } else {
                 console.log(
                     `geoResult failed for ${localState.locationTextual}`,

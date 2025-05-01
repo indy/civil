@@ -61,37 +61,37 @@ export default function LifespanForm({
                 parseDateStringAsTriple(birthPoint.exactDate)!;
             let ageInYears = deltaInYearsRoughly(year);
 
-            setLocalState({
-                ...localState,
+            setLocalState(prev => ({
+                ...prev,
                 birthPoint: birthPoint,
                 stage:
                     ageInYears > oldestAliveAge
                         ? LifespanStage.Death
                         : LifespanStage.IsAlive,
-            });
+            }));
         }
     }
 
     function onPersonIsAlive() {
-        setLocalState({
-            ...localState,
+        setLocalState(prev => ({
+            ...prev,
             stage: LifespanStage.Finished,
-        });
+        }));
     }
 
     function onPersonIsDead() {
-        setLocalState({
-            ...localState,
+        setLocalState(prev => ({
+            ...prev,
             stage: LifespanStage.Death,
-        });
+        }));
     }
 
     function onAddDeathPoint(point: ProtoPoint) {
-        setLocalState({
-            ...localState,
+        setLocalState(prev => ({
+            ...prev,
             deathPoint: point,
             stage: LifespanStage.Finished,
-        });
+        }));
     }
 
     switch (localState.stage) {

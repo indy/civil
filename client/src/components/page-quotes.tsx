@@ -146,18 +146,18 @@ function QuoteNew({ path }: { path?: string }) {
     }, []);
 
     function handleAttributionChange(content: string) {
-        setLocalState({
-            ...localState,
+        setLocalState(prev => ({
+            ...prev,
             attribution: content,
-        });
+        }));
     }
 
     function handleContentChange(content: string) {
-        setLocalState({
-            ...localState,
+        setLocalState(prev => ({
+            ...prev,
             text: content,
             title: titleFromQuoteText(content),
-        });
+        }));
     }
 
     function handleSubmit(event: Event) {
@@ -173,34 +173,35 @@ function QuoteNew({ path }: { path?: string }) {
     function handleCheckbox(event: Event) {
         if (event.target instanceof HTMLInputElement) {
             if (event.target.id === "graph-terminator") {
-                setLocalState({
-                    ...localState,
+                setLocalState(prev => ({
+                    ...prev,
                     graphTerminator: !localState.graphTerminator,
-                });
+                }));
             }
         }
     }
 
     function setInsignia(insignia: number) {
-        setLocalState({
-            ...localState,
+        setLocalState(prev => ({
+            ...prev,
             insignia,
-        });
+        }));
     }
 
     function setFont(font: Font) {
-        setLocalState({
-            ...localState,
+        setLocalState(prev => ({
+            ...prev,
             font,
-        });
+        }));
     }
 
     function onImpactChange(event: Event) {
         if (event.target instanceof HTMLInputElement) {
-            setLocalState({
-                ...localState,
-                impact: event.target.valueAsNumber,
-            });
+            const n = (event.target as HTMLInputElement).valueAsNumber;
+            setLocalState(prev => ({
+                ...prev,
+                impact: n,
+            }));
         }
     }
 
