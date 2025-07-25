@@ -151,11 +151,28 @@ fn ascii_hex_digit_to_dec(ascii_hex: u8) -> u8 {
     // |   f |   102 |  15 |
     // |-----+-------+-----|
     //
-    if (48..=57).contains(&ascii_hex) {
-        ascii_hex - 48
-    } else if (97..=102).contains(&ascii_hex) {
-        ascii_hex - 87
+    if (b'0'..=b'9').contains(&ascii_hex) {
+        ascii_hex - b'0'
+    } else if (b'a'..=b'f').contains(&ascii_hex) {
+        ascii_hex - b'a' + 10
+    } else if (b'A'..=b'F').contains(&ascii_hex) {
+        ascii_hex - b'A' + 10
     } else {
         0
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn ascii_hex_digit_to_dec_handles_cases() {
+        assert_eq!(ascii_hex_digit_to_dec(b'0'), 0);
+        assert_eq!(ascii_hex_digit_to_dec(b'9'), 9);
+        assert_eq!(ascii_hex_digit_to_dec(b'a'), 10);
+        assert_eq!(ascii_hex_digit_to_dec(b'f'), 15);
+        assert_eq!(ascii_hex_digit_to_dec(b'A'), 10);
+        assert_eq!(ascii_hex_digit_to_dec(b'F'), 15);
     }
 }
