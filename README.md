@@ -8,6 +8,7 @@ rename .env.example to .env and update it for your environment.
 
 one time initialisation with:
 ```sh
+$ npm install -g yarn
 $ make deps
 ```
 
@@ -17,9 +18,6 @@ $ make run
 ```
 
 ## Client
-```sh
-$ make wasm
-```
 
 ## Release build
 

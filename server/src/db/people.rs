@@ -61,7 +61,7 @@ pub(crate) fn get_or_create(
         title,
         false,
         0,
-        Font::English,
+        Font::DeWalpergens,
         1,
     )?;
 

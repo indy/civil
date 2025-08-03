@@ -25,13 +25,7 @@ export enum Font {
     Sans,
     Cursive,
     AI,
-    FrenchCanon,
-    English,
     DeWalpergens,
-    DoublePica,
-    GreatPrimer,
-    ThreeLinesPica,
-    LibreBaskerville,
     Essays1743,
     Hyperlegible,
 }

@@ -51,10 +51,6 @@ var precacheConfig = [
     "/fonts/NotoSans/NotoSans-Regular.ttf",
     "/fonts/NotoSans/NotoSans-Italic.ttf",
 
-    "/fonts/LibreBaskerville/LibreBaskerville-Regular.ttf",
-    "/fonts/LibreBaskerville/LibreBaskerville-Italic.ttf",
-    "/fonts/LibreBaskerville/LibreBaskerville-Bold.ttf",
-
     "/fonts/Essays1743/essays1743.bolditalic.ttf",
     "/fonts/Essays1743/essays1743.bold.ttf",
     "/fonts/Essays1743/essays1743.italic.ttf",
@@ -65,24 +61,12 @@ var precacheConfig = [
     "/fonts/Atkinson-Hyperlegible/Atkinson-Hyperlegible-Italic-102.ttf",
     "/fonts/Atkinson-Hyperlegible/Atkinson-Hyperlegible-Regular-102.ttf",
 
-    "/fonts/Fell/IMFeDPit29P.ttf",
-    "/fonts/Fell/IMFeDPrm29P.ttf",
-    "/fonts/Fell/IMFeDPsc29P.ttf",
-    "/fonts/Fell/IMFeENit29P.ttf",
-    "/fonts/Fell/IMFeENrm29P.ttf",
-    "/fonts/Fell/IMFeENsc29P.ttf",
-    "/fonts/Fell/IMFeFCit29P.ttf",
-    "/fonts/Fell/IMFeFCrm29P.ttf",
-    "/fonts/Fell/IMFeFCsc29P.ttf",
-    "/fonts/Fell/IMFeFlow1.ttf",
-    "/fonts/Fell/IMFeFlow2.ttf",
-    "/fonts/Fell/IMFeGPit29P.ttf",
-    "/fonts/Fell/IMFeGPrm29P.ttf",
-    "/fonts/Fell/IMFeGPsc29P.ttf",
-    "/fonts/Fell/IMFePIit29P.ttf",
+    "/fonts/Fell/IMFePIit29P.ttf", // De-Walpergens
     "/fonts/Fell/IMFePIrm29P.ttf",
     "/fonts/Fell/IMFePIsc29P.ttf",
-    "/fonts/Fell/IMFeTLrm29.ttf"
+
+    "/fonts/Fell/IMFeFlow1.ttf",
+    "/fonts/Fell/IMFeFlow2.ttf"
 ];
 
 var urlsToCache = new Set();

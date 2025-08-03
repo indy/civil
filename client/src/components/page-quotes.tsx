@@ -131,7 +131,7 @@ function QuoteNew({ path }: { path?: string }) {
         title: "",
         insignia: 0,
         deckKind: DeckKind.Quote,
-        font: Font.English,
+        font: Font.DeWalpergens,
         graphTerminator: false,
         impact: 1,
         text: "",

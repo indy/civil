@@ -275,8 +275,8 @@ pub(crate) fn edit(
     // make book articles look bookish
     if (article.insignia & BOOK_INSIGNIA_BIT) == BOOK_INSIGNIA_BIT {
         dbg!("make look like a book");
-        decks::overwrite_deck_font(&tx, user_id, article_id, Font::DoublePica)?;
-        notes::overwrite_note_fonts(&tx, user_id, article_id, Font::DoublePica)?;
+        decks::overwrite_deck_font(&tx, user_id, article_id, Font::Serif)?;
+        notes::overwrite_note_fonts(&tx, user_id, article_id, Font::Serif)?;
     }
 
     let sql_query: &str = match article_extras_exists.len() {
@@ -339,7 +339,7 @@ pub(crate) fn get_or_create(
         title,
         false,
         0,
-        Font::LibreBaskerville,
+        Font::Serif,
         1,
     )?;
 

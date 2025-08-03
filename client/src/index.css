@@ -139,51 +139,6 @@
 }
 
 @font-face {
-    font-family: "Fell-French-Canon";
-    src: url("fonts/Fell/IMFeFCrm29P.ttf") format("truetype");
-    font-weight: 400;
-    font-style: normal;
-    size-adjust: 94%;
-}
-
-@font-face {
-    font-family: "Fell-French-Canon";
-    src: url("fonts/Fell/IMFeFCit29P.ttf") format("truetype");
-    font-weight: 400;
-    font-style: italic;
-    size-adjust: 94%;
-}
-
-@font-face {
-    font-family: "Fell-French-Canon-Small-Caps";
-    src: url("fonts/Fell/IMFeFCsc29P.ttf") format("truetype");
-    font-weight: 400;
-    font-style: normal;
-    size-adjust: 94%;
-}
-
-@font-face {
-    font-family: "Fell-English";
-    src: url("fonts/Fell/IMFeENrm29P.ttf") format("truetype");
-    font-weight: 400;
-    font-style: normal;
-}
-
-@font-face {
-    font-family: "Fell-English";
-    src: url("fonts/Fell/IMFeENit29P.ttf") format("truetype");
-    font-weight: 400;
-    font-style: italic;
-}
-
-@font-face {
-    font-family: "Fell-English-Small-Caps";
-    src: url("fonts/Fell/IMFeENsc29P.ttf") format("truetype");
-    font-weight: 400;
-    font-style: normal;
-}
-
-@font-face {
     font-family: "Fell-De-Walpergens-Pica";
     src: url("fonts/Fell/IMFePIrm29P.ttf") format("truetype");
     font-weight: 400;
@@ -202,82 +157,6 @@
     src: url("fonts/Fell/IMFePIsc29P.ttf") format("truetype");
     font-weight: 400;
     font-style: normal;
-}
-
-@font-face {
-    font-family: "Fell-Double-Pica";
-    src: url("fonts/Fell/IMFeDPrm29P.ttf") format("truetype");
-    font-weight: 400;
-    font-style: normal;
-}
-
-@font-face {
-    font-family: "Fell-Double-Pica";
-    src: url("fonts/Fell/IMFeDPit29P.ttf") format("truetype");
-    font-weight: 400;
-    font-style: italic;
-}
-
-@font-face {
-    font-family: "Fell-Double-Pica-Small-Caps";
-    src: url("fonts/Fell/IMFeDPsc29P.ttf") format("truetype");
-    font-weight: 400;
-    font-style: normal;
-}
-
-@font-face {
-    font-family: "Fell-Great-Primer";
-    src: url("fonts/Fell/IMFeGPrm29P.ttf") format("truetype");
-    font-weight: 400;
-    font-style: normal;
-}
-
-@font-face {
-    font-family: "Fell-Great-Primer";
-    src: url("fonts/Fell/IMFeGPit29P.ttf") format("truetype");
-    font-weight: 400;
-    font-style: italic;
-}
-
-@font-face {
-    font-family: "Fell-Great-Primer-Small-Caps";
-    src: url("fonts/Fell/IMFeGPsc29P.ttf") format("truetype");
-    font-weight: 400;
-    font-style: normal;
-}
-
-@font-face {
-    font-family: "Fell-Three-Lines-Pica";
-    src: url("fonts/Fell/IMFeTLrm29.ttf") format("truetype");
-    font-weight: 400;
-    font-style: normal;
-}
-
-@font-face {
-    font-family: "Libre-Baskerville";
-    src: url("fonts/LibreBaskerville/LibreBaskerville-Regular.ttf")
-        format("truetype");
-    font-weight: 400;
-    font-style: normal;
-    size-adjust: 80%;
-}
-
-@font-face {
-    font-family: "Libre-Baskerville";
-    src: url("fonts/LibreBaskerville/LibreBaskerville-Italic.ttf")
-        format("truetype");
-    font-weight: 400;
-    font-style: italic;
-    size-adjust: 80%;
-}
-
-@font-face {
-    font-family: "Libre-Baskerville";
-    src: url("fonts/LibreBaskerville/LibreBaskerville-Bold.ttf")
-        format("truetype");
-    font-weight: 700;
-    font-style: normal;
-    size-adjust: 80%;
 }
 
 @font-face {
@@ -402,24 +281,6 @@
 .typeface-ai {
     font-family: ShareTechMono;
 }
-.typeface-french-canon-body {
-    font-family: Fell-French-Canon;
-}
-.typeface-french-canon-heading {
-    font-family: Fell-French-Canon-Small-Caps;
-}
-.typeface-french-canon-ui-interleaved {
-    font-family: Fell-French-Canon-Small-Caps;
-}
-.typeface-english-body {
-    font-family: Fell-English;
-}
-.typeface-english-heading {
-    font-family: Fell-English-Small-Caps;
-}
-.typeface-english-ui-interleaved {
-    font-family: Fell-English-Small-Caps;
-}
 .typeface-de-walpergens-body {
     font-family: Fell-De-Walpergens-Pica;
 }
@@ -428,30 +289,6 @@
 }
 .typeface-de-walpergens-ui-interleaved {
     font-family: Fell-De-Walpergens-Pica-Small-Caps;
-}
-.typeface-double-pica-body {
-    font-family: Fell-Double-Pica;
-}
-.typeface-double-pica-heading {
-    font-family: Fell-Double-Pica-Small-Caps;
-}
-.typeface-double-pica-ui-interleaved {
-    font-family: Fell-Double-Pica-Small-Caps;
-}
-.typeface-great-primer-body {
-    font-family: Fell-Great-Primer;
-}
-.typeface-great-primer-heading {
-    font-family: Fell-Great-Primer-Small-Caps;
-}
-.typeface-great-primer-ui-interleaved {
-    font-family: Fell-Great-Primer-Small-Caps;
-}
-.typeface-three-lines-pica {
-    font-family: Fell-Three-Lines-Pica;
-}
-.typeface-libre-baskerville {
-    font-family: Libre-Baskerville;
 }
 .typeface-essays-1743 {
     font-family: Essays1743;
@@ -784,6 +621,7 @@ body {
     color: var(--fg);
     max-width: 1400px;
     counter-reset: right-margin-counter;
+    font-feature-settings: "onum";
 }
 
 h1,
