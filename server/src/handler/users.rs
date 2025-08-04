@@ -24,7 +24,7 @@ use crate::session;
 use crate::ServerConfig;
 use actix_web::web::{Data, Json};
 use actix_web::HttpResponse;
-use rand::{thread_rng, RngCore};
+use rand::{rng, RngCore};
 use std::env;
 
 #[allow(unused_imports)]
@@ -148,7 +148,7 @@ pub async fn edit_ui_config(
 
 fn generate_random_salt() -> [u8; 16] {
     let mut salt = [0; 16];
-    thread_rng().fill_bytes(&mut salt);
+    rng().fill_bytes(&mut salt);
 
     salt
 }
