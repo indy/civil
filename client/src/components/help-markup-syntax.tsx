@@ -33,7 +33,7 @@ export default function HelpMarkupSyntax({}) {
                 </tr>
                 <tr>
                 <td class="xxxhelp-overlay-key">h1</td>
-                <td class="xxxhelp-overlay-desc">heading level 1, other heading levels: 2..9</td>
+                <td class="xxxhelp-overlay-desc">heading level 1, other levels: :h2..9</td>
             </tr>
                 <tr>
                 <td class="xxxhelp-overlay-key">blockquote</td>
@@ -41,15 +41,19 @@ export default function HelpMarkupSyntax({}) {
                 </tr>
                 <tr>
                 <td class="xxxhelp-overlay-key">img</td>
-                <td class="xxxhelp-overlay-desc"></td>
+                <td class="xxxhelp-overlay-desc">:img(img.png description)</td>
+                </tr>
+                <tr>
+                <td class="xxxhelp-overlay-key">diagram</td>
+                <td class="xxxhelp-overlay-desc">:diagram(img.png code)</td>
                 </tr>
                 <tr>
                 <td class="xxxhelp-overlay-key">url</td>
-                <td class="xxxhelp-overlay-desc"></td>
+                <td class="xxxhelp-overlay-desc">:url(url description)</td>
                 </tr>
                 <tr>
                 <td class="xxxhelp-overlay-key">youtube</td>
-                <td class="xxxhelp-overlay-desc"></td>
+                <td class="xxxhelp-overlay-desc">:youtube(video_code description)</td>
                 </tr>
                 <tr>
                 <td class="xxxhelp-overlay-key">comment</td>
@@ -60,12 +64,12 @@ export default function HelpMarkupSyntax({}) {
                 <td class="xxxhelp-overlay-desc"></td>
                 </tr>
                 <tr>
-                <td class="xxxhelp-overlay-key">nside</td>
-                <td class="xxxhelp-overlay-desc"></td>
+                <td class="xxxhelp-overlay-key">side</td>
+                <td class="xxxhelp-overlay-desc">side comment</td>
                 </tr>
                 <tr>
-                <td class="xxxhelp-overlay-key">side</td>
-                <td class="xxxhelp-overlay-desc"></td>
+                <td class="xxxhelp-overlay-key">nside</td>
+                <td class="xxxhelp-overlay-desc">numbered side comment</td>
                 </tr>
                 <tr>
                 <td class="xxxhelp-overlay-key">code</td>
@@ -77,7 +81,7 @@ export default function HelpMarkupSyntax({}) {
                 </tr>
                 <tr>
                 <td class="xxxhelp-overlay-key">deleted</td>
-                <td class="xxxhelp-overlay-desc"></td>
+                <td class="xxxhelp-overlay-desc">strikethrough</td>
                 </tr>
                 <tr>
                 <td class="xxxhelp-overlay-key">subscript</td>
