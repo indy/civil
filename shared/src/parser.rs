@@ -53,6 +53,7 @@ pub enum Node {
     Highlight(usize, ColourPalette, Vec<Node>),
     HorizontalRule(usize),
     Image(usize, String, Vec<Node>),
+    Diagram(usize, String, Vec<Node>),
     Italic(usize, Vec<Node>),
     ListItem(usize, Vec<Node>),
     MarginComment(usize, Vec<Node>),
@@ -82,6 +83,7 @@ fn get_node_pos(node: &Node) -> usize {
         Node::Highlight(pos, _, _) => *pos,
         Node::HorizontalRule(pos) => *pos,
         Node::Image(pos, _, _) => *pos,
+        Node::Diagram(pos, _, _) => *pos,
         Node::Italic(pos, _) => *pos,
         Node::ListItem(pos, _) => *pos,
         Node::MarginComment(pos, _) => *pos,
@@ -137,6 +139,10 @@ fn is_img(tokens: &'_ [Token]) -> bool {
     is_colon_specifier(tokens) && is_text_at_index(tokens, 1, "img")
 }
 
+fn is_diagram(tokens: &'_ [Token]) -> bool {
+    is_colon_specifier(tokens) && is_text_at_index(tokens, 1, "diagram")
+}
+
 // need: parse until a terminator token Eos is reached
 //
 pub fn parse<'a>(tokens: &'a [Token<'a>]) -> ParserResult<'a, Vec<Node>> {
@@ -153,6 +159,8 @@ pub fn parse<'a>(tokens: &'a [Token<'a>]) -> ParserResult<'a, Vec<Node>> {
             eat_colon(tokens)?
         } else if is_img(tokens) {
             eat_img(tokens)?
+        } else if is_diagram(tokens) {
+            eat_diagram(tokens)?
         } else {
             // by default a lot of stuff will get wrapped in a paragraph
             eat_paragraph(tokens)?
@@ -291,6 +299,13 @@ fn eat_img<'a>(tokens: &'a [Token<'a>]) -> ParserResult<'a, Node> {
     let (tokens, (image_name, description)) = eat_as_image_description_pair(tokens)?;
 
     Ok((tokens, Node::Image(pos, image_name, description)))
+}
+
+fn eat_diagram<'a>(tokens: &'a [Token<'a>]) -> ParserResult<'a, Node> {
+    let pos = get_token_pos(&tokens[0]);
+    let (tokens, (image_name, code)) = eat_as_diagram_code_pair(tokens)?;
+
+    Ok((tokens, Node::Diagram(pos, image_name, code)))
 }
 
 fn eat_youtube<'a>(tokens: &'a [Token<'a>]) -> ParserResult<'a, Node> {
@@ -490,13 +505,9 @@ fn split_text_token_at_whitespace<'a>(text_token: Token<'a>) -> crate::Result<(T
     }
 }
 
-// returns tokens within the colon command
-//
-fn eat_colon_command_content<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<'a, Vec<Token<'a>>> {
+fn eat_content<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<'a, Vec<Token<'a>>> {
     let mut content: Vec<Token> = vec![];
     let mut paren_balancer = 1;
-
-    tokens = &tokens[3..]; // eat the colon, text, opening parentheses
 
     while !tokens.is_empty() {
         if is_head(tokens, TokenIdent::ParenBegin) {
@@ -521,6 +532,25 @@ fn eat_colon_command_content<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<'a
     }
 
     Ok((tokens, content))
+}
+
+fn eat_as_string<'a>(tokens: &'a [Token<'a>]) -> ParserResult<'a, (usize, String)> {
+    let pos = get_token_pos(&tokens[0]);
+    let (tokens, content) = eat_content(tokens)?;
+
+    let mut text = String::from("");
+    for c in &content {
+        text.push_str(get_token_value(c));
+    }
+
+    Ok((tokens, (pos, text)))
+}
+
+// returns tokens within the colon command
+//
+fn eat_colon_command_content<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<'a, Vec<Token<'a>>> {
+    tokens = &tokens[3..]; // eat the colon, text, opening parentheses
+    eat_content(tokens)
 }
 
 fn eat_basic_colon_command_as_string<'a>(tokens: &'a [Token<'a>]) -> ParserResult<'a, (usize, String)> {
@@ -670,6 +700,29 @@ fn eat_as_image_description_pair<'a>(tokens: &'a [Token<'a>]) -> ParserResult<'a
     if found_divide {
         let (_, description_nodes) = parse(&right)?;
         Ok((tokens, (res, description_nodes)))
+    } else {
+        Ok((tokens, (res, vec![])))
+    }
+}
+
+fn eat_code_block<'a>(tokens: &'a [Token<'a>]) -> ParserResult<'a, Node> {
+    let (tokens, (pos, code)) = eat_as_string(tokens)?;
+    Ok((tokens, Node::Codeblock(pos, code)))
+}
+
+fn eat_as_diagram_code_pair<'a>(tokens: &'a [Token<'a>]) -> ParserResult<'a, (String, Vec<Node>)> {
+    let (tokens, (found_divide, left, right)) = eat_colon_command_pairing(tokens)?;
+
+    let mut res = String::from("");
+    for t in &left {
+        res.push_str(get_token_value(t));
+    }
+
+    // only have code if it's in the markup after the diagram's filename
+    //
+    if found_divide {
+        let (_, code) = eat_code_block(&right)?;
+        Ok((tokens, (res, vec![code])))
     } else {
         Ok((tokens, (res, vec![])))
     }

@@ -80,6 +80,22 @@ fn compile_node_to_struct(node: &Node, note_id: usize) -> crate::Result<Vec<Elem
                 }]
             }
         }
+        Node::Diagram(_key, src, ns) => {
+            let img = Element {
+                name: String::from("img"),
+                src: Some(String::from(src)),
+                ..Default::default()
+            };
+
+            if ns.is_empty() {
+                vec![img]
+            } else {
+                let mut image_and_code = vec![img];
+                let code = compile_to_struct(ns, note_id)?;
+                image_and_code.extend(code);
+                image_and_code
+            }
+        }
         Node::Italic(key, ns) => element_hoisted("i", *key, note_id, ns)?,
         Node::ListItem(key, ns) => element("li", *key, note_id, ns)?,
         Node::MarginComment(key, ns) => compile_sidenote("right-margin-scribble fg-blue", *key, note_id, ns)?,
