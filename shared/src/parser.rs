@@ -40,6 +40,41 @@ pub enum ColourPalette {
     Purple,
 }
 
+
+trait TokenSliceExt<'a> {
+    fn is(&self, idx: usize, kind: TokenIdent) -> bool;
+    fn is_next(&self, kind: TokenIdent) -> bool;
+    fn is_next_2(&self, kind0: TokenIdent, kind1: TokenIdent) -> bool;
+    fn is_next_3(&self, kind0: TokenIdent, kind1: TokenIdent, kind2: TokenIdent) -> bool;
+    fn is_text(&self, idx: usize, text: &str) -> bool;
+}
+
+impl<'a> TokenSliceExt<'a> for [Token<'a>] {
+    fn is(&self, idx: usize, kind: TokenIdent) -> bool {
+        self.get(idx).map(|t| TokenIdent::from(t)) == Some(kind)
+    }
+
+    fn is_next(&self, kind: TokenIdent) -> bool {
+        self.get(0).map(|t| TokenIdent::from(t)) == Some(kind)
+    }
+
+    fn is_next_2(&self, kind0: TokenIdent, kind1: TokenIdent) -> bool {
+        self.get(0).map(|t| TokenIdent::from(t)) == Some(kind0)
+            && self.get(1).map(|t| TokenIdent::from(t)) == Some(kind1)
+    }
+
+    fn is_next_3(&self, kind0: TokenIdent, kind1: TokenIdent, kind2: TokenIdent) -> bool {
+        self.get(0).map(|t| TokenIdent::from(t)) == Some(kind0)
+            && self.get(1).map(|t| TokenIdent::from(t)) == Some(kind1)
+            && self.get(2).map(|t| TokenIdent::from(t)) == Some(kind2)
+    }
+
+    fn is_text(&self, idx: usize, text: &str) -> bool {
+        matches!(self.get(idx), Some(&Token::Text(_, s)) if s == text)
+    }
+}
+
+
 // NOTE: update the node check in www/js/index.js to reflect this enum
 //
 #[derive(Debug, Serialize, EnumDiscriminants)]
@@ -105,27 +140,24 @@ fn get_node_pos(node: &Node) -> usize {
 }
 
 fn is_numbered_list_item(tokens: &'_ [Token]) -> bool {
-    is_token_at_index(tokens, 0, TokenIdent::Digits)
-        && is_token_at_index(tokens, 1, TokenIdent::Period)
-        && is_token_at_index(tokens, 2, TokenIdent::Whitespace)
+    tokens.is_next_3(TokenIdent::Digits, TokenIdent::Period, TokenIdent::Whitespace)
 }
 
 fn is_unordered_list_item(tokens: &'_ [Token]) -> bool {
-    is_token_at_index(tokens, 0, TokenIdent::Hyphen) && is_token_at_index(tokens, 1, TokenIdent::Whitespace)
+    tokens.is_next_2(TokenIdent::Hyphen, TokenIdent::Whitespace)
 }
 
 fn is_horizontal_rule(tokens: &'_ [Token]) -> bool {
-    is_token_at_index(tokens, 0, TokenIdent::Colon)
-        && is_token_at_index(tokens, 1, TokenIdent::Hyphen)
-        && (is_token_at_index(tokens, 2, TokenIdent::Eos)
-            || is_token_at_index(tokens, 2, TokenIdent::Whitespace)
-            || is_token_at_index(tokens, 2, TokenIdent::Newline))
+    tokens.is_next_2(TokenIdent::Colon, TokenIdent::Hyphen)
+        && (tokens.is(2, TokenIdent::Eos)
+            || tokens.is(2, TokenIdent::Whitespace)
+            || tokens.is(2, TokenIdent::Newline))
 }
 
 fn is_heading(tokens: &'_ [Token]) -> bool {
     let headings = ["h1", "h2", "h3", "h4", "h5", "h6", "h7", "h8", "h9"];
 
-    if is_token_at_index(tokens, 0, TokenIdent::Colon) && is_token_at_index(tokens, 1, TokenIdent::Text) {
+    if tokens.is_next_2(TokenIdent::Colon, TokenIdent::Text){
         match tokens[1] {
             Token::Text(_, s) => headings.contains(&s),
             _ => false,
@@ -136,11 +168,11 @@ fn is_heading(tokens: &'_ [Token]) -> bool {
 }
 
 fn is_img(tokens: &'_ [Token]) -> bool {
-    is_colon_specifier(tokens) && is_text_at_index(tokens, 1, "img")
+    is_colon_specifier(tokens) && tokens.is_text(1, "img")
 }
 
 fn is_diagram(tokens: &'_ [Token]) -> bool {
-    is_colon_specifier(tokens) && is_text_at_index(tokens, 1, "diagram")
+    is_colon_specifier(tokens) && tokens.is_text(1, "diagram")
 }
 
 // need: parse until a terminator token Eos is reached
@@ -412,17 +444,17 @@ fn eat_colon<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<'a, Node> {
     // ":- this text is following a horizontal line"
 
     let pos = get_token_pos(&tokens[0]);
-    if is_token_at_index(tokens, 1, TokenIdent::Hyphen) {
-        if is_token_at_index(tokens, 2, TokenIdent::Eos)
-            || is_token_at_index(tokens, 2, TokenIdent::Whitespace)
-            || is_token_at_index(tokens, 2, TokenIdent::Newline)
+    if tokens.is(1, TokenIdent::Hyphen) {
+        if tokens.is(2, TokenIdent::Eos)
+            || tokens.is(2, TokenIdent::Whitespace)
+            || tokens.is(2, TokenIdent::Newline)
         {
             tokens = &tokens[3..];
         } else {
             tokens = &tokens[2..];
         }
         Ok((tokens, Node::HorizontalRule(pos)))
-    } else if is_token_at_index(tokens, 1, TokenIdent::Text) {
+    } else if tokens.is(1, TokenIdent::Text) {
         match tokens[1] {
             Token::Text(_, "img") => eat_img(tokens),
             Token::Text(_, "url") => eat_url(tokens),
@@ -475,9 +507,7 @@ fn eat_colon<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<'a, Node> {
 }
 
 fn is_colon_specifier<'a>(tokens: &'a [Token<'a>]) -> bool {
-    is_token_at_index(tokens, 0, TokenIdent::Colon)
-        && is_token_at_index(tokens, 1, TokenIdent::Text)
-        && is_token_at_index(tokens, 2, TokenIdent::ParenBegin)
+    tokens.is_next_3(TokenIdent::Colon, TokenIdent::Text, TokenIdent::ParenBegin)
 }
 
 fn split_text_token_at_whitespace<'a>(text_token: Token<'a>) -> crate::Result<(Token<'a>, Option<Token<'a>>)> {
@@ -534,14 +564,16 @@ fn eat_content<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<'a, Vec<Token<'a
     Ok((tokens, content))
 }
 
+
+fn join_token_values<'a>(tokens: &[Token<'a>]) -> String {
+    tokens.iter().map(get_token_value).collect()
+}
+
 fn eat_as_string<'a>(tokens: &'a [Token<'a>]) -> ParserResult<'a, (usize, String)> {
     let pos = get_token_pos(&tokens[0]);
     let (tokens, content) = eat_content(tokens)?;
 
-    let mut text = String::from("");
-    for c in &content {
-        text.push_str(get_token_value(c));
-    }
+    let text = join_token_values(&content);
 
     Ok((tokens, (pos, text)))
 }
@@ -556,11 +588,7 @@ fn eat_colon_command_content<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<'a
 fn eat_basic_colon_command_as_string<'a>(tokens: &'a [Token<'a>]) -> ParserResult<'a, (usize, String)> {
     let pos = get_token_pos(&tokens[0]);
     let (tokens, content) = eat_colon_command_content(tokens)?;
-
-    let mut text = String::from("");
-    for c in &content {
-        text.push_str(get_token_value(c));
-    }
+    let text = join_token_values(&content);
 
     Ok((tokens, (pos, text)))
 }
@@ -653,18 +681,11 @@ fn eat_colon_command_pairing<'a>(
 fn eat_as_youtube_id_start_pair<'a>(tokens: &'a [Token<'a>]) -> ParserResult<'a, (String, String)> {
     let (tokens, (found_divide, left, right)) = eat_colon_command_pairing(tokens)?;
 
-    let mut id = String::from("");
-    for t in &left {
-        id.push_str(get_token_value(t));
-    }
+    let id = join_token_values(&left);
 
-    let mut start: String;
-
+    let start: String;
     if found_divide {
-        start = String::from("");
-        for t in &right {
-            start.push_str(get_token_value(t));
-        }
+        start = join_token_values(&right);
     } else {
         start = String::from("0");
     }
@@ -675,25 +696,18 @@ fn eat_as_youtube_id_start_pair<'a>(tokens: &'a [Token<'a>]) -> ParserResult<'a,
 // treat every token as Text until we get to a token of the given type
 fn eat_as_url_description_pair<'a>(tokens: &'a [Token<'a>]) -> ParserResult<'a, (String, Vec<Node>)> {
     let (tokens, (found_divide, left, right)) = eat_colon_command_pairing(tokens)?;
-
-    let mut res = String::from("");
-    for t in &left {
-        res.push_str(get_token_value(t));
-    }
+    let res = join_token_values(&left);
 
     // if there is no text after the first space then use the url as the displayed text
     //
     let (_, description_nodes) = if found_divide { parse(&right)? } else { parse(&left)? };
+
     Ok((tokens, (res, description_nodes)))
 }
 
 fn eat_as_image_description_pair<'a>(tokens: &'a [Token<'a>]) -> ParserResult<'a, (String, Vec<Node>)> {
     let (tokens, (found_divide, left, right)) = eat_colon_command_pairing(tokens)?;
-
-    let mut res = String::from("");
-    for t in &left {
-        res.push_str(get_token_value(t));
-    }
+    let res = join_token_values(&left);
 
     // only have descriptive text if it's in the markup after the image filename
     //
@@ -707,16 +721,13 @@ fn eat_as_image_description_pair<'a>(tokens: &'a [Token<'a>]) -> ParserResult<'a
 
 fn eat_code_block<'a>(tokens: &'a [Token<'a>]) -> ParserResult<'a, Node> {
     let (tokens, (pos, code)) = eat_as_string(tokens)?;
+
     Ok((tokens, Node::Codeblock(pos, code)))
 }
 
 fn eat_as_diagram_code_pair<'a>(tokens: &'a [Token<'a>]) -> ParserResult<'a, (String, Vec<Node>)> {
     let (tokens, (found_divide, left, right)) = eat_colon_command_pairing(tokens)?;
-
-    let mut res = String::from("");
-    for t in &left {
-        res.push_str(get_token_value(t));
-    }
+    let res = join_token_values(&left);
 
     // only have code if it's in the markup after the diagram's filename
     //
@@ -740,6 +751,7 @@ fn eat_text_including<'a>(tokens: &'a [Token<'a>]) -> ParserResult<'a, Node> {
 fn eat_text<'a>(tokens: &'a [Token<'a>]) -> ParserResult<'a, Node> {
     let pos = get_token_pos(&tokens[0]);
     let (tokens, value) = eat_text_as_string(tokens)?;
+
     Ok((tokens, Node::Text(pos, value)))
 }
 
@@ -793,32 +805,19 @@ fn skip_leading<'a>(tokens: &'a [Token], token_ident: TokenIdent) -> crate::Resu
 }
 
 fn is_terminator<'a>(tokens: &'a [Token<'a>]) -> bool {
-    is_token_at_index(tokens, 0, TokenIdent::Eos)
+    tokens.is_next(TokenIdent::Eos)
 }
 
 fn is_head<'a>(tokens: &'a [Token<'a>], token_ident: TokenIdent) -> bool {
-    is_token_at_index(tokens, 0, token_ident)
+    tokens.is_next(token_ident)
 }
 
 fn is_head_option<'a>(tokens: &'a [Token<'a>], token_ident: Option<TokenIdent>) -> bool {
     if let Some(ident) = token_ident {
-        is_token_at_index(tokens, 0, ident)
+        tokens.is_next(ident)
     } else {
         false
     }
-}
-
-fn is_token_at_index<'a>(tokens: &'a [Token<'a>], idx: usize, token_ident: TokenIdent) -> bool {
-    tokens.len() > idx && Into::<TokenIdent>::into(&tokens[idx]) == token_ident
-}
-
-fn is_text_at_index<'a>(tokens: &'a [Token<'a>], idx: usize, text: &str) -> bool {
-    if is_token_at_index(tokens, idx, TokenIdent::Text) {
-        if let Token::Text(_, s) = tokens[idx] {
-            return s == text;
-        }
-    }
-    false
 }
 
 #[cfg(test)]
