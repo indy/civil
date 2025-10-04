@@ -166,6 +166,9 @@ typescript-format: ## format the typescript code
 run: $(CLIENT_FOLDER)/www/index.js $(WWW_FOLDER)/$(CLIENT_WASM_BG) server ## build debug server and run
 	cargo run --manifest-path $(SERVER_FOLDER)/Cargo.toml --bin $(SERVER_BINARY)
 
+
+wasm: $(WWW_FOLDER)/$(CLIENT_WASM_BG)
+
 # collect stats on each user's content, stores the stats in the db
 # this is run periodically on the server
 #
