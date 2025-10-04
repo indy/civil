@@ -129,7 +129,7 @@ pub(crate) fn get_or_create(
     let mut conn = sqlite_pool.get()?;
     let tx = conn.transaction()?;
 
-    let default_font = Font::DeWalpergens;
+    let default_font = Font::Serif;
     let (deck, origin) = decks::deckbase_get_or_create(
         &tx,
         user_id,
