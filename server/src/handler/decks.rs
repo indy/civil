@@ -315,13 +315,27 @@ pub(crate) async fn pagination(
 ) -> crate::Result<HttpResponse> {
     info!("pagination");
 
-    let pagination_results = db::pagination(
-        &sqlite_pool,
-        user_id,
-        deck_kind,
-        query.offset,
-        query.num_items,
-    )?;
+    let pagination_results;
+    if deck_kind == DeckKind::Event {
+        // events are treated differently from other deck kinds
+        // they should be listed in chronological order of the events they describe, not creation date
+        //
+        pagination_results = db::pagination_events_chronologically(
+            &sqlite_pool,
+            user_id,
+            deck_kind,
+            query.offset,
+            query.num_items,
+        )?;
+    } else {
+        pagination_results = db::pagination(
+            &sqlite_pool,
+            user_id,
+            deck_kind,
+            query.offset,
+            query.num_items,
+        )?;
+    }
 
     Ok(HttpResponse::Ok().json(pagination_results))
 }

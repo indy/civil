@@ -168,6 +168,36 @@ pub(crate) fn pagination(
     Ok(res)
 }
 
+pub(crate) fn pagination_events_chronologically(
+    sqlite_pool: &SqlitePool,
+    user_id: Key,
+    deck_kind: interop::DeckKind,
+    offset: i32,
+    num_items: i32,
+) -> crate::Result<interop::Pagination<interop::SlimDeck>> {
+    let conn = sqlite_pool.get()?;
+
+    let stmt = "SELECT d.id, d.name, d.kind, d.created_at, d.graph_terminator, d.insignia, d.font, d.impact
+                FROM decks as d LEFT JOIN points AS p ON p.deck_id = d.id
+                WHERE d.user_id = ?1 AND d.kind = ?2
+                ORDER BY (p.exact_realdate IS NOT NULL OR p.lower_realdate IS NOT NULL OR p.upper_realdate IS NOT NULL),
+                COALESCE(p.exact_realdate, p.lower_realdate, p.upper_realdate) DESC
+                LIMIT ?3
+                OFFSET ?4";
+
+    let items = sqlite::many(
+        &conn,
+        stmt,
+        params![&user_id, &deck_kind.to_string(), &num_items, &offset],
+    )?;
+
+    let total_items = num_decks_for_deck_kind(sqlite_pool, user_id, deck_kind)?;
+
+    let res = interop::Pagination::<interop::SlimDeck> { items, total_items };
+
+    Ok(res)
+}
+
 // note: may execute multiple sql write statements so should be in a transaction
 //
 // returns tuple where the second element is a bool indicating whether the deck
