@@ -271,6 +271,12 @@ CREATE TABLE IF NOT EXISTS stats_num_refs (
        FOREIGN KEY (stats_id) REFERENCES stats (id) ON DELETE CASCADE ON UPDATE NO ACTION
 );
 
+
+CREATE VIRTUAL TABLE decks_fts USING fts5(name, content='decks', content_rowid='id' tokenize='porter unicode61', prefix='2 3 4 5 6');
+CREATE VIRTUAL TABLE points_fts USING fts5(title, location_textual, date_textual, content='points', content_rowid='id' tokenize='porter unicode61', prefix='2 3 4 5 6');
+CREATE VIRTUAL TABLE notes_fts USING fts5(content, content='notes', content_rowid='id', tokenize='porter unicode61', prefix='2 3 4 5 6');
+CREATE VIRTUAL TABLE article_extras_fts USING fts5(source, author, short_description, content='article_extras', content_rowid='deck_id', tokenize='porter unicode61', prefix='2 3 4 5 6');
+CREATE VIRTUAL TABLE quote_extras_fts USING fts5(attribution, content='quote_extras', content_rowid='deck_id', tokenize='porter unicode61', prefix='2 3 4 5 6');
  */
 
 // the following sqlite command:
@@ -851,6 +857,29 @@ pub fn migration_check(db_name: &str) -> crate::Result<()> {
         // user_version 26: users.ui_config_json contains the colour theme
         ///////////////////
         M::up("ALTER TABLE users DROP COLUMN theme;"),
+
+        ///////////////////
+        // user_version 27: full text search (fts5) tables recreated to use porter tokenizer with prefixes
+        ///////////////////
+        M::up("DROP TABLE IF EXISTS decks_fts;
+               CREATE VIRTUAL TABLE decks_fts USING fts5(name, content='decks', content_rowid='id', tokenize='porter unicode61', prefix='2 3 4 5 6');
+               INSERT INTO decks_fts(decks_fts) VALUES('rebuild');
+
+               DROP TABLE IF EXISTS points_fts;
+               CREATE VIRTUAL TABLE points_fts USING fts5(title, location_textual, date_textual, content='points', content_rowid='id', tokenize='porter unicode61', prefix='2 3 4 5 6');
+               INSERT INTO points_fts(points_fts) VALUES('rebuild');
+
+               DROP TABLE IF EXISTS notes_fts;
+               CREATE VIRTUAL TABLE notes_fts USING fts5(content, content='notes', content_rowid='id', tokenize='porter unicode61', prefix='2 3 4 5 6');
+               INSERT INTO notes_fts(notes_fts) VALUES('rebuild');
+
+               DROP TABLE IF EXISTS article_extras_fts;
+               CREATE VIRTUAL TABLE article_extras_fts USING fts5(source, author, short_description, content='article_extras', content_rowid='deck_id', tokenize='porter unicode61', prefix='2 3 4 5 6');
+               INSERT INTO article_extras_fts(article_extras_fts) VALUES('rebuild');
+
+               DROP TABLE IF EXISTS quote_extras_fts;
+               CREATE VIRTUAL TABLE quote_extras_fts USING fts5(attribution, content='quote_extras', content_rowid='deck_id', tokenize='porter unicode61', prefix='2 3 4 5 6');
+               INSERT INTO quote_extras_fts(quote_extras_fts) VALUES('rebuild');"),
     ]);
 
     let mut conn = Connection::open(db_name)?;
