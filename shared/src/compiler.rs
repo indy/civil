@@ -53,6 +53,23 @@ fn compile_node_to_struct(node: &Node, note_id: usize) -> crate::Result<Vec<Elem
             }]
         }
         Node::Deleted(key, ns) => element_hoisted("del", *key, note_id, ns)?,
+        Node::Diagram(_key, src, ns) => {
+            let img = Element {
+                name: String::from("img"),
+                src: Some(String::from(src)),
+                ..Default::default()
+            };
+
+            if ns.is_empty() {
+                vec![img]
+            } else {
+                let mut image_and_code = vec![img];
+                let code = compile_to_struct(ns, note_id)?;
+                image_and_code.extend(code);
+                image_and_code
+            }
+        }
+        Node::DoubleQuoted(key, ns) => element_hoisted("em", *key, note_id, ns)?,
         Node::Header(key, level, ns) => header_key(*level, *key, note_id, ns)?,
         Node::Highlight(key, col, ns) => coloured_highlight(col, *key, note_id, ns)?,
         Node::HorizontalRule(key) => element_class("hr", "hr-inline", *key, note_id, &[])?,
@@ -80,22 +97,6 @@ fn compile_node_to_struct(node: &Node, note_id: usize) -> crate::Result<Vec<Elem
                 }]
             }
         }
-        Node::Diagram(_key, src, ns) => {
-            let img = Element {
-                name: String::from("img"),
-                src: Some(String::from(src)),
-                ..Default::default()
-            };
-
-            if ns.is_empty() {
-                vec![img]
-            } else {
-                let mut image_and_code = vec![img];
-                let code = compile_to_struct(ns, note_id)?;
-                image_and_code.extend(code);
-                image_and_code
-            }
-        }
         Node::Italic(key, ns) => element_hoisted("i", *key, note_id, ns)?,
         Node::ListItem(key, ns) => element("li", *key, note_id, ns)?,
         Node::MarginComment(key, ns) => compile_sidenote("right-margin-scribble fg-blue", *key, note_id, ns)?,
@@ -106,7 +107,6 @@ fn compile_node_to_struct(node: &Node, note_id: usize) -> crate::Result<Vec<Elem
         },
         Node::OrderedList(key, ns, start) => compile_ordered_list(start, *key, note_id, ns)?,
         Node::Paragraph(key, ns) => element("p", *key, note_id, ns)?,
-        Node::Quotation(key, ns) => element_hoisted("em", *key, note_id, ns)?,
         Node::Searched(key, ns) => element_hoisted_class("span", "searched-text", *key, note_id, ns)?,
         Node::Strong(key, ns) => element_hoisted("strong", *key, note_id, ns)?,
         Node::Subscript(key, ns) => element_hoisted("sub", *key, note_id, ns)?,

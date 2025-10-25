@@ -84,11 +84,12 @@ pub enum Node {
     Codeblock(usize, String),
     ColouredText(usize, ColourPalette, Vec<Node>),
     Deleted(usize, Vec<Node>),
+    Diagram(usize, String, Vec<Node>),
+    DoubleQuoted(usize, Vec<Node>),
     Header(usize, u32, Vec<Node>),
     Highlight(usize, ColourPalette, Vec<Node>),
     HorizontalRule(usize),
     Image(usize, String, Vec<Node>),
-    Diagram(usize, String, Vec<Node>),
     Italic(usize, Vec<Node>),
     ListItem(usize, Vec<Node>),
     MarginComment(usize, Vec<Node>),
@@ -96,7 +97,6 @@ pub enum Node {
     MarginText(usize, MarginTextLabel, Vec<Node>),
     OrderedList(usize, Vec<Node>, String),
     Paragraph(usize, Vec<Node>),
-    Quotation(usize, Vec<Node>),
     Searched(usize, Vec<Node>),
     Strong(usize, Vec<Node>),
     Subscript(usize, Vec<Node>),
@@ -111,14 +111,15 @@ pub enum Node {
 fn get_node_pos(node: &Node) -> usize {
     match node {
         Node::BlockQuote(pos, _) => *pos,
-        Node::ColouredText(pos, _, _) => *pos,
         Node::Codeblock(pos, _) => *pos,
+        Node::ColouredText(pos, _, _) => *pos,
         Node::Deleted(pos, _) => *pos,
+        Node::Diagram(pos, _, _) => *pos,
+        Node::DoubleQuoted(pos, _) => *pos,
         Node::Header(pos, _, _) => *pos,
         Node::Highlight(pos, _, _) => *pos,
         Node::HorizontalRule(pos) => *pos,
         Node::Image(pos, _, _) => *pos,
-        Node::Diagram(pos, _, _) => *pos,
         Node::Italic(pos, _) => *pos,
         Node::ListItem(pos, _) => *pos,
         Node::MarginComment(pos, _) => *pos,
@@ -126,7 +127,6 @@ fn get_node_pos(node: &Node) -> usize {
         Node::MarginText(pos, _, _) => *pos,
         Node::OrderedList(pos, _, _) => *pos,
         Node::Paragraph(pos, _) => *pos,
-        Node::Quotation(pos, _) => *pos,
         Node::Searched(pos, _) => *pos,
         Node::Strong(pos, _) => *pos,
         Node::Subscript(pos, _) => *pos,
@@ -317,7 +317,7 @@ fn eat_item<'a>(tokens: &'a [Token]) -> ParserResult<'a, Node> {
         Token::Colon(_) => eat_colon(tokens),
         Token::DoubleQuote(pos, _) => {
             if let Ok((toks, inside)) = inside_pair(tokens) {
-                Ok((toks, Node::Quotation(pos, inside)))
+                Ok((toks, Node::DoubleQuoted(pos, inside)))
             } else {
                 eat_text_including(tokens)
             }
@@ -1038,9 +1038,9 @@ mod tests {
         };
     }
 
-    fn assert_quoted1(node: &Node, expected: &'static str, loc: usize) {
+    fn assert_double_quoted_1(node: &Node, expected: &'static str, loc: usize) {
         match node {
-            Node::Quotation(pos, ns) => {
+            Node::DoubleQuoted(pos, ns) => {
                 assert_eq!(ns.len(), 1);
                 match &ns[0] {
                     Node::Paragraph(_, ns) => {
@@ -1211,7 +1211,7 @@ mod tests {
             let children = paragraph_children(&nodes[0]).unwrap();
             assert_eq!(children.len(), 3);
             assert_text(&children[0], "words with ");
-            assert_quoted1(&children[1], "quoted", 11);
+            assert_double_quoted_1(&children[1], "quoted", 11);
             assert_text(&children[2], " text");
         }
         {
@@ -1221,7 +1221,7 @@ mod tests {
             let children = paragraph_children(&nodes[0]).unwrap();
             assert_eq!(children.len(), 2);
             assert_text(&children[0], "sentence ending with ");
-            assert_quoted1(&children[1], "quotation", 21);
+            assert_double_quoted_1(&children[1], "quotation", 21);
         }
         {
             let nodes = build("sentence with random \" double quote character");
@@ -1389,7 +1389,7 @@ here is the closing paragraph",
             "Though Aristotle wrote many elegant treatises and dialogues - Cicero described his literary style as ",
             0,
         );
-        assert_quoted1(&children[1], "a river of gold", 101);
+        assert_double_quoted_1(&children[1], "a river of gold", 101);
         assert_text(
             &children[2],
             " - it is thought that only around a third of his original output has survived.",
