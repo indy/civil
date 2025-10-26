@@ -58,6 +58,9 @@ export default function buildMarkup(
         return false;
     }
 
+    // console.log(content);
+    // console.log(astArray);
+
     function attrs(n: Element): Attrs {
         const res: Attrs = {
             key: n.key!,
@@ -146,6 +149,10 @@ export default function buildMarkup(
                 modified_attrs.class = assignBodyTypeface(modified_attrs.class);
                 return h(n.name, modified_attrs, ...children);
             }
+        } else if (n.name === "blockquote") {
+            let modified_attrs: Attrs = attrs(n);
+            modified_attrs.class = assignBodyTypeface(modified_attrs.class);
+            return h(n.name, modified_attrs, ...children);
         } else if (n.name === "ol" || n.name === "ul") {
             let modified_attrs: Attrs = attrs(n);
             modified_attrs.class = assignBodyTypeface(modified_attrs.class);
@@ -184,7 +191,6 @@ export default function buildMarkup(
         }
     }
 
-    // console.log(astArray);
     return astArray.map((node: Element) => {
         return compile(node, false, false);
     });

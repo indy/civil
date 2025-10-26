@@ -169,6 +169,14 @@ fn is_heading(tokens: &'_ [Token]) -> bool {
     }
 }
 
+fn is_blockquote(tokens: &'_ [Token]) -> bool {
+    is_colon_specifier(tokens) && tokens.is_text(1, "blockquote")
+}
+
+fn is_quote(tokens: &'_ [Token]) -> bool {
+    is_colon_specifier(tokens) && tokens.is_text(1, "quote")
+}
+
 fn is_img(tokens: &'_ [Token]) -> bool {
     is_colon_specifier(tokens) && tokens.is_text(1, "img")
 }
@@ -193,6 +201,10 @@ pub fn parse<'a>(tokens: &'a [Token<'a>]) -> ParserResult<'a, Vec<Node>> {
             eat_colon(tokens)?
         } else if is_img(tokens) {
             eat_img(tokens)?
+        } else if is_blockquote(tokens) { // blockquotes can't be nested within p
+            eat_blockquote(tokens)?
+        } else if is_quote(tokens) { // a quote is just a blockquote with an additional cite child tag
+            eat_quote(tokens)?
         } else if is_diagram(tokens) {
             eat_diagram(tokens)?
         } else {
