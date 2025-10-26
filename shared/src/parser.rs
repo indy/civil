@@ -631,7 +631,7 @@ fn eat_header_contents<'a>(tokens: &'a [Token<'a>]) -> ParserResult<'a, (usize, 
 //
 fn eat_colon_command_space_separated_pairing<'a>(
     mut tokens: &'a [Token<'a>],
-) -> ParserResult<'a, (bool, Vec<Token<'a>>, Vec<Token<'a>>)> {
+) -> ParserResult<'a, (Vec<Token<'a>>, Vec<Token<'a>>)> {
     let mut found_desc_divide = false;
     let mut core_tokens: Vec<Token> = vec![];
     let mut desc_tokens: Vec<Token> = vec![];
@@ -685,13 +685,13 @@ fn eat_colon_command_space_separated_pairing<'a>(
         }
     }
 
-    Ok((tokens, (found_desc_divide, core_tokens, desc_tokens)))
+    Ok((tokens, (core_tokens, desc_tokens)))
 }
 
 // return two Vec<Token>'s which were separated by the :: sequence
 fn eat_colon_command_double_colon_separated_pairing<'a>(
     mut tokens: &'a [Token<'a>],
-) -> ParserResult<'a, (bool, Vec<Token<'a>>, Vec<Token<'a>>)> {
+) -> ParserResult<'a, (Vec<Token<'a>>, Vec<Token<'a>>)> {
     let mut found_divide = false;
     let mut left_tokens: Vec<Token> = vec![];
     let mut right_tokens: Vec<Token> = vec![];
@@ -737,38 +737,37 @@ fn eat_colon_command_double_colon_separated_pairing<'a>(
         }
     }
 
-    Ok((tokens, (found_divide, left_tokens, right_tokens)))
+    Ok((tokens, (left_tokens, right_tokens)))
 }
 
 fn eat_as_youtube_id_start_pair<'a>(tokens: &'a [Token<'a>]) -> ParserResult<'a, (String, String)> {
-    let (tokens, (found_divide, left, right)) = eat_colon_command_space_separated_pairing(tokens)?;
+    let (tokens, (left, right)) = eat_colon_command_space_separated_pairing(tokens)?;
 
     let id = join_token_values(&left);
 
-    let start: String;
-    if found_divide {
-        start = join_token_values(&right);
+    let start: String = if right.is_empty() {
+        String::from("0")
     } else {
-        start = String::from("0");
-    }
+        join_token_values(&right)
+    };
 
     Ok((tokens, (id, start)))
 }
 
 // treat every token as Text until we get to a token of the given type
 fn eat_as_url_description_pair<'a>(tokens: &'a [Token<'a>]) -> ParserResult<'a, (String, Vec<Node>)> {
-    let (tokens, (found_divide, left, right)) = eat_colon_command_space_separated_pairing(tokens)?;
+    let (tokens, (left, right)) = eat_colon_command_space_separated_pairing(tokens)?;
     let res = join_token_values(&left);
 
     // if there is no text after the first space then use the url as the displayed text
     //
-    let (_, description_nodes) = if found_divide { parse(&right)? } else { parse(&left)? };
+    let (_, description_nodes) = if right.is_empty() { parse(&left)? } else { parse(&right)? };
 
     Ok((tokens, (res, description_nodes)))
 }
 
 fn eat_as_image_description_pair<'a>(tokens: &'a [Token<'a>]) -> ParserResult<'a, (String, Vec<Node>)> {
-    let (tokens, (_found_divide, left, right)) = eat_colon_command_space_separated_pairing(tokens)?;
+    let (tokens, (left, right)) = eat_colon_command_space_separated_pairing(tokens)?;
     let image_name = join_token_values(&left);
     let (_, description_nodes) = parse(&right)?;
 
@@ -776,7 +775,7 @@ fn eat_as_image_description_pair<'a>(tokens: &'a [Token<'a>]) -> ParserResult<'a
 }
 
 fn eat_as_quote_attribution_pair<'a>(tokens: &'a [Token<'a>]) -> ParserResult<'a, (Vec<Node>, Vec<Node>)> {
-    let (tokens, (_found_divide, left, right)) = eat_colon_command_double_colon_separated_pairing(tokens)?;
+    let (tokens, (left, right)) = eat_colon_command_double_colon_separated_pairing(tokens)?;
 
     let (_, quote) = parse(&left)?;
     let (_, attribution) = parse(&right)?;
@@ -792,16 +791,16 @@ fn eat_code_block<'a>(tokens: &'a [Token<'a>]) -> ParserResult<'a, Node> {
 }
 
 fn eat_as_diagram_code_pair<'a>(tokens: &'a [Token<'a>]) -> ParserResult<'a, (String, Vec<Node>)> {
-    let (tokens, (found_divide, left, right)) = eat_colon_command_space_separated_pairing(tokens)?;
+    let (tokens, (left, right)) = eat_colon_command_space_separated_pairing(tokens)?;
     let res = join_token_values(&left);
 
     // only have code if it's in the markup after the diagram's filename
     //
-    if found_divide {
+    if right.is_empty() {
+        Ok((tokens, (res, vec![])))
+    } else {
         let (_, code) = eat_code_block(&right)?;
         Ok((tokens, (res, vec![code])))
-    } else {
-        Ok((tokens, (res, vec![])))
     }
 }
 
