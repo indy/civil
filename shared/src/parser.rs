@@ -85,7 +85,7 @@ pub enum Node {
     ColouredText(usize, ColourPalette, Vec<Node>),
     Deleted(usize, Vec<Node>),
     Diagram(usize, String, Vec<Node>),
-    DoubleQuoted(usize, Vec<Node>),
+    DoubleQuotedText(usize, Vec<Node>),
     Header(usize, u32, Vec<Node>),
     Highlight(usize, ColourPalette, Vec<Node>),
     HorizontalRule(usize),
@@ -115,7 +115,7 @@ fn get_node_pos(node: &Node) -> usize {
         Node::ColouredText(pos, _, _) => *pos,
         Node::Deleted(pos, _) => *pos,
         Node::Diagram(pos, _, _) => *pos,
-        Node::DoubleQuoted(pos, _) => *pos,
+        Node::DoubleQuotedText(pos, _) => *pos,
         Node::Header(pos, _, _) => *pos,
         Node::Highlight(pos, _, _) => *pos,
         Node::HorizontalRule(pos) => *pos,
@@ -317,7 +317,7 @@ fn eat_item<'a>(tokens: &'a [Token]) -> ParserResult<'a, Node> {
         Token::Colon(_) => eat_colon(tokens),
         Token::DoubleQuote(pos, _) => {
             if let Ok((toks, inside)) = inside_pair(tokens) {
-                Ok((toks, Node::DoubleQuoted(pos, inside)))
+                Ok((toks, Node::DoubleQuotedText(pos, inside)))
             } else {
                 eat_text_including(tokens)
             }
@@ -1040,7 +1040,7 @@ mod tests {
 
     fn assert_double_quoted_1(node: &Node, expected: &'static str, loc: usize) {
         match node {
-            Node::DoubleQuoted(pos, ns) => {
+            Node::DoubleQuotedText(pos, ns) => {
                 assert_eq!(ns.len(), 1);
                 match &ns[0] {
                     Node::Paragraph(_, ns) => {

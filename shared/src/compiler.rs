@@ -69,7 +69,7 @@ fn compile_node_to_struct(node: &Node, note_id: usize) -> crate::Result<Vec<Elem
                 image_and_code
             }
         }
-        Node::DoubleQuoted(key, ns) => element_hoisted("em", *key, note_id, ns)?,
+        Node::DoubleQuotedText(key, ns) => element_hoisted("em", *key, note_id, ns)?,
         Node::Header(key, level, ns) => header_key(*level, *key, note_id, ns)?,
         Node::Highlight(key, col, ns) => coloured_highlight(col, *key, note_id, ns)?,
         Node::HorizontalRule(key) => element_class("hr", "hr-inline", *key, note_id, &[])?,
