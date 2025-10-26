@@ -848,6 +848,15 @@ blockquote .right-margin-scribble {
     text-align: left;
 }
 
+blockquote cite {
+  display: block;
+  text-align: right;
+}
+
+blockquote cite::before {
+  content: "— ";
+}
+
 li:not(:first-child) {
     margin-top: 0.25rem;
 }

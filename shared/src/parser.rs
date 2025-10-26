@@ -97,6 +97,7 @@ pub enum Node {
     MarginText(usize, MarginTextLabel, Vec<Node>),
     OrderedList(usize, Vec<Node>, String),
     Paragraph(usize, Vec<Node>),
+    Quotation(usize, Vec<Node>, Vec<Node>),
     Searched(usize, Vec<Node>),
     Strong(usize, Vec<Node>),
     Subscript(usize, Vec<Node>),
@@ -127,6 +128,7 @@ fn get_node_pos(node: &Node) -> usize {
         Node::MarginText(pos, _, _) => *pos,
         Node::OrderedList(pos, _, _) => *pos,
         Node::Paragraph(pos, _) => *pos,
+        Node::Quotation(pos, _, _) => *pos,
         Node::Searched(pos, _) => *pos,
         Node::Strong(pos, _) => *pos,
         Node::Subscript(pos, _) => *pos,
@@ -333,6 +335,13 @@ fn eat_img<'a>(tokens: &'a [Token<'a>]) -> ParserResult<'a, Node> {
     Ok((tokens, Node::Image(pos, image_name, description)))
 }
 
+fn eat_quote<'a>(tokens: &'a [Token<'a>]) -> ParserResult<'a, Node> {
+    let pos = get_token_pos(&tokens[0]);
+    let (tokens, (quote, attribution)) = eat_as_quote_attribution_pair(tokens)?;
+
+    Ok((tokens, Node::Quotation(pos, quote, attribution)))
+}
+
 fn eat_diagram<'a>(tokens: &'a [Token<'a>]) -> ParserResult<'a, Node> {
     let pos = get_token_pos(&tokens[0]);
     let (tokens, (image_name, code)) = eat_as_diagram_code_pair(tokens)?;
@@ -494,6 +503,7 @@ fn eat_colon<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<'a, Node> {
             Token::Text(_, "deleted") => eat_deleted(tokens),
             Token::Text(_, "disagree") => eat_disagree(tokens),
             Token::Text(_, "nside") => eat_nside(tokens),
+            Token::Text(_, "quote") => eat_quote(tokens),
             Token::Text(_, "searched") => eat_searched(tokens),
             Token::Text(_, "side") => eat_side(tokens),
             Token::Text(_, "subscript") => eat_subscript(tokens),
@@ -619,7 +629,7 @@ fn eat_header_contents<'a>(tokens: &'a [Token<'a>]) -> ParserResult<'a, (usize, 
 
 // returns found_divide, left tokens, right tokens
 //
-fn eat_colon_command_pairing<'a>(
+fn eat_colon_command_space_separated_pairing<'a>(
     mut tokens: &'a [Token<'a>],
 ) -> ParserResult<'a, (bool, Vec<Token<'a>>, Vec<Token<'a>>)> {
     let mut found_desc_divide = false;
@@ -678,8 +688,60 @@ fn eat_colon_command_pairing<'a>(
     Ok((tokens, (found_desc_divide, core_tokens, desc_tokens)))
 }
 
+// return two Vec<Token>'s which were separated by the :: sequence
+fn eat_colon_command_double_colon_separated_pairing<'a>(
+    mut tokens: &'a [Token<'a>],
+) -> ParserResult<'a, (bool, Vec<Token<'a>>, Vec<Token<'a>>)> {
+    let mut found_divide = false;
+    let mut left_tokens: Vec<Token> = vec![];
+    let mut right_tokens: Vec<Token> = vec![];
+
+    let mut paren_balancer = 1;
+
+    tokens = &tokens[3..]; // eat the colon, text, opening parentheses
+
+    while !tokens.is_empty() {
+        if is_head(tokens, TokenIdent::ParenBegin) {
+            let pos = get_token_pos(&tokens[0]);
+            paren_balancer += 1;
+            tokens = &tokens[1..];
+            if found_divide {
+                right_tokens.push(Token::ParenBegin(pos));
+            } else {
+                left_tokens.push(Token::ParenBegin(pos));
+            }
+        } else if is_head(tokens, TokenIdent::ParenEnd) {
+            paren_balancer -= 1;
+            let pos = get_token_pos(&tokens[0]);
+            tokens = &tokens[1..];
+
+            if paren_balancer == 0 {
+                // reached the closing paren
+                break;
+            }
+            if found_divide {
+                right_tokens.push(Token::ParenEnd(pos));
+            } else {
+                left_tokens.push(Token::ParenEnd(pos));
+            }
+        } else if tokens.is_next_2(TokenIdent::Colon, TokenIdent::Colon) && !found_divide {
+            found_divide = true;
+            tokens = &tokens[2..];
+        } else {
+            if found_divide {
+                right_tokens.push(tokens[0]);
+            } else {
+                left_tokens.push(tokens[0]);
+            }
+            tokens = &tokens[1..];
+        }
+    }
+
+    Ok((tokens, (found_divide, left_tokens, right_tokens)))
+}
+
 fn eat_as_youtube_id_start_pair<'a>(tokens: &'a [Token<'a>]) -> ParserResult<'a, (String, String)> {
-    let (tokens, (found_divide, left, right)) = eat_colon_command_pairing(tokens)?;
+    let (tokens, (found_divide, left, right)) = eat_colon_command_space_separated_pairing(tokens)?;
 
     let id = join_token_values(&left);
 
@@ -695,7 +757,7 @@ fn eat_as_youtube_id_start_pair<'a>(tokens: &'a [Token<'a>]) -> ParserResult<'a,
 
 // treat every token as Text until we get to a token of the given type
 fn eat_as_url_description_pair<'a>(tokens: &'a [Token<'a>]) -> ParserResult<'a, (String, Vec<Node>)> {
-    let (tokens, (found_divide, left, right)) = eat_colon_command_pairing(tokens)?;
+    let (tokens, (found_divide, left, right)) = eat_colon_command_space_separated_pairing(tokens)?;
     let res = join_token_values(&left);
 
     // if there is no text after the first space then use the url as the displayed text
@@ -706,18 +768,22 @@ fn eat_as_url_description_pair<'a>(tokens: &'a [Token<'a>]) -> ParserResult<'a, 
 }
 
 fn eat_as_image_description_pair<'a>(tokens: &'a [Token<'a>]) -> ParserResult<'a, (String, Vec<Node>)> {
-    let (tokens, (found_divide, left, right)) = eat_colon_command_pairing(tokens)?;
-    let res = join_token_values(&left);
+    let (tokens, (_found_divide, left, right)) = eat_colon_command_space_separated_pairing(tokens)?;
+    let image_name = join_token_values(&left);
+    let (_, description_nodes) = parse(&right)?;
 
-    // only have descriptive text if it's in the markup after the image filename
-    //
-    if found_divide {
-        let (_, description_nodes) = parse(&right)?;
-        Ok((tokens, (res, description_nodes)))
-    } else {
-        Ok((tokens, (res, vec![])))
-    }
+    Ok((tokens, (image_name, description_nodes)))
 }
+
+fn eat_as_quote_attribution_pair<'a>(tokens: &'a [Token<'a>]) -> ParserResult<'a, (Vec<Node>, Vec<Node>)> {
+    let (tokens, (_found_divide, left, right)) = eat_colon_command_double_colon_separated_pairing(tokens)?;
+
+    let (_, quote) = parse(&left)?;
+    let (_, attribution) = parse(&right)?;
+
+    Ok((tokens, (quote, attribution)))
+}
+
 
 fn eat_code_block<'a>(tokens: &'a [Token<'a>]) -> ParserResult<'a, Node> {
     let (tokens, (pos, code)) = eat_as_string(tokens)?;
@@ -726,7 +792,7 @@ fn eat_code_block<'a>(tokens: &'a [Token<'a>]) -> ParserResult<'a, Node> {
 }
 
 fn eat_as_diagram_code_pair<'a>(tokens: &'a [Token<'a>]) -> ParserResult<'a, (String, Vec<Node>)> {
-    let (tokens, (found_divide, left, right)) = eat_colon_command_pairing(tokens)?;
+    let (tokens, (found_divide, left, right)) = eat_colon_command_space_separated_pairing(tokens)?;
     let res = join_token_values(&left);
 
     // only have code if it's in the markup after the diagram's filename

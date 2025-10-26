@@ -107,6 +107,7 @@ fn compile_node_to_struct(node: &Node, note_id: usize) -> crate::Result<Vec<Elem
         },
         Node::OrderedList(key, ns, start) => compile_ordered_list(start, *key, note_id, ns)?,
         Node::Paragraph(key, ns) => element("p", *key, note_id, ns)?,
+        Node::Quotation(key, quote_ns, attribution_ns) => quotation(*key, note_id, quote_ns, attribution_ns)?,
         Node::Searched(key, ns) => element_hoisted_class("span", "searched-text", *key, note_id, ns)?,
         Node::Strong(key, ns) => element_hoisted("strong", *key, note_id, ns)?,
         Node::Subscript(key, ns) => element_hoisted("sub", *key, note_id, ns)?,
@@ -212,6 +213,14 @@ fn coloured_highlight(col: &ColourPalette, key: usize, note_id: usize, ns: &[Nod
         ColourPalette::Purple => "bg-hi-purple",
     };
     element_hoisted_class("mark", class, key, note_id, ns)
+}
+
+fn quotation(key: usize, note_id: usize, quote_ns: &[Node], attribution_ns: &[Node]) -> crate::Result<Vec<Element>> {
+    let attribution_element = base_element_hoisted("cite", key, note_id, attribution_ns)?;
+    let mut quote_element  = base_element("blockquote", key, note_id, quote_ns)?;
+    quote_element.children.push(attribution_element);
+
+    Ok(vec![quote_element])
 }
 
 fn coloured_text(col: &ColourPalette, key: usize, note_id: usize, ns: &[Node]) -> crate::Result<Vec<Element>> {
