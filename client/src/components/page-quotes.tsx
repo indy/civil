@@ -3,9 +3,9 @@ import { route } from "preact-router";
 import { useEffect, useState, useRef } from "preact/hooks";
 
 import { DeckKind, Font, NoteKind } from "../enums";
-import type { DeckQuote, DM, Key, ProtoQuote, SearchResults } from "../types";
+import type { DeckQuote, DM, ProtoQuote, SearchResults } from "../types";
 
-import { AppStateChange, immutableState } from "../app-state";
+import { AppStateChange } from "../app-state";
 
 import {
     deckKindToHeadingString,
@@ -15,7 +15,6 @@ import { impactAsText } from "../shared/impact";
 import Net from "../shared/net";
 import { sanitize, emptySearchResults } from "../shared/search";
 
-import buildMarkup from "./build-markup";
 import CivilButton from "./civil-button";
 import CivilInput from "./civil-input";
 import {
@@ -28,14 +27,12 @@ import {
     CivRight,
 } from "./civil-layout";
 import CivilTextArea from "./civil-text-area";
-import DeleteConfirmation from "./delete-confirmation";
 import AlwaysVisibleKeyboardHelp from "./always-visible-keyboard-help";
 import RecentlyVisited from "./recently-visited";
 import SegmentArrivals from "./segment-arrivals";
 import SegmentInsignias from "./segment-insignias";
 import SegmentNotes from "./segment-notes";
 import useDeckManager from "./use-deck-manager";
-import useLocalReducer from "./use-local-reducer";
 import useModalKeyboard from "./use-modal-keyboard";
 import ViewSearchResults from "./view-search-results";
 import WhenNoPhysicalKeyboard from "./when-no-physical-keyboard";
@@ -347,7 +344,6 @@ function Quote({ path, id }: { path?: string; id?: string }) {
     const quoteId: number = id ? parseInt(id, 10) : 0;
 
     useModalKeyboard(quoteId, (key: string) => {
-        console.log(key);
         switch (key) {
             case ".":
                 nextQuote(quoteId);
@@ -361,41 +357,14 @@ function Quote({ path, id }: { path?: string; id?: string }) {
         }
     });
 
-    function onEditedAttributionFn(deckId: Key) {
-        return function (attribution: string) {
-            let deckQuote: DeckQuote = deck! as DeckQuote;
-            let note = deckQuote.notes.find((n) => n.kind === NoteKind.Note);
-
-            if (note) {
-                let data: ProtoQuote = {
-                    title: deckQuote.title,
-                    insignia: 0,
-                    deckKind: DeckKind.Quote,
-                    font: deckQuote.font,
-                    graphTerminator: false,
-                    impact: 1, // isg fix this
-                    text: deckQuote.text,
-                    attribution: attribution,
-                };
-
-                // as the title could have changed, we need to post the updated quote to the server
-                Net.put<ProtoQuote, DeckQuote>(
-                    `/api/quotes/${deckId}`,
-                    data,
-                ).then((updatedDeck) => {
-                    deckManager.updateAndReset(updatedDeck);
-                });
-            }
-        };
-    }
-
-    function onDeleteFn(deckId: Key) {
-        return function () {
-            Net.delete(`/api/quotes/${deckId}`, {}).then(() => {
-                route("/quotes");
-            });
-        };
-    }
+    // todo: how to delete a quote?
+    // function onDeleteFn(deckId: Key) {
+    //     return function () {
+    //         Net.delete(`/api/quotes/${deckId}`, {}).then(() => {
+    //             route("/quotes");
+    //         });
+    //     };
+    // }
 
     function onUpdatedDeck(deck: DeckQuote) {
         // re-title the quote now that the content may have changed
@@ -438,12 +407,6 @@ function Quote({ path, id }: { path?: string; id?: string }) {
                     noDelete
                 />
 
-                <Attribution
-                    attribution={deck.attribution}
-                    onEdited={onEditedAttributionFn(deck.id)}
-                    onDelete={onDeleteFn(deck.id)}
-                />
-
                 <SegmentArrivals deck={deck} />
 
                 <WhenNoPhysicalKeyboard>
@@ -460,173 +423,6 @@ function Quote({ path, id }: { path?: string; id?: string }) {
     } else {
         return <article></article>;
     }
-}
-
-enum AttrMode {
-    Show,
-    Edit,
-}
-
-enum ActionAttrType {
-    SetMode,
-    InitAttribution,
-    SetAttribution,
-    ShowButtons,
-    HideButtons,
-}
-
-type ActionAttr = {
-    type: ActionAttrType;
-    data?: AttrMode | string;
-};
-
-type StateAttr = {
-    mode: AttrMode;
-    showButtons: boolean;
-    originalAttribution: string;
-    attribution: string;
-};
-
-function attributionReducer(state: StateAttr, action: ActionAttr): StateAttr {
-    switch (action.type) {
-        case ActionAttrType.SetMode: {
-            const data = action.data as AttrMode;
-            return {
-                ...state,
-                mode: data,
-                showButtons: data === AttrMode.Show ? false : state.showButtons,
-            };
-        }
-        case ActionAttrType.ShowButtons: {
-            return {
-                ...state,
-                showButtons: true,
-            };
-        }
-        case ActionAttrType.HideButtons: {
-            return {
-                ...state,
-                showButtons: false,
-            };
-        }
-        case ActionAttrType.InitAttribution: {
-            const data = action.data as string;
-            return {
-                ...state,
-                originalAttribution: data,
-                attribution: data,
-            };
-        }
-        case ActionAttrType.SetAttribution: {
-            const data = action.data as string;
-            return {
-                ...state,
-                attribution: data,
-            };
-        }
-    }
-}
-
-type AttributionProps = {
-    attribution: string;
-    onEdited: (a: string) => void;
-    onDelete: () => void;
-};
-
-function Attribution({ attribution, onEdited, onDelete }: AttributionProps) {
-    let initialState: StateAttr = {
-        mode: AttrMode.Show,
-        showButtons: false,
-        originalAttribution: attribution,
-        attribution,
-    };
-    const [local, localDispatch] = useLocalReducer<StateAttr, ActionAttrType>(
-        attributionReducer,
-        initialState,
-    );
-
-    useEffect(() => {
-        if (local.originalAttribution !== attribution) {
-            localDispatch(ActionAttrType.InitAttribution, attribution);
-        }
-    }, [attribution]);
-
-    function clickedAttribution(e: Event) {
-        e.preventDefault();
-        localDispatch(
-            local.showButtons
-                ? ActionAttrType.HideButtons
-                : ActionAttrType.ShowButtons,
-        );
-    }
-
-    function confirmedDeleteClicked() {
-        onDelete();
-    }
-
-    function clickedEdit(e: Event) {
-        e.preventDefault();
-        localDispatch(ActionAttrType.SetMode, AttrMode.Edit);
-    }
-
-    function handleAttributionChange(content: string) {
-        localDispatch(ActionAttrType.SetAttribution, content);
-    }
-
-    function clickedCancel(e: Event) {
-        e.preventDefault();
-        localDispatch(ActionAttrType.SetMode, AttrMode.Show);
-    }
-
-    function clickedOK(e: Event) {
-        e.preventDefault();
-        onEdited(local.attribution);
-        localDispatch(ActionAttrType.SetMode, AttrMode.Show);
-    }
-
-    let markup =
-        attribution && buildMarkup(attribution, immutableState.defaultFont, 0);
-    // convert the p tag into spans
-    if (markup) {
-        markup[0].type = "span";
-    }
-
-    return (
-        <CivContainer>
-            <CivMain>
-                {local.mode === AttrMode.Show && (
-                    <div>
-                        <div
-                            id="quotation-attribute"
-                            onClick={clickedAttribution}
-                        >
-                            {markup}
-                        </div>
-                        {local.showButtons && (
-                            <div>
-                                <button onClick={clickedEdit}>Edit...</button>
-                                <DeleteConfirmation
-                                    onDelete={confirmedDeleteClicked}
-                                />
-                            </div>
-                        )}
-                    </div>
-                )}
-                {local.mode === AttrMode.Edit && (
-                    <div>
-                        <CivilInput
-                            id="attribution"
-                            value={local.attribution}
-                            onContentChange={handleAttributionChange}
-                        />
-                        <br />
-                        <button onClick={clickedCancel}>Cancel</button>
-                        <button onClick={clickedOK}>OK</button>
-                    </div>
-                )}
-            </CivMain>
-        </CivContainer>
-    );
 }
 
 export { Quote, Quotes, QuoteNew };

@@ -27,28 +27,9 @@ use rusqlite::{params, Row};
 #[allow(unused_imports)]
 use tracing::{error, info};
 
-struct QuoteExtra {
-    attribution: Option<String>,
-}
 
-impl FromRow for QuoteExtra {
-    fn from_row(row: &Row) -> crate::Result<QuoteExtra> {
-        Ok(QuoteExtra {
-            attribution: row.get(0)?,
-        })
-    }
-}
-
-impl From<(decks::DeckBase, QuoteExtra)> for Quote {
-    fn from(a: (decks::DeckBase, QuoteExtra)) -> Quote {
-        let (deck, extra) = a;
-
-        let attribution = if let Some(attribution) = extra.attribution {
-            attribution
-        } else {
-            "".to_string()
-        };
-
+impl From<decks::DeckBase> for Quote {
+    fn from(deck: decks::DeckBase) -> Quote {
         Quote {
             id: deck.id,
             title: deck.title,
@@ -59,9 +40,6 @@ impl From<(decks::DeckBase, QuoteExtra)> for Quote {
             insignia: deck.insignia,
             font: deck.font,
             impact: deck.impact,
-
-            text: "".to_string(),
-            attribution,
 
             notes: vec![],
             arrivals: vec![],
@@ -81,9 +59,6 @@ impl FromRow for Quote {
             font: row.get(6)?,
             impact: row.get(7)?,
 
-            text: "".to_string(),
-            attribution: row.get(8)?,
-
             notes: vec![],
             arrivals: vec![],
         })
@@ -98,7 +73,7 @@ pub(crate) fn get_or_create(
     let mut conn = sqlite_pool.get()?;
     let tx = conn.transaction()?;
 
-    let (deck, origin) = decks::deckbase_get_or_create(
+    let (deck, _origin) = decks::deckbase_get_or_create(
         &tx,
         user_id,
         DeckKind::Quote,
@@ -109,39 +84,23 @@ pub(crate) fn get_or_create(
         quote.impact,
     )?;
 
+    // combine the separate quote text and attribution into a single block of content that can be stored as a single note
+    //
     let text = &quote.text;
     let attribution = &quote.attribution;
+    let content = format!(":quote({}::{})", text, attribution);
 
-    let quote_extras: QuoteExtra = match origin {
-        decks::DeckBaseOrigin::Created => {
-            let quote_extra = sqlite::one(
-                &tx,
-                "INSERT INTO quote_extras(deck_id, attribution)
-                         VALUES (?1, ?2)
-                         RETURNING attribution",
-                params![&deck.id, &attribution],
-            )?;
-            let kind = i32::from(NoteKind::Note);
-            sqlite::zero(
-                &tx,
-                "INSERT INTO notes(user_id, deck_id, kind, content)
+    let kind = i32::from(NoteKind::Note);
+    sqlite::zero(
+        &tx,
+        "INSERT INTO notes(user_id, deck_id, kind, content)
                   VALUES (?1, ?2, ?3, ?4)",
-                params![&user_id, &deck.id, &kind, &text],
-            )?;
-            quote_extra
-        }
-        decks::DeckBaseOrigin::PreExisting => sqlite::one(
-            &tx,
-            "select attribution
-                 from quote_extras
-                 where deck_id=?1",
-            params![&deck.id],
-        )?,
-    };
+        params![&user_id, &deck.id, &kind, &content],
+    )?;
 
     tx.commit()?;
 
-    Ok((deck, quote_extras).into())
+    Ok(deck.into())
 }
 
 pub(crate) fn random(sqlite_pool: &SqlitePool, user_id: Key) -> crate::Result<Quote> {
@@ -149,10 +108,8 @@ pub(crate) fn random(sqlite_pool: &SqlitePool, user_id: Key) -> crate::Result<Qu
 
     sqlite::one(
         &conn,
-        "SELECT decks.id, decks.name, decks.kind, decks.created_at,
-                decks.graph_terminator, decks.insignia, decks.font, decks.impact,
-                quote_extras.attribution
-         FROM decks left join quote_extras on quote_extras.deck_id = decks.id
+        "SELECT id, name, kind, created_at, graph_terminator, insignia, font, impact
+         FROM decks
          WHERE user_id = ?1 and kind = 'quote'
          ORDER BY random()
          LIMIT 1",
@@ -165,10 +122,8 @@ pub(crate) fn get(sqlite_pool: &SqlitePool, user_id: Key, quote_id: Key) -> crat
 
     let res = sqlite::one(
         &conn,
-        "SELECT decks.id, decks.name, decks.kind, decks.created_at,
-                decks.graph_terminator, decks.insignia, decks.font, decks.impact,
-                quote_extras.attribution
-         FROM decks left join quote_extras on quote_extras.deck_id = decks.id
+        "SELECT id, name, kind, created_at, graph_terminator, insignia, font, impact
+         FROM decks
          WHERE user_id = ?1 and id = ?2 and kind = 'quote'",
         params![&user_id, &quote_id],
     )?;
@@ -183,10 +138,8 @@ pub(crate) fn next(sqlite_pool: &SqlitePool, user_id: Key, quote_id: Key) -> cra
 
     let res = sqlite::one(
         &conn,
-        "SELECT decks.id, decks.name, decks.kind, decks.created_at,
-                decks.graph_terminator, decks.insignia, decks.font, decks.impact,
-                quote_extras.attribution
-         FROM decks left join quote_extras on quote_extras.deck_id = decks.id
+        "SELECT id, name, kind, created_at, graph_terminator, insignia, font, impact
+         FROM decks
          WHERE user_id = ?1 and id > ?2 and kind = 'quote'
          ORDER BY id
          LIMIT 1",
@@ -199,10 +152,8 @@ pub(crate) fn next(sqlite_pool: &SqlitePool, user_id: Key, quote_id: Key) -> cra
             // wrap around and get the first quote
             sqlite::one(
                 &conn,
-                "SELECT decks.id, decks.name, decks.kind, decks.created_at,
-                decks.graph_terminator, decks.insignia, decks.font, decks.impact,
-                quote_extras.attribution
-                 FROM decks left join quote_extras on quote_extras.deck_id = decks.id
+                "SELECT id, name, kind, created_at, graph_terminator, insignia, font, impact
+                 FROM decks
                  WHERE user_id = ?1 and kind = 'quote'
                  ORDER BY id
                  LIMIT 1",
@@ -218,10 +169,8 @@ pub(crate) fn prev(sqlite_pool: &SqlitePool, user_id: Key, quote_id: Key) -> cra
 
     let res = sqlite::one(
         &conn,
-        "SELECT decks.id, decks.name, decks.kind, decks.created_at,
-                decks.graph_terminator, decks.insignia, decks.font, decks.impact,
-                quote_extras.attribution
-         FROM decks left join quote_extras on quote_extras.deck_id = decks.id
+        "SELECT id, name, kind, created_at, graph_terminator, insignia, font, impact
+         FROM decks
          WHERE user_id = ?1 and id < ?2 and kind = 'quote'
          ORDER BY id desc
          LIMIT 1",
@@ -234,10 +183,8 @@ pub(crate) fn prev(sqlite_pool: &SqlitePool, user_id: Key, quote_id: Key) -> cra
             // wrap around and get the first quote
             sqlite::one(
                 &conn,
-                "SELECT decks.id, decks.name, decks.kind, decks.created_at,
-                        decks.graph_terminator, decks.insignia, decks.font, decks.impact,
-                        quote_extras.attribution
-                 FROM decks left join quote_extras on quote_extras.deck_id = decks.id
+                "SELECT id, name, kind, created_at, graph_terminator, insignia, font, impact
+                 FROM decks
                  WHERE user_id = ?1 and kind = 'quote'
                  ORDER BY id desc
                  LIMIT 1",
@@ -257,7 +204,7 @@ pub(crate) fn edit(
     let mut conn = sqlite_pool.get()?;
     let tx = conn.transaction()?;
 
-    let edited_deck = decks::deckbase_edit(
+    let deck = decks::deckbase_edit(
         &tx,
         user_id,
         quote_id,
@@ -269,39 +216,8 @@ pub(crate) fn edit(
         quote.impact,
     )?;
 
-    let quote_extras_exists: Vec<QuoteExtra> = sqlite::many(
-        &tx,
-        "select attribution
-         from quote_extras
-         where deck_id=?1",
-        params![&quote_id],
-    )?;
-
-    let sql_query: &str = match quote_extras_exists.len() {
-        0 => {
-            "INSERT INTO quote_extras(deck_id, attribution)
-             VALUES (?1, ?2)
-             RETURNING attribution"
-        }
-        1 => {
-            "UPDATE quote_extras
-             SET attribution = ?2
-             WHERE deck_id = ?1
-             RETURNING attribution"
-        }
-        _ => {
-            // should be impossible to get here since deck_id
-            // is a primary key in the quote_extras table
-            error!("multiple quote_extras entries for quote: {}", &quote_id);
-            return Err(Error::TooManyFound);
-        }
-    };
-
-    let quote_extras = sqlite::one(&tx, sql_query, params![&quote_id, &quote.attribution])?;
-
     tx.commit()?;
-
-    Ok((edited_deck, quote_extras).into())
+    Ok(deck.into())
 }
 
 pub(crate) fn delete(sqlite_pool: &SqlitePool, user_id: Key, quote_id: Key) -> crate::Result<()> {

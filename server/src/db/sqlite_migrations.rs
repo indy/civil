@@ -19,9 +19,7 @@ use rusqlite::Connection;
 use rusqlite_migration::{Migrations, M};
 
 /*
-
 current schema:
-
 
 CREATE TABLE IF NOT EXISTS users (
        id INTEGER PRIMARY KEY,
@@ -129,14 +127,6 @@ CREATE TABLE IF NOT EXISTS article_extras (
        short_description TEXT,
 
        published_date DATE DEFAULT CURRENT_DATE,
-
-       FOREIGN KEY (deck_id) REFERENCES decks (id) ON DELETE CASCADE ON UPDATE NO ACTION
-);
-
-CREATE TABLE IF NOT EXISTS quote_extras (
-       deck_id INTEGER NOT NULL,
-
-       attribution TEXT,
 
        FOREIGN KEY (deck_id) REFERENCES decks (id) ON DELETE CASCADE ON UPDATE NO ACTION
 );
@@ -271,12 +261,10 @@ CREATE TABLE IF NOT EXISTS stats_num_refs (
        FOREIGN KEY (stats_id) REFERENCES stats (id) ON DELETE CASCADE ON UPDATE NO ACTION
 );
 
-
 CREATE VIRTUAL TABLE decks_fts USING fts5(name, content='decks', content_rowid='id' tokenize='porter unicode61', prefix='2 3 4 5 6');
 CREATE VIRTUAL TABLE points_fts USING fts5(title, location_textual, date_textual, content='points', content_rowid='id' tokenize='porter unicode61', prefix='2 3 4 5 6');
 CREATE VIRTUAL TABLE notes_fts USING fts5(content, content='notes', content_rowid='id', tokenize='porter unicode61', prefix='2 3 4 5 6');
 CREATE VIRTUAL TABLE article_extras_fts USING fts5(source, author, short_description, content='article_extras', content_rowid='deck_id', tokenize='porter unicode61', prefix='2 3 4 5 6');
-CREATE VIRTUAL TABLE quote_extras_fts USING fts5(attribution, content='quote_extras', content_rowid='deck_id', tokenize='porter unicode61', prefix='2 3 4 5 6');
  */
 
 // the following sqlite command:
@@ -880,6 +868,13 @@ pub fn migration_check(db_name: &str) -> crate::Result<()> {
                DROP TABLE IF EXISTS quote_extras_fts;
                CREATE VIRTUAL TABLE quote_extras_fts USING fts5(attribution, content='quote_extras', content_rowid='deck_id', tokenize='porter unicode61', prefix='2 3 4 5 6');
                INSERT INTO quote_extras_fts(quote_extras_fts) VALUES('rebuild');"),
+
+        ///////////////////
+        // user_version 28: quote_extras and quote_extras_fts no longer required
+        ///////////////////
+        M::up("DROP TABLE IF EXISTS quote_extras_fts;
+               DROP TABLE IF EXISTS quote_extras;"),
+
     ]);
 
     let mut conn = Connection::open(db_name)?;

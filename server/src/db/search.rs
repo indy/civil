@@ -136,57 +136,15 @@ pub(crate) fn search_quotes(
     user_id: Key,
     query: &str,
 ) -> crate::Result<SearchResults> {
-    let quote_extras_results = search_at_quote_extras_level(sqlite_pool, user_id, query)?;
-    let mut note_level_results = search_quotes_at_note_level(sqlite_pool, user_id, query)?;
-
-    // dedupe quote_extras_level_results against note_level_results
-    //
-    let mut deduped_results: Vec<SearchDeck> = quote_extras_results
-        .into_iter()
-        .filter(|search_deck| !in_searchdecks(search_deck, &note_level_results))
-        .collect();
-
-    deduped_results.append(&mut note_level_results);
+    let note_level_results = search_quotes_at_note_level(sqlite_pool, user_id, query)?;
 
     let res = SearchResults {
         search_text: String::from(query),
         deck_level: vec![],
-        note_level: deduped_results,
+        note_level: note_level_results,
     };
 
     Ok(res)
-}
-
-fn search_at_quote_extras_level(
-    sqlite_pool: &SqlitePool,
-    user_id: Key,
-    query: &str,
-) -> crate::Result<Vec<SearchDeck>> {
-    let conn = sqlite_pool.get()?;
-
-    // only search in the quote_extras since the deck.title will only
-    // be a shortened version of the actual quote
-
-    let stmt = "SELECT quote_extras_fts.rank AS rank,
-                       d.id, d.name, d.kind, d.created_at, d.graph_terminator, d.insignia, d.font, d.impact,
-                       n.id, n.prev_note_id, n.kind,
-                       n.content,
-                       n.point_id, n.font,
-                       r.deck_id, r.kind, r.annotation, d2.name, d2.kind, d2.created_at,
-                       d2.graph_terminator, d2.insignia, d2.font, d2.impact
-               FROM quote_extras_fts
-                    LEFT JOIN decks d on d.id = quote_extras_fts.rowid
-                    LEFT JOIN notes n ON n.deck_id = d.id
-                    LEFT JOIN refs r on r.note_id = n.id
-                    LEFT JOIN decks d2 on d2.id = r.deck_id
-               WHERE quote_extras_fts match ?2
-                     AND d.user_id = ?1
-               ORDER BY rank ASC
-               LIMIT 100";
-    let search_deck_note_refs: Vec<SearchDeckNoteRef> =
-        sqlite::many(&conn, stmt, params![&user_id, &query])?;
-
-    build_search_decks(search_deck_note_refs)
 }
 
 fn search_quotes_at_note_level(
@@ -555,16 +513,6 @@ fn search_at_deck_level_base(
                 limit 30";
     let results_via_pub_ext: Vec<SearchDeck> = sqlite::many(&conn, stmt, params![&user_id, &q])?;
 
-    let stmt = "select d.id, d.name, d.kind, d.created_at, d.graph_terminator, d.insignia, d.font, d.impact,
-                       quote_extras_fts.rank AS rank_sum, 1 as rank_count
-                from quote_extras_fts left join decks d on d.id = quote_extras_fts.rowid
-                where quote_extras_fts match ?2
-                      and d.user_id = ?1
-                group by d.id
-                order by rank_sum asc, length(d.name) asc
-                limit 30";
-    let results_via_quote_ext: Vec<SearchDeck> = sqlite::many(&conn, stmt, params![&user_id, &q])?;
-
     let stmt = "select res.id, res.name, res.kind, res.created_at, res.graph_terminator, res.insignia, res.font, res.impact,
                        sum(res.rank) as rank_sum, count(res.rank) as rank_count
                 from (select d.id, d.name, d.kind, d.created_at, d.graph_terminator, d.insignia, d.font,
@@ -582,12 +530,6 @@ fn search_at_deck_level_base(
     let results_via_points: Vec<SearchDeck> = sqlite::many(&conn, stmt, params![&user_id, &q])?;
 
     for r in results_via_pub_ext {
-        if !contains(&results, r.deck.id) {
-            results.push(r);
-        }
-    }
-
-    for r in results_via_quote_ext {
         if !contains(&results, r.deck.id) {
             results.push(r);
         }
