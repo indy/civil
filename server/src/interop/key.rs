@@ -56,7 +56,7 @@ impl FromSql for Key {
 
 use rusqlite::types::{ToSql, ToSqlOutput};
 impl ToSql for Key {
-    fn to_sql(&self) -> rusqlite::Result<ToSqlOutput> {
+    fn to_sql(&self) -> rusqlite::Result<ToSqlOutput<'_>> {
         Ok(ToSqlOutput::from(self.0))
     }
 }

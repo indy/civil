@@ -66,7 +66,7 @@ pub(crate) fn get_token_pos(token: &Token) -> usize {
     }
 }
 
-pub fn tokenize(s: &str) -> crate::Result<Vec<Token>> {
+pub fn tokenize(s: &str) -> crate::Result<Vec<Token<'_>>> {
     let mut input = s;
     let mut tokens = Vec::new();
     let mut index = 0;
@@ -99,7 +99,7 @@ pub fn tokenize(s: &str) -> crate::Result<Vec<Token>> {
     Ok(tokens)
 }
 
-fn eat_doublequote(index: usize, input: &str) -> crate::Result<(Token, usize, usize)> {
+fn eat_doublequote(index: usize, input: &str) -> crate::Result<(Token<'_>, usize, usize)> {
     let mut found = false;
     for (ind, _ch) in input.char_indices() {
         if found {
@@ -111,7 +111,7 @@ fn eat_doublequote(index: usize, input: &str) -> crate::Result<(Token, usize, us
     Ok((Token::DoubleQuote(index, input), input.chars().count(), input.len()))
 }
 
-fn eat_digits(index: usize, input: &str) -> crate::Result<(Token, usize, usize)> {
+fn eat_digits(index: usize, input: &str) -> crate::Result<(Token<'_>, usize, usize)> {
     for (ch_counter, (ind, ch)) in input.char_indices().enumerate() {
         if !ch.is_ascii_digit() {
             return Ok((Token::Digits(index, &input[..ind]), ch_counter, ind));
@@ -121,7 +121,7 @@ fn eat_digits(index: usize, input: &str) -> crate::Result<(Token, usize, usize)>
     Ok((Token::Digits(index, input), input.chars().count(), input.len()))
 }
 
-fn eat_whitespace(index: usize, input: &str) -> crate::Result<(Token, usize, usize)> {
+fn eat_whitespace(index: usize, input: &str) -> crate::Result<(Token<'_>, usize, usize)> {
     for (ch_counter, (ind, ch)) in input.char_indices().enumerate() {
         if !ch.is_whitespace() || ch == '\n' {
             return Ok((Token::Whitespace(index, &input[..ind]), ch_counter, ind));
@@ -132,7 +132,7 @@ fn eat_whitespace(index: usize, input: &str) -> crate::Result<(Token, usize, usi
 }
 
 // greedy
-fn eat_text(index: usize, input: &str) -> crate::Result<(Token, usize, usize)> {
+fn eat_text(index: usize, input: &str) -> crate::Result<(Token<'_>, usize, usize)> {
     // the ind from char_indices may increment by more than one for unicode characters
     // so we'll need to keep count of the actual number of characters processed
     //
