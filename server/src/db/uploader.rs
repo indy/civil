@@ -17,7 +17,8 @@
 
 use std::cmp;
 
-use crate::db::sqlite::{self, FromRow, SqlitePool};
+use crate::db::{SqlitePool, DbError};
+use crate::db::sqlite::{self, FromRow};
 use crate::interop::uploader::UserUploadedImage;
 use crate::interop::Key;
 
@@ -25,6 +26,12 @@ use rusqlite::{params, Row};
 
 impl FromRow for UserUploadedImage {
     fn from_row(row: &Row) -> crate::Result<UserUploadedImage> {
+        Ok(UserUploadedImage {
+            filename: row.get(0)?,
+        })
+    }
+
+    fn from_row_conn(row: &Row) -> Result<UserUploadedImage, DbError> {
         Ok(UserUploadedImage {
             filename: row.get(0)?,
         })

@@ -17,7 +17,7 @@
 
 use crate::db::articles as db;
 use crate::db::notes as notes_db;
-use crate::db::sqlite::SqlitePool;
+use crate::db::SqlitePool;
 use crate::handler::PaginationQuery;
 use crate::interop::articles as interop;
 use crate::interop::decks::ProtoDeck;

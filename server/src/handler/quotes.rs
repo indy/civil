@@ -26,7 +26,7 @@ use crate::session;
 use actix_web::web::{Data, Json, Path, Query};
 use actix_web::HttpResponse;
 
-use crate::db::sqlite::SqlitePool;
+use crate::db::SqlitePool;
 
 #[allow(unused_imports)]
 use tracing::info;

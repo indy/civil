@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::db::sqlite::SqlitePool;
+use crate::db::SqlitePool;
 use crate::db::users as db;
 use crate::error::Error;
 use crate::interop::users as interop;
@@ -112,21 +112,25 @@ pub async fn get_user(
     db_pool: Data<SqlitePool>,
     session: actix_session::Session,
 ) -> crate::Result<HttpResponse> {
-    info!("get_user");
+    // no session → empty JSON, same as before
+    let user_id = match session::user_id(&session) {
+        Ok(id) => id,
+        Err(_) => return Ok(HttpResponse::Ok().json(())),
+    };
 
-    if let Ok(user_id) = session::user_id(&session) {
-        let mut user = db::get(&db_pool, user_id)?;
+    // fetch from DB (async, runs on blocking thread internally)
+    let mut user = match db::get(db_pool.get_ref(), user_id).await? {
+        Some(u) => u,
+        None => return Err(crate::Error::NotFound),
+    };
 
-        if user_id == Key(1) {
-            user.admin = Some(interop::Admin {
-                db_name: env::var("SQLITE_DB")?,
-            })
-        }
-
-        Ok(HttpResponse::Ok().json(user))
-    } else {
-        Ok(HttpResponse::Ok().json(()))
+    if user_id == Key(1) {
+        user.admin = Some(interop::Admin {
+            db_name: env::var("SQLITE_DB")?,
+        });
     }
+
+    Ok(HttpResponse::Ok().json(user))
 }
 
 pub async fn edit_ui_config(

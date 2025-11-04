@@ -20,7 +20,7 @@ use crate::db::users as users_db;
 use crate::interop::users::UserId;
 use crate::interop::Key;
 
-use crate::db::sqlite::SqlitePool;
+use crate::db::SqlitePool;
 
 pub fn get_all_user_ids(sqlite_pool: &SqlitePool) -> crate::Result<Vec<UserId>> {
     users_db::get_all_user_ids(sqlite_pool)

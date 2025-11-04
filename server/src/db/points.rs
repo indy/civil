@@ -15,7 +15,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::db::sqlite::{self, FromRow, SqlitePool};
+use crate::db::{SqlitePool, DbError};
+use crate::db::sqlite::{self, FromRow};
 use crate::interop::points::{Point, PointKind, ProtoPoint};
 use crate::interop::Key;
 
@@ -37,6 +38,27 @@ impl fmt::Display for PointKind {
 
 impl FromRow for Point {
     fn from_row(row: &Row) -> crate::Result<Point> {
+        Ok(Point {
+            id: row.get(0)?,
+            kind: row.get(1)?,
+            title: row.get(2)?,
+            font: row.get(3)?,
+
+            location_textual: row.get(4)?,
+
+            date_textual: row.get(5)?,
+            date: row.get(6)?,
+
+            deck_id: row.get(7)?,
+            deck_title: row.get(8)?,
+            deck_kind: row.get(9)?,
+            deck_insignia: row.get(10)?,
+            deck_font: row.get(11)?,
+            deck_impact: row.get(12)?,
+        })
+    }
+
+    fn from_row_conn(row: &Row) -> Result<Point, DbError> {
         Ok(Point {
             id: row.get(0)?,
             kind: row.get(1)?,

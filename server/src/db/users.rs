@@ -15,15 +15,32 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::db::sqlite::{self, FromRow, SqlitePool};
+use crate::db::{SqlitePool, DbError, db};
+use crate::db::sqlite::{self, FromRow};
 use crate::interop::users::{LoginCredentials, Registration, User, UserId};
 use crate::interop::Key;
-use rusqlite::{params, Row};
+use rusqlite::{params, OptionalExtension, Row};
 use tracing::info;
 
 // used by login
 impl FromRow for (Key, String, User) {
     fn from_row(row: &Row) -> crate::Result<(Key, String, User)> {
+        let id: Key = row.get(0)?;
+        let password: String = row.get(3)?;
+
+        Ok((
+            id,
+            password,
+            User {
+                username: row.get(2)?,
+                email: row.get(1)?,
+                admin: None,
+                ui_config_json: row.get(4)?,
+            },
+        ))
+    }
+
+    fn from_row_conn(row: &Row) -> Result<(Key, String, User), DbError> {
         let id: Key = row.get(0)?;
         let password: String = row.get(3)?;
 
@@ -73,6 +90,20 @@ impl FromRow for (Key, User) {
             },
         ))
     }
+
+    fn from_row_conn(row: &Row) -> Result<(Key, User), DbError> {
+        let id: Key = row.get(0)?;
+
+        Ok((
+            id,
+            User {
+                username: row.get(2)?,
+                email: row.get(1)?,
+                admin: None,
+                ui_config_json: row.get(3)?,
+            },
+        ))
+    }
 }
 
 pub(crate) fn create(
@@ -100,29 +131,32 @@ pub(crate) fn create(
     )
 }
 
-// used by get
-impl FromRow for User {
-    fn from_row(row: &Row) -> crate::Result<User> {
+fn get_conn(
+    conn: &rusqlite::Connection,
+    user_id: Key,
+) -> Result<Option<User>, DbError> {
+    conn.prepare_cached(r#"
+           select email, username, ui_config_json
+           from users
+           where id = ?1
+           limit 1
+    "#)?
+    .query_row(params![user_id], |row| {
         Ok(User {
             username: row.get(1)?,
             email: row.get(0)?,
             admin: None,
             ui_config_json: row.get(2)?,
         })
-    }
+    })
+    .optional()
+    .map_err(Into::into)
 }
 
-pub(crate) fn get(sqlite_pool: &SqlitePool, user_id: Key) -> crate::Result<User> {
-    let conn = sqlite_pool.get()?;
-    sqlite::one(
-        &conn,
-        r#"
-           select email, username, ui_config_json
-           from users
-           where id = ?1
-        "#,
-        params![user_id],
-    )
+pub(crate) async fn get(sqlite_pool: &SqlitePool, user_id: Key) -> crate::Result<Option<User>> {
+    db(sqlite_pool, move |conn| get_conn(conn, user_id))
+        .await
+        .map_err(|e: DbError| e.into())
 }
 
 pub(crate) fn edit_ui_config(
@@ -146,6 +180,10 @@ pub(crate) fn edit_ui_config(
 
 impl FromRow for UserId {
     fn from_row(row: &Row) -> crate::Result<UserId> {
+        Ok(UserId { id: row.get(0)? })
+    }
+
+    fn from_row_conn(row: &Row) -> Result<UserId, DbError> {
         Ok(UserId { id: row.get(0)? })
     }
 }

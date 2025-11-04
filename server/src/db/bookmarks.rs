@@ -15,7 +15,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::db::sqlite::{self, FromRow, SqlitePool};
+use crate::db::{SqlitePool, DbError};
+use crate::db::sqlite::{self, FromRow};
 use crate::interop::bookmarks as interop;
 use crate::interop::decks::SlimDeck;
 use crate::interop::Key;
@@ -27,6 +28,13 @@ use tracing::{error, info};
 impl FromRow for interop::Bookmark {
     fn from_row(row: &Row) -> crate::Result<interop::Bookmark> {
         let deck: SlimDeck = FromRow::from_row(row)?; // NOTE: if SlimDeck's FromRow trait is changed then so should this
+        let id = row.get(8)?;
+
+        Ok(interop::Bookmark { id, deck })
+    }
+
+    fn from_row_conn(row: &Row) -> Result<interop::Bookmark, DbError> {
+        let deck: SlimDeck = FromRow::from_row_conn(row)?; // NOTE: if SlimDeck's FromRow trait is changed then so should this
         let id = row.get(8)?;
 
         Ok(interop::Bookmark { id, deck })

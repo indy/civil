@@ -29,7 +29,7 @@ use actix_web::HttpResponse;
 #[allow(unused_imports)]
 use tracing::info;
 
-use crate::db::sqlite::SqlitePool;
+use crate::db::SqlitePool;
 
 pub async fn create(
     proto_deck: Json<ProtoDeck>,

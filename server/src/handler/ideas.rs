@@ -16,13 +16,11 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::db::ideas as db;
-use crate::db::notes as notes_db;
-use crate::db::sqlite::SqlitePool;
+use crate::db::SqlitePool;
 use crate::handler::decks;
 use crate::handler::PaginationQuery;
 use crate::interop::decks::{DeckKind, ProtoDeck, ProtoSlimDeck};
-use crate::interop::ideas as interop;
-use crate::interop::{IdParam, Key};
+use crate::interop::IdParam;
 use crate::session;
 use actix_web::web::{Data, Json, Path, Query};
 use actix_web::HttpResponse;
@@ -40,7 +38,7 @@ pub async fn create(
     let user_id = session::user_id(&session)?;
     let proto_deck = proto_deck.into_inner();
 
-    let idea = db::get_or_create(&sqlite_pool, user_id, &proto_deck.title)?;
+    let idea = db::get_or_create(&sqlite_pool, user_id, proto_deck.title).await?;
 
     Ok(HttpResponse::Ok().json(idea))
 }
@@ -53,7 +51,7 @@ pub async fn get_all(
 
     let user_id = session::user_id(&session)?;
 
-    let ideas = db::all(&sqlite_pool, user_id)?;
+    let ideas = db::all(&sqlite_pool, user_id).await?;
 
     Ok(HttpResponse::Ok().json(ideas))
 }
@@ -113,14 +111,15 @@ pub async fn convert(
     params: Path<IdParam>,
     session: actix_session::Session,
 ) -> crate::Result<HttpResponse> {
-    info!("convert to concept ");
+    info!("convert to concept");
 
     let user_id = session::user_id(&session)?;
     let idea_id = params.id;
 
-    let mut concept = db::convert(&sqlite_pool, user_id, idea_id)?;
-
-    sqlite_augment(&sqlite_pool, &mut concept, idea_id)?;
+    let concept = match db::convert(sqlite_pool.get_ref(), user_id, idea_id).await? {
+        Some(i) => i,
+        None => return Err(crate::Error::NotFound),
+    };
 
     Ok(HttpResponse::Ok().json(concept))
 }
@@ -135,8 +134,10 @@ pub async fn get(
     let user_id = session::user_id(&session)?;
     let idea_id = params.id;
 
-    let mut idea = db::get(&sqlite_pool, user_id, idea_id)?;
-    sqlite_augment(&sqlite_pool, &mut idea, idea_id)?;
+    let idea = match db::get(sqlite_pool.get_ref(), user_id, idea_id).await? {
+        Some(i) => i,
+        None => return Err(crate::Error::NotFound),
+    };
 
     Ok(HttpResponse::Ok().json(idea))
 }
@@ -147,14 +148,13 @@ pub async fn edit(
     params: Path<IdParam>,
     session: actix_session::Session,
 ) -> crate::Result<HttpResponse> {
-    info!("edit");
+    info!("edit idea {:?}", params.id);
 
     let user_id = session::user_id(&session)?;
     let idea_id = params.id;
     let idea = idea.into_inner();
 
-    let mut idea = db::edit(&sqlite_pool, user_id, &idea, idea_id)?;
-    sqlite_augment(&sqlite_pool, &mut idea, idea_id)?;
+    let idea = db::edit(sqlite_pool.get_ref(), user_id, idea, idea_id).await?;
 
     Ok(HttpResponse::Ok().json(idea))
 }
@@ -168,18 +168,7 @@ pub async fn delete(
 
     let user_id = session::user_id(&session)?;
 
-    db::delete(&sqlite_pool, user_id, params.id)?;
+    db::delete(&sqlite_pool, user_id, params.id).await?;
 
     Ok(HttpResponse::Ok().json(true))
-}
-
-fn sqlite_augment(
-    sqlite_pool: &Data<SqlitePool>,
-    idea: &mut interop::Idea,
-    idea_id: Key,
-) -> crate::Result<()> {
-    idea.notes = notes_db::notes_for_deck(sqlite_pool, idea_id)?;
-    idea.arrivals = notes_db::arrivals_for_deck(sqlite_pool, idea_id)?;
-
-    Ok(())
 }

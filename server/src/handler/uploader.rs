@@ -19,7 +19,7 @@ use crate::error::Error;
 use crate::session;
 use crate::ServerConfig;
 
-use crate::db::sqlite::SqlitePool;
+use crate::db::SqlitePool;
 use crate::db::uploader as db;
 
 use std::ffi::OsStr;

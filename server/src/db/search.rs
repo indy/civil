@@ -18,7 +18,8 @@
 use crate::db::memorise as db_memorise;
 use crate::db::notes as db_notes;
 use crate::db::sanitize_for_sqlite_match;
-use crate::db::sqlite::{self, FromRow, SqlitePool};
+use crate::db::{SqlitePool, DbError};
+use crate::db::sqlite::{self, FromRow};
 use crate::interop::decks::{Arrival, DeckKind, Ref, SlimDeck};
 use crate::interop::notes::Note;
 use crate::interop::search::{SearchDeck, SearchResults};
@@ -30,6 +31,23 @@ use tracing::{info, warn};
 
 impl FromRow for SearchDeck {
     fn from_row(row: &Row) -> crate::Result<SearchDeck> {
+        Ok(SearchDeck {
+            rank: row.get(8)?,
+            deck: SlimDeck {
+                id: row.get(0)?,
+                title: row.get(1)?,
+                deck_kind: row.get(2)?,
+                created_at: row.get(3)?,
+                graph_terminator: row.get(4)?,
+                insignia: row.get(5)?,
+                font: row.get(6)?,
+                impact: row.get(7)?,
+            },
+            notes: vec![],
+        })
+    }
+
+    fn from_row_conn(row: &Row) -> Result<SearchDeck, DbError> {
         Ok(SearchDeck {
             rank: row.get(8)?,
             deck: SlimDeck {
@@ -61,6 +79,53 @@ fn contains(searchdecks: &[SearchDeck], id: Key) -> bool {
 
 impl FromRow for SearchDeckNoteRef {
     fn from_row(row: &Row) -> crate::Result<SearchDeckNoteRef> {
+        let mut reference_maybe: Option<Ref> = None;
+        let reference_deck_id: Option<Key> = row.get(15)?;
+        if let Some(ref_deck_id) = reference_deck_id {
+            reference_maybe = Some(Ref {
+                note_id: row.get(9)?,
+                ref_kind: row.get(16)?,
+                annotation: row.get(17)?,
+
+                id: ref_deck_id,
+                title: row.get(18)?,
+                deck_kind: row.get(19)?,
+                created_at: row.get(20)?,
+                graph_terminator: row.get(21)?,
+                insignia: row.get(22)?,
+                font: row.get(23)?,
+                impact: row.get(24)?,
+            })
+        };
+
+        Ok(SearchDeckNoteRef {
+            rank: row.get(0)?,
+            deck: SlimDeck {
+                id: row.get(1)?,
+                title: row.get(2)?,
+                deck_kind: row.get(3)?,
+                created_at: row.get(4)?,
+                graph_terminator: row.get(5)?,
+                insignia: row.get(6)?,
+                font: row.get(7)?,
+                impact: row.get(8)?,
+            },
+            note: Note {
+                id: row.get(9)?,
+                prev_note_id: row.get(10)?,
+                kind: row.get(11)?,
+                content: row.get(12)?,
+                point_id: row.get(13)?,
+                font: row.get(14)?,
+                refs: vec![],
+                flashcards: vec![],
+            },
+            reference_maybe,
+        })
+    }
+
+
+    fn from_row_conn(row: &Row) -> Result<SearchDeckNoteRef, DbError> {
         let mut reference_maybe: Option<Ref> = None;
         let reference_deck_id: Option<Key> = row.get(15)?;
         if let Some(ref_deck_id) = reference_deck_id {

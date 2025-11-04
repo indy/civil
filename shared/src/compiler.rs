@@ -20,6 +20,7 @@ use crate::parser::{ColourPalette, MarginTextLabel, Node};
 
 use std::fmt::Write;
 
+
 pub fn compile_to_struct(nodes: &[Node], note_id: usize) -> crate::Result<Vec<Element>> {
     let mut res: Vec<Element> = Vec::new();
 

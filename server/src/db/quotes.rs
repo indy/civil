@@ -16,7 +16,8 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::db::decks;
-use crate::db::sqlite::{self, FromRow, SqlitePool};
+use crate::db::{SqlitePool, DbError};
+use crate::db::sqlite::{self, FromRow};
 use crate::error::Error;
 use crate::interop::decks::DeckKind;
 use crate::interop::notes::NoteKind;
@@ -49,6 +50,22 @@ impl From<decks::DeckBase> for Quote {
 
 impl FromRow for Quote {
     fn from_row(row: &Row) -> crate::Result<Quote> {
+        Ok(Quote {
+            id: row.get(0)?,
+            title: row.get(1)?,
+            deck_kind: row.get(2)?,
+            created_at: row.get(3)?,
+            graph_terminator: row.get(4)?,
+            insignia: row.get(5)?,
+            font: row.get(6)?,
+            impact: row.get(7)?,
+
+            notes: vec![],
+            arrivals: vec![],
+        })
+    }
+
+    fn from_row_conn(row: &Row) -> Result<Quote, DbError> {
         Ok(Quote {
             id: row.get(0)?,
             title: row.get(1)?,

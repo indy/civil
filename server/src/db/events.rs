@@ -16,7 +16,8 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::db::decks::{self, DeckBase, DeckBaseOrigin};
-use crate::db::sqlite::{self, FromRow, SqlitePool};
+use crate::db::{SqlitePool, DbError};
+use crate::db::sqlite::{self, FromRow};
 use crate::interop::decks::{DeckKind, SlimDeck};
 use crate::interop::events::{Event, ProtoEvent};
 use crate::interop::font::Font;
@@ -88,10 +89,52 @@ impl FromRow for EventExtra {
             date_fuzz: row.get(8)?,
         })
     }
+
+    fn from_row_conn(row: &Row) -> Result<EventExtra, DbError> {
+        Ok(EventExtra {
+            location_textual: row.get(0)?,
+            longitude: row.get(1)?,
+            latitude: row.get(2)?,
+            location_fuzz: row.get(3)?,
+
+            date_textual: row.get(4)?,
+            exact_date: row.get(5)?,
+            lower_date: row.get(6)?,
+            upper_date: row.get(7)?,
+            date_fuzz: row.get(8)?,
+        })
+    }
 }
 
 impl FromRow for Event {
     fn from_row(row: &Row) -> crate::Result<Event> {
+        Ok(Event {
+            id: row.get(0)?,
+            title: row.get(1)?,
+            deck_kind: row.get(2)?,
+            created_at: row.get(3)?,
+            graph_terminator: row.get(4)?,
+            insignia: row.get(5)?,
+            font: row.get(6)?,
+            impact: row.get(7)?,
+
+            location_textual: row.get(8)?,
+            longitude: row.get(9)?,
+            latitude: row.get(10)?,
+            location_fuzz: row.get(11)?,
+
+            date_textual: row.get(12)?,
+            exact_date: row.get(13)?,
+            lower_date: row.get(14)?,
+            upper_date: row.get(15)?,
+            date_fuzz: row.get(16)?,
+
+            notes: vec![],
+            arrivals: vec![],
+        })
+    }
+
+    fn from_row_conn(row: &Row) -> Result<Event, DbError> {
         Ok(Event {
             id: row.get(0)?,
             title: row.get(1)?,

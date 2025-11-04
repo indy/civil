@@ -16,7 +16,8 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::db::decks::deckbase_get_or_create;
-use crate::db::sqlite::{self, FromRow, SqlitePool};
+use crate::db::{SqlitePool, DbError};
+use crate::db::sqlite::{self, FromRow};
 use crate::interop::decks::Ref;
 use crate::interop::decks::{DeckKind, SlimDeck};
 use crate::interop::font::Font;
@@ -29,6 +30,23 @@ use tracing::info;
 
 impl FromRow for Ref {
     fn from_row(row: &Row) -> crate::Result<Ref> {
+        Ok(Ref {
+            note_id: row.get(0)?,
+            ref_kind: row.get(1)?,
+            annotation: row.get(2)?,
+
+            id: row.get(3)?,
+            title: row.get(4)?,
+            deck_kind: row.get(5)?,
+            created_at: row.get(6)?,
+            graph_terminator: row.get(7)?,
+            insignia: row.get(8)?,
+            font: row.get(9)?,
+            impact: row.get(10)?,
+        })
+    }
+
+    fn from_row_conn(row: &Row) -> Result<Ref, DbError> {
         Ok(Ref {
             note_id: row.get(0)?,
             ref_kind: row.get(1)?,

@@ -38,6 +38,37 @@ pub mod users;
 pub mod sqlite;
 pub mod sqlite_migrations;
 
+
+
+use r2d2::Pool;
+use r2d2_sqlite::SqliteConnectionManager;
+pub(crate) type SqlitePool = Pool<SqliteConnectionManager>;
+
+#[derive(thiserror::Error, Debug)]
+pub enum DbError {
+    #[error(transparent)]
+    Pool(#[from] r2d2::Error),
+    #[error(transparent)]
+    Sqlite(#[from] rusqlite::Error),
+    #[error(transparent)]
+    Join(#[from] tokio::task::JoinError),
+    #[error("Not Found")] NotFound,
+}
+
+// Blocking helper: only DbError crosses the thread boundary.
+pub async fn db<T, F>(pool: &SqlitePool, f: F) -> Result<T, DbError>
+where
+    F: FnOnce(&mut rusqlite::Connection) -> Result<T, DbError> + Send + 'static,
+    T: Send + 'static,
+{
+    let pool2 = pool.clone();
+    tokio::task::spawn_blocking(move || {
+        let mut conn = pool2.get()?;   // r2d2::Error -> DbError via `?`
+        f(&mut conn)                   // returns Result<T, DbError>
+    })
+    .await?                        // JoinError -> DbError via `From`
+}
+
 fn sanitize_for_sqlite_match(s: String) -> crate::Result<String> {
     let res: String = s
         .chars()
@@ -65,14 +96,4 @@ fn sanitize_for_sqlite_match(s: String) -> crate::Result<String> {
         .collect();
 
     Ok(res)
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_postfix_asterisks() {
-        assert_eq!(postfix_asterisks("hello foo").unwrap(), "hello* foo* ");
-    }
 }

@@ -16,7 +16,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::db::memorise as db;
-use crate::db::sqlite::SqlitePool;
+use crate::db::SqlitePool;
 use crate::interop::memorise::{FlashCard, ProtoCard, ProtoRating};
 use crate::interop::IdParam;
 use crate::session;

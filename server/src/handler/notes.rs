@@ -17,7 +17,7 @@
 
 use crate::db::notes as db;
 use crate::db::references as db_refs;
-use crate::db::sqlite::SqlitePool;
+use crate::db::SqlitePool;
 use crate::interop::notes as interop;
 use crate::interop::references as interop_refs;
 use crate::interop::IdParam;

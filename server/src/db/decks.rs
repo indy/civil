@@ -16,7 +16,8 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::db::notes;
-use crate::db::sqlite::{self, FromRow, SqlitePool};
+use crate::db::{SqlitePool, DbError};
+use crate::db::sqlite::{self, FromRow};
 use crate::error::Error;
 use crate::interop::decks as interop;
 use crate::interop::font::Font;
@@ -61,10 +62,36 @@ impl FromRow for interop::SlimDeck {
             impact: row.get(7)?,
         })
     }
+
+    fn from_row_conn(row: &Row) -> Result<interop::SlimDeck, DbError> {
+        Ok(interop::SlimDeck {
+            id: row.get(0)?,
+            title: row.get(1)?,
+            deck_kind: row.get(2)?,
+            created_at: row.get(3)?,
+            graph_terminator: row.get(4)?,
+            insignia: row.get(5)?,
+            font: row.get(6)?,
+            impact: row.get(7)?,
+        })
+    }
 }
 
 impl FromRow for DeckBase {
     fn from_row(row: &Row) -> crate::Result<DeckBase> {
+        Ok(DeckBase {
+            id: row.get(0)?,
+            title: row.get(1)?,
+            deck_kind: row.get(2)?,
+            created_at: row.get(3)?,
+            graph_terminator: row.get(4)?,
+            insignia: row.get(5)?,
+            font: row.get(6)?,
+            impact: row.get(7)?,
+        })
+    }
+
+    fn from_row_conn(row: &Row) -> Result<DeckBase, DbError> {
         Ok(DeckBase {
             id: row.get(0)?,
             title: row.get(1)?,
@@ -84,10 +111,21 @@ impl FromRow for interop::Hit {
             created_at: row.get(0)?,
         })
     }
+
+    fn from_row_conn(row: &Row) -> Result<interop::Hit, DbError> {
+        Ok(interop::Hit {
+            created_at: row.get(0)?,
+        })
+    }
 }
 
 impl FromRow for Font {
     fn from_row(row: &Row) -> crate::Result<Font> {
+        let font = row.get(0)?;
+        Ok(font)
+    }
+
+    fn from_row_conn(row: &Row) -> Result<Font, DbError> {
         let font = row.get(0)?;
         Ok(font)
     }
@@ -203,6 +241,43 @@ pub(crate) fn pagination_events_chronologically(
 // returns tuple where the second element is a bool indicating whether the deck
 // was created (true) or we're returning a pre-existing deck (false)
 //
+pub(crate) fn deckbase_get_or_create_conn(
+    tx: &Connection,
+    user_id: Key,
+    kind: interop::DeckKind,
+    name: &str,
+    graph_terminator: bool,
+    insignia: i32,
+    font: Font,
+    impact: i32,
+) -> Result<(DeckBase, DeckBaseOrigin), DbError> {
+    let existing_deck_res = deckbase_get_by_name_conn(tx, user_id, kind, name);
+    match existing_deck_res {
+        Ok(deck) => Ok((deck, DeckBaseOrigin::PreExisting)),
+        Err(e) => match e {
+            DbError::NotFound => {
+                let deck = deckbase_create_conn(
+                    tx,
+                    user_id,
+                    kind,
+                    name,
+                    graph_terminator,
+                    insignia,
+                    font,
+                    impact,
+                )?;
+                Ok((deck, DeckBaseOrigin::Created))
+            }
+            _ => Err(e),
+        },
+    }
+}
+
+// note: may execute multiple sql write statements so should be in a transaction
+//
+// returns tuple where the second element is a bool indicating whether the deck
+// was created (true) or we're returning a pre-existing deck (false)
+//
 pub(crate) fn deckbase_get_or_create(
     tx: &Connection,
     user_id: Key,
@@ -240,10 +315,27 @@ pub(crate) fn hit(conn: &Connection, deck_id: Key) -> crate::Result<()> {
     sqlite::zero(conn, stmt, params![&deck_id])
 }
 
+pub(crate) fn hit_conn(conn: &Connection, deck_id: Key) -> Result<(), DbError> {
+    let stmt = "INSERT INTO hits(deck_id) VALUES (?1)";
+    sqlite::zero_conn(conn, stmt, params![&deck_id])
+}
+
 pub(crate) fn get_hits(sqlite_pool: &SqlitePool, deck_id: Key) -> crate::Result<Vec<interop::Hit>> {
     let conn = sqlite_pool.get()?;
     let stmt = "SELECT created_at FROM hits WHERE deck_id = ?1 ORDER BY created_at DESC;";
     sqlite::many(&conn, stmt, params![&deck_id])
+}
+
+fn deckbase_get_by_name_conn(
+    conn: &Connection,
+    user_id: Key,
+    kind: interop::DeckKind,
+    name: &str,
+) -> Result<DeckBase, DbError> {
+    let stmt = "SELECT id, name, kind, created_at, graph_terminator, insignia, font, impact
+                FROM DECKS
+                WHERE user_id = ?1 AND name = ?2 AND kind = ?3";
+    sqlite::one_conn(conn, stmt, params![&user_id, &name, &kind.to_string()])
 }
 
 fn deckbase_get_by_name(
@@ -256,6 +348,40 @@ fn deckbase_get_by_name(
                 FROM DECKS
                 WHERE user_id = ?1 AND name = ?2 AND kind = ?3";
     sqlite::one(conn, stmt, params![&user_id, &name, &kind.to_string()])
+}
+
+pub(crate) fn deckbase_create_conn(
+    tx: &Connection,
+    user_id: Key,
+    kind: interop::DeckKind,
+    name: &str,
+    graph_terminator: bool,
+    insignia: i32,
+    font: Font,
+    impact: i32,
+) -> Result<DeckBase, DbError> {
+    let stmt = "INSERT INTO decks(user_id, kind, name, graph_terminator, insignia, font, impact)
+                VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)
+                RETURNING id, name, kind, created_at, graph_terminator, insignia, font, impact";
+
+    let deckbase: DeckBase = sqlite::one_conn(
+        tx,
+        stmt,
+        params![
+            &user_id,
+            &kind.to_string(),
+            name,
+            graph_terminator,
+            &insignia,
+            &i32::from(font),
+            impact
+        ],
+    )?;
+
+    // create the mandatory NoteKind::NoteDeckMeta
+    let _note = notes::create_note_deck_meta_conn(tx, user_id, deckbase.id)?;
+
+    Ok(deckbase)
 }
 
 pub(crate) fn deckbase_create(
@@ -316,6 +442,46 @@ pub(crate) fn deckbase_edit(
                 WHERE user_id = ?1 AND id = ?2 AND kind = ?3
                 RETURNING id, name, kind, created_at, graph_terminator, insignia, font, impact";
     sqlite::one(
+        tx,
+        stmt,
+        params![
+            &user_id,
+            &deck_id,
+            &kind.to_string(),
+            name,
+            graph_terminator,
+            insignia,
+            &i32::from(font),
+            impact
+        ],
+    )
+}
+
+
+pub(crate) fn deckbase_edit_conn(
+    tx: &Connection,
+    user_id: Key,
+    deck_id: Key,
+    kind: interop::DeckKind,
+    name: &str,
+    graph_terminator: bool,
+    insignia: i32,
+    font: Font,
+    impact: i32,
+) -> Result<DeckBase, DbError> {
+    // if the font has changed
+    let original_font = get_font_of_deck_conn(tx, deck_id)?;
+
+    if original_font != font {
+        // change all of this deck's notes that have the old font to the new font
+        notes::replace_note_fonts_conn(tx, user_id, deck_id, original_font, font)?;
+    }
+
+    let stmt = "UPDATE decks
+                SET name = ?4, graph_terminator = ?5, insignia = ?6, font = ?7, impact = ?8
+                WHERE user_id = ?1 AND id = ?2 AND kind = ?3
+                RETURNING id, name, kind, created_at, graph_terminator, insignia, font, impact";
+    sqlite::one_conn(
         tx,
         stmt,
         params![
@@ -447,8 +613,28 @@ pub(crate) fn delete(sqlite_pool: &SqlitePool, user_id: Key, id: Key) -> crate::
     Ok(())
 }
 
+// delete anything that's represented as a deck (article, person, idea, timeline, quote, dialogue)
+//
+pub(crate) fn delete_conn(conn: &Connection, user_id: Key, id: Key) -> Result<(), DbError> {
+    sqlite::zero_conn(
+        &conn,
+        "DELETE FROM decks WHERE id = ?2 and user_id = ?1",
+        params![&user_id, &id],
+    )?;
+
+    Ok(())
+}
+
 fn get_font_of_deck(conn: &Connection, deck_id: Key) -> crate::Result<Font> {
     sqlite::one(
+        conn,
+        "SELECT font FROM decks WHERE id = ?1",
+        params![&deck_id],
+    )
+}
+
+fn get_font_of_deck_conn(conn: &Connection, deck_id: Key) -> Result<Font, DbError> {
+    sqlite::one_conn(
         conn,
         "SELECT font FROM decks WHERE id = ?1",
         params![&deck_id],

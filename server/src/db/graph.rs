@@ -16,7 +16,8 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::db::decks::get_slimdeck;
-use crate::db::sqlite::{self, FromRow, SqlitePool};
+use crate::db::{SqlitePool, DbError};
+use crate::db::sqlite::{self, FromRow};
 use crate::interop::decks::{DeckKind, RefKind, SlimDeck};
 use crate::interop::font::Font;
 use crate::interop::graph::{ConnectivityData, Direction, Edge};
@@ -55,6 +56,21 @@ impl FromSql for Direction {
 
 impl FromRow for Connectivity {
     fn from_row(row: &Row) -> crate::Result<Connectivity> {
+        Ok(Connectivity {
+            direction: row.get(0)?,
+            ref_kind: row.get(1)?,
+            deck_id: row.get(2)?,
+            title: row.get(3)?,
+            deck_kind: row.get(4)?,
+            created_at: row.get(5)?,
+            graph_terminator: row.get(6)?,
+            insignia: row.get(7)?,
+            font: row.get(8)?,
+            impact: row.get(9)?,
+        })
+    }
+
+    fn from_row_conn(row: &Row) -> Result<Connectivity, DbError> {
         Ok(Connectivity {
             direction: row.get(0)?,
             ref_kind: row.get(1)?,

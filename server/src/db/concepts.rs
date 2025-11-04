@@ -16,7 +16,8 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::db::decks;
-use crate::db::sqlite::{self, FromRow, SqlitePool};
+use crate::db::{SqlitePool, DbError};
+use crate::db::sqlite::{self, FromRow};
 use crate::interop::concepts::Concept;
 use crate::interop::decks::{DeckKind, Pagination, ProtoSlimDeck, SlimDeck};
 use crate::interop::font::Font;
@@ -28,6 +29,22 @@ use tracing::info;
 
 impl FromRow for Concept {
     fn from_row(row: &Row) -> crate::Result<Concept> {
+        Ok(Concept {
+            id: row.get(0)?,
+            title: row.get(1)?,
+            deck_kind: row.get(2)?,
+            created_at: row.get(3)?,
+            graph_terminator: row.get(4)?,
+            insignia: row.get(5)?,
+            font: row.get(6)?,
+            impact: row.get(7)?,
+
+            notes: vec![],
+            arrivals: vec![],
+        })
+    }
+
+    fn from_row_conn(row: &Row) -> Result<Concept, DbError> {
         Ok(Concept {
             id: row.get(0)?,
             title: row.get(1)?,

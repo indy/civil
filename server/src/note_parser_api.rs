@@ -16,7 +16,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::db::notes as notes_db;
-use crate::db::sqlite::SqlitePool;
+use crate::db::SqlitePool;
 use crate::interop::notes::Note;
 
 pub fn get_all_notes_in_db(sqlite_pool: &SqlitePool) -> crate::Result<Vec<Note>> {

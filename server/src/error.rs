@@ -15,42 +15,42 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+
+
 use actix_web::{HttpResponse, ResponseError};
-use derive_more::{Display, From};
-use tracing::error;
+use thiserror::Error;
 
-// pub type Result<T> = ::std::result::Result<T, Error>;
-
-#[derive(Display, From, Debug)]
+#[derive(Debug, Error)]
 pub enum Error {
-    Actix(actix_web::Error),
-    Argon2(argon2::Error),
-    Authenticating,
-    ChatGPTError(chatgpt::err::Error),
-    CivilShared(civil_shared::Error),
-    ExternalServerError,
-    IO(std::io::Error),
-    InvalidKind,
-    InvalidResource,
-    MissingId,
-    NotFound,
-    Other,
-    ParseInt(std::num::ParseIntError),
-    RadixConversion,
-    Registration,
-    ThreadpoolBlocking(actix_threadpool::BlockingError<std::io::Error>),
-    ActixWebBlocking(actix_web::error::BlockingError),
-    TooManyFound,
-    Utf8(std::str::Utf8Error),
-    Var(std::env::VarError),
-    IntConversionToEnum,
-    SessionGetError(actix_session::SessionGetError),
-    SessionInsertError(actix_session::SessionInsertError),
-    StringConversionToEnum,
-    Sqlite(rusqlite::Error),
-    SqliteMigration(rusqlite_migration::Error),
-    SqlitePool(r2d2::Error),
-    SqliteStringConversion,
+    #[error(transparent)] Actix(#[from] actix_web::Error),
+    #[error(transparent)] Argon2(#[from] argon2::Error),
+    #[error("authenticating failed")] Authenticating,
+    #[error(transparent)] ChatGPTError(#[from] chatgpt::err::Error),
+    #[error(transparent)] CivilShared(#[from] civil_shared::Error),
+    #[error("external server error")] ExternalServerError,
+    #[error(transparent)] IO(#[from] std::io::Error),
+    #[error("invalid kind")] InvalidKind,
+    #[error("invalid resource")] InvalidResource,
+    #[error("missing id")] MissingId,
+    #[error("not found")] NotFound,
+    #[error("other error")] Other,
+    #[error(transparent)] ParseInt(#[from] std::num::ParseIntError),
+    #[error("radix conversion error")] RadixConversion,
+    #[error("registration error")] Registration,
+    #[error(transparent)] ThreadpoolBlocking(#[from] actix_threadpool::BlockingError<std::io::Error>),
+    #[error(transparent)] ActixWebBlocking(#[from] actix_web::error::BlockingError),
+    #[error("too many found")] TooManyFound,
+    #[error(transparent)] Utf8(#[from] std::str::Utf8Error),
+    #[error(transparent)] Var(#[from] std::env::VarError),
+    #[error("int conversion to enum")] IntConversionToEnum,
+    #[error(transparent)] SessionGetError(#[from] actix_session::SessionGetError),
+    #[error(transparent)] SessionInsertError(#[from] actix_session::SessionInsertError),
+    #[error("string conversion to enum")] StringConversionToEnum,
+    #[error(transparent)] Sqlite(#[from] rusqlite::Error),
+    #[error(transparent)] SqliteMigration(#[from] rusqlite_migration::Error),
+    #[error(transparent)] SqlitePool(#[from] r2d2::Error),
+    #[error("sqlite string conversion error")] SqliteStringConversion,
+    #[error(transparent)] Db(#[from] crate::db::DbError),
 }
 
 impl ResponseError for Error {
@@ -63,7 +63,7 @@ impl ResponseError for Error {
 }
 
 pub(crate) fn display_local_backtrace() {
-    error!("backtrace:");
+    tracing::error!("backtrace:");
 
     let mut depth = 0;
 
@@ -73,7 +73,7 @@ pub(crate) fn display_local_backtrace() {
                 if name.to_string().starts_with("civil_server") {
                     // ignore the first entry on the stack since that's the call to display_local_backtrace
                     if depth > 0 {
-                        error!("{}", name);
+                        tracing::error!("{}", name);
                     }
                     depth += 1;
                 }

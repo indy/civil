@@ -16,7 +16,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::db::search as db;
-use crate::db::sqlite::SqlitePool;
+use crate::db::SqlitePool;
 use crate::handler::SearchQuery;
 use crate::interop::search::SearchResults;
 use crate::interop::IdParam;

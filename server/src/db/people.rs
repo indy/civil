@@ -24,11 +24,29 @@ use crate::interop::Key;
 #[allow(unused_imports)]
 use tracing::{error, info};
 
-use crate::db::sqlite::{self, FromRow, SqlitePool};
+use crate::db::{SqlitePool, DbError};
+use crate::db::sqlite::{self, FromRow};
 use rusqlite::{params, Row};
 
 impl FromRow for Person {
     fn from_row(row: &Row) -> crate::Result<Person> {
+        Ok(Person {
+            id: row.get(0)?,
+            title: row.get(1)?,
+            deck_kind: row.get(2)?,
+            created_at: row.get(3)?,
+            graph_terminator: row.get(4)?,
+            insignia: row.get(5)?,
+            font: row.get(6)?,
+            impact: row.get(7)?,
+            sort_date: row.get(8)?,
+            points: vec![],
+            notes: vec![],
+            arrivals: vec![],
+        })
+    }
+
+    fn from_row_conn(row: &Row) -> Result<Person, DbError> {
         Ok(Person {
             id: row.get(0)?,
             title: row.get(1)?,

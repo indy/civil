@@ -18,7 +18,7 @@
 use crate::ai::{openai_interface, AI};
 use crate::db::decks as db;
 use crate::db::notes as db_notes;
-use crate::db::sqlite::SqlitePool;
+use crate::db::SqlitePool;
 use crate::error::Error;
 use crate::handler::PaginationQuery;
 use crate::interop::decks::{DeckKind, Pagination, SlimDeck, SlimResults};

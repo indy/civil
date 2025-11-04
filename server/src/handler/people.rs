@@ -18,7 +18,7 @@
 use crate::db::notes as notes_db;
 use crate::db::people as db;
 use crate::db::points as points_db;
-use crate::db::sqlite::SqlitePool;
+use crate::db::SqlitePool;
 use crate::handler::decks;
 use crate::handler::PaginationQuery;
 use crate::interop::decks::{DeckKind, ProtoDeck, ProtoSlimDeck};

@@ -15,7 +15,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::db::sqlite::{self, FromRow, SqlitePool};
+
+use crate::db::{SqlitePool, DbError};
+use crate::db::sqlite::{self, FromRow};
 use crate::interop::decks::SlimDeck;
 use crate::interop::memorise::{Card, CardUpcomingReview, FlashCard, ProtoCard};
 use crate::interop::Key;
@@ -53,6 +55,20 @@ impl FromRow for FlashCard {
             repetition: row.get(6)?,
         })
     }
+
+    fn from_row_conn(row: &Row) -> Result<FlashCard, DbError> {
+        Ok(FlashCard {
+            id: row.get(0)?,
+
+            note_id: row.get(1)?,
+            prompt: row.get(2)?,
+            next_test_date: row.get(3)?,
+
+            easiness_factor: row.get(4)?,
+            interval: row.get(5)?,
+            repetition: row.get(6)?,
+        })
+    }
 }
 
 impl FromRow for Card {
@@ -74,6 +90,39 @@ impl FromRow for Card {
             prompt: row.get(2)?,
         })
     }
+
+    fn from_row_conn(row: &Row) -> Result<Card, DbError> {
+        Ok(Card {
+            id: row.get(0)?,
+            note_id: row.get(1)?,
+            note_content: row.get(3)?,
+            deck_info: SlimDeck {
+                id: row.get(4)?,
+                title: row.get(5)?,
+                deck_kind: row.get(6)?,
+                created_at: row.get(7)?,
+                graph_terminator: row.get(8)?,
+                insignia: row.get(9)?,
+                font: row.get(10)?,
+                impact: row.get(11)?,
+            },
+            prompt: row.get(2)?,
+        })
+    }
+}
+
+pub(crate) fn all_flashcards_for_deck_conn(
+    conn: &rusqlite::Connection,
+    deck_id: Key,
+) -> Result<Vec<FlashCard>, DbError> {
+    sqlite::many_conn(
+        &conn,
+        "SELECT c.id, c.note_id, c.prompt, c.next_test_date,
+                c.easiness_factor, c.interval, c.repetition
+         FROM cards c, decks d, notes n
+         WHERE d.id=?1 AND n.deck_id = d.id AND c.note_id = n.id",
+        params![&deck_id],
+    )
 }
 
 pub(crate) fn all_flashcards_for_deck(
@@ -103,6 +152,23 @@ pub(crate) fn all_flashcards_for_note(
          FROM cards c, notes n
          WHERE n.id=?1 AND c.note_id = n.id",
         params![&note_id],
+    )
+}
+
+pub(crate) fn all_flashcards_for_deck_arrivals_conn(
+    conn: &rusqlite::Connection,
+    deck_id: Key,
+) -> Result<Vec<FlashCard>, DbError> {
+    sqlite::many_conn(
+        &conn,
+        "SELECT   c.id, c.note_id, c.prompt, c.next_test_date,
+                  c.easiness_factor, c.interval, c.repetition
+         FROM     refs r
+                  FULL JOIN notes n on r.note_id = n.id
+                  FULL JOIN decks owner_deck on n.deck_id = owner_deck.id
+                  INNER JOIN cards c on c.note_id = n.id
+         WHERE    r.deck_id = ?1",
+        params![&deck_id],
     )
 }
 

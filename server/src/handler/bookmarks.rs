@@ -16,7 +16,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::db::bookmarks as db;
-use crate::db::sqlite::SqlitePool;
+use crate::db::SqlitePool;
 use crate::interop::{IdParam, Key};
 use crate::session;
 use actix_web::web::{Data, Json, Path};

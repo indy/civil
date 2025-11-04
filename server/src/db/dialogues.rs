@@ -20,7 +20,8 @@ use std::str::FromStr;
 use crate::ai::openai_interface;
 use crate::db::decks;
 use crate::db::notes as db_notes;
-use crate::db::sqlite::{self, FromRow, SqlitePool};
+use crate::db::{SqlitePool, DbError};
+use crate::db::sqlite::{self, FromRow};
 use crate::interop::decks::{DeckKind, SlimDeck};
 use crate::interop::dialogues as interop;
 use crate::interop::font::Font;
@@ -82,7 +83,28 @@ impl FromRow for interop::Dialogue {
             messages: vec![],
         })
     }
+
+    fn from_row_conn(row: &Row) -> Result<interop::Dialogue, DbError> {
+        Ok(interop::Dialogue {
+            id: row.get(0)?,
+            title: row.get(1)?,
+            deck_kind: row.get(2)?,
+            created_at: row.get(3)?,
+            graph_terminator: row.get(4)?,
+            insignia: row.get(5)?,
+            font: row.get(6)?,
+            impact: row.get(7)?,
+
+            notes: vec![],
+            arrivals: vec![],
+
+            ai_kind: row.get(8)?,
+            messages: vec![],
+        })
+    }
 }
+
+// nocheckin what is this?, why is a ChatMessage implementing FromRow
 
 impl FromRow for openai_interface::ChatMessage {
     fn from_row(row: &Row) -> crate::Result<openai_interface::ChatMessage> {
@@ -95,10 +117,27 @@ impl FromRow for openai_interface::ChatMessage {
             content: row.get(2)?,
         })
     }
+
+    fn from_row_conn(row: &Row) -> Result<openai_interface::ChatMessage, DbError> {
+        let _r: String = row.get(1)?;
+        // nocheckin: hardcoding in Role::System since I don't want DbError to have to handle the OpenAI error codes
+        // let role = openai_interface::Role::from_str(&r)?;
+        let role = openai_interface::Role::System;
+
+        Ok(openai_interface::ChatMessage {
+            note_id: row.get(0)?,
+            role,
+            content: row.get(2)?,
+        })
+    }
 }
 
 impl FromRow for interop::AiKind {
     fn from_row(row: &Row) -> crate::Result<interop::AiKind> {
+        let k = row.get(0)?;
+        Ok(k)
+    }
+    fn from_row_conn(row: &Row) -> Result<interop::AiKind, DbError> {
         let k = row.get(0)?;
         Ok(k)
     }
@@ -160,6 +199,12 @@ pub(crate) fn delete(
 
 impl FromRow for DialogueExtra {
     fn from_row(row: &Row) -> crate::Result<DialogueExtra> {
+        Ok(DialogueExtra {
+            ai_kind: row.get(1)?,
+        })
+    }
+
+    fn from_row_conn(row: &Row) -> Result<DialogueExtra, DbError> {
         Ok(DialogueExtra {
             ai_kind: row.get(1)?,
         })

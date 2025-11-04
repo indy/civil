@@ -23,10 +23,20 @@ use actix_web::{http, web, App, HttpServer};
 use civil_server::{self, server_api, ServerConfig};
 use std::env;
 use tracing::{error, info};
+use rusqlite::{Connection};
 
 const SIGNING_KEY_SIZE: usize = 64;
 
 use r2d2_sqlite::SqliteConnectionManager;
+
+fn configure(conn: &Connection) -> rusqlite::Result<()> {
+    conn.execute_batch(
+        "PRAGMA journal_mode=WAL;
+         PRAGMA synchronous=NORMAL;
+         PRAGMA foreign_keys=ON;
+         PRAGMA busy_timeout=5000;"
+    )
+}
 
 #[actix_rt::main]
 async fn main() -> civil_server::Result<()> {
@@ -50,8 +60,11 @@ async fn main() -> civil_server::Result<()> {
 
     civil_server::db::sqlite_migrations::migration_check(&sqlite_db)?;
 
-    let sqlite_manager = SqliteConnectionManager::file(&sqlite_db);
-    let sqlite_pool = r2d2::Pool::new(sqlite_manager)?;
+    let sqlite_manager = SqliteConnectionManager::file(&sqlite_db).with_init(|c| configure(c));
+    // let sqlite_pool = r2d2::Pool::new(sqlite_manager)?;
+    let sqlite_pool = r2d2::Pool::builder()
+        .max_size(16) // keep modest; SQLite is single-writer
+        .build(sqlite_manager)?;
 
     let openai_key = civil_server::env_var_string("OPENAI_KEY")?;
     let ai = civil_server::ai::AI::new(openai_key)?;
