@@ -15,16 +15,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::db::notes as notes_db;
 use crate::db::people as db;
 use crate::db::points as points_db;
 use crate::db::SqlitePool;
 use crate::handler::decks;
 use crate::handler::PaginationQuery;
 use crate::interop::decks::{DeckKind, ProtoDeck, ProtoSlimDeck};
-use crate::interop::people as interop;
 use crate::interop::points as points_interop;
-use crate::interop::{IdParam, Key};
+use crate::interop::IdParam;
 use crate::session;
 use actix_web::web::{Data, Json, Path, Query};
 use actix_web::HttpResponse;
@@ -42,7 +40,7 @@ pub async fn create(
     let user_id = session::user_id(&session)?;
     let proto_deck = proto_deck.into_inner();
 
-    let person = db::get_or_create(&sqlite_pool, user_id, &proto_deck.title)?;
+    let person = db::get_or_create(&sqlite_pool, user_id, proto_deck.title).await?;
 
     Ok(HttpResponse::Ok().json(person))
 }
@@ -55,7 +53,7 @@ pub async fn get_all(
 
     let user_id = session::user_id(&session)?;
 
-    let people = db::all(&sqlite_pool, user_id)?;
+    let people = db::all(&sqlite_pool, user_id).await?;
 
     Ok(HttpResponse::Ok().json(people))
 }
@@ -81,7 +79,7 @@ pub async fn uncategorised(
 ) -> crate::Result<HttpResponse> {
     let user_id = session::user_id(&session)?;
 
-    let paginated = db::uncategorised(&sqlite_pool, user_id, query.offset, query.num_items)?;
+    let paginated = db::uncategorised(&sqlite_pool, user_id, query.offset, query.num_items).await?;
 
     Ok(HttpResponse::Ok().json(paginated))
 }
@@ -93,7 +91,7 @@ pub async fn ancient(
 ) -> crate::Result<HttpResponse> {
     let user_id = session::user_id(&session)?;
 
-    let paginated = db::ancient(&sqlite_pool, user_id, query.offset, query.num_items)?;
+    let paginated = db::ancient(&sqlite_pool, user_id, query.offset, query.num_items).await?;
 
     Ok(HttpResponse::Ok().json(paginated))
 }
@@ -105,7 +103,7 @@ pub async fn medieval(
 ) -> crate::Result<HttpResponse> {
     let user_id = session::user_id(&session)?;
 
-    let paginated = db::medieval(&sqlite_pool, user_id, query.offset, query.num_items)?;
+    let paginated = db::medieval(&sqlite_pool, user_id, query.offset, query.num_items).await?;
 
     Ok(HttpResponse::Ok().json(paginated))
 }
@@ -117,7 +115,7 @@ pub async fn modern(
 ) -> crate::Result<HttpResponse> {
     let user_id = session::user_id(&session)?;
 
-    let paginated = db::modern(&sqlite_pool, user_id, query.offset, query.num_items)?;
+    let paginated = db::modern(&sqlite_pool, user_id, query.offset, query.num_items).await?;
 
     Ok(HttpResponse::Ok().json(paginated))
 }
@@ -129,7 +127,7 @@ pub async fn contemporary(
 ) -> crate::Result<HttpResponse> {
     let user_id = session::user_id(&session)?;
 
-    let paginated = db::contemporary(&sqlite_pool, user_id, query.offset, query.num_items)?;
+    let paginated = db::contemporary(&sqlite_pool, user_id, query.offset, query.num_items).await?;
 
     Ok(HttpResponse::Ok().json(paginated))
 }
@@ -144,8 +142,10 @@ pub async fn get(
     let user_id = session::user_id(&session)?;
     let person_id = params.id;
 
-    let mut person = db::get(&sqlite_pool, user_id, person_id)?;
-    sqlite_augment(&sqlite_pool, &mut person, person_id, user_id)?;
+    let person = match db::get(sqlite_pool.get_ref(), user_id, person_id).await? {
+        Some(p) => p,
+        None => return Err(crate::Error::NotFound),
+    };
 
     Ok(HttpResponse::Ok().json(person))
 }
@@ -162,8 +162,7 @@ pub async fn edit(
     let person_id = params.id;
     let person = person.into_inner();
 
-    let mut person = db::edit(&sqlite_pool, user_id, &person, person_id)?;
-    sqlite_augment(&sqlite_pool, &mut person, person_id, user_id)?;
+    let person = db::edit(&sqlite_pool, user_id, person, person_id).await?;
 
     Ok(HttpResponse::Ok().json(person))
 }
@@ -177,7 +176,7 @@ pub async fn delete(
 
     let user_id = session::user_id(&session)?;
 
-    db::delete(&sqlite_pool, user_id, params.id)?;
+    db::delete(&sqlite_pool, user_id, params.id).await?;
 
     Ok(HttpResponse::Ok().json(true))
 }
@@ -194,10 +193,9 @@ pub async fn add_point(
     let point = point.into_inner();
     let user_id = session::user_id(&session)?;
 
-    points_db::create(&sqlite_pool, &point, person_id)?;
+    points_db::create(&sqlite_pool, point, person_id).await?;
 
-    let mut person = db::get(&sqlite_pool, user_id, person_id)?;
-    sqlite_augment(&sqlite_pool, &mut person, person_id, user_id)?;
+    let person = db::get(&sqlite_pool, user_id, person_id).await?;
 
     Ok(HttpResponse::Ok().json(person))
 }
@@ -215,24 +213,10 @@ pub async fn add_multipoints(
     let user_id = session::user_id(&session)?;
 
     for point in points {
-        points_db::create(&sqlite_pool, &point, person_id)?;
+        points_db::create(&sqlite_pool, point, person_id).await?;
     }
 
-    let mut person = db::get(&sqlite_pool, user_id, person_id)?;
-    sqlite_augment(&sqlite_pool, &mut person, person_id, user_id)?;
+    let person = db::get(&sqlite_pool, user_id, person_id).await?;
 
     Ok(HttpResponse::Ok().json(person))
-}
-
-fn sqlite_augment(
-    sqlite_pool: &Data<SqlitePool>,
-    person: &mut interop::Person,
-    person_id: Key,
-    user_id: Key,
-) -> crate::Result<()> {
-    person.points = points_db::all_points_during_life(sqlite_pool, user_id, person_id)?;
-    person.notes = notes_db::notes_for_deck(sqlite_pool, person_id)?;
-    person.arrivals = notes_db::arrivals_for_deck(sqlite_pool, person_id)?;
-
-    Ok(())
 }

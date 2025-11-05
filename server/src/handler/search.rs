@@ -38,10 +38,13 @@ pub async fn search_at_deck_level(
 
     let user_id = session::user_id(&session)?;
 
-    let deck_level_results = db::search_at_deck_level(&sqlite_pool, user_id, &query.q)?;
+    // nocheckin: sort out this q q2 stuff
+    let q: String = query.q;
+    let q2 = q.clone();
+    let deck_level_results = db::search_at_deck_level(&sqlite_pool, user_id, q).await?;
 
     let res = SearchResults {
-        search_text: query.q,
+        search_text: q2,
         deck_level: deck_level_results,
         note_level: vec![],
     };
@@ -60,10 +63,13 @@ pub async fn search_names_at_deck_level(
 
     let user_id = session::user_id(&session)?;
 
-    let results = db::search_names_at_deck_level(&sqlite_pool, user_id, &query.q)?;
+    // nocheckin: sort out this q q2 stuff
+    let q: String = query.q;
+    let q2 = q.clone();
+    let results = db::search_names_at_deck_level(&sqlite_pool, user_id, q).await?;
 
     let res = SearchResults {
-        search_text: query.q,
+        search_text: q2,
         deck_level: results,
         note_level: vec![],
     };
@@ -84,7 +90,7 @@ pub async fn additional_search_for_decks(
     // search deck, article_extras etc tables for text similar to deck_id's title
     // ignore anything that explicitly links back to the deck
     //
-    let res = db::additional_search_at_deck_level(&sqlite_pool, user_id, deck_id)?;
+    let res = db::additional_search_at_deck_level(&sqlite_pool, user_id, deck_id).await?;
 
     Ok(HttpResponse::Ok().json(res))
 }
@@ -100,7 +106,7 @@ pub async fn search_at_all_levels(
 
     let user_id = session::user_id(&session)?;
 
-    let res = db::search_at_all_levels(&sqlite_pool, user_id, &query.q)?;
+    let res = db::search_at_all_levels(&sqlite_pool, user_id, query.q).await?;
 
     Ok(HttpResponse::Ok().json(res))
 }
@@ -114,7 +120,7 @@ pub async fn search_quotes(
 
     let user_id = session::user_id(&session)?;
 
-    let res = db::search_quotes(&sqlite_pool, user_id, &query.q)?;
+    let res = db::search_quotes(&sqlite_pool, user_id, query.q).await?;
 
     Ok(HttpResponse::Ok().json(res))
 }

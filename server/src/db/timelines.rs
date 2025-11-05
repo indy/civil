@@ -15,15 +15,33 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+use crate::db::notes as notes_db;
+use crate::db::points as points_db;
 use crate::db::decks;
-use crate::db::{SqlitePool, DbError};
+use crate::db::decks::DECKBASE_QUERY;
+use crate::db::{SqlitePool, DbError, db};
 use crate::db::sqlite::{self, FromRow};
-use crate::interop::decks::{DeckKind, ProtoSlimDeck, SlimDeck};
+use crate::interop::decks::{DeckKind, ProtoSlimDeck};
 use crate::interop::font::Font;
 use crate::interop::timelines::Timeline;
 use crate::interop::Key;
+use rusqlite::{params, OptionalExtension, Row};
 
-use rusqlite::{params, Row};
+fn from_rusqlite_row(row: &Row) -> rusqlite::Result<Timeline> {
+    Ok(Timeline {
+        id: row.get(0)?,
+        title: row.get(1)?,
+        deck_kind: row.get(2)?,
+        created_at: row.get(3)?,
+        graph_terminator: row.get(4)?,
+        insignia: row.get(5)?,
+        font: row.get(6)?,
+        impact: row.get(7)?,
+        points: vec![],
+        notes: vec![],
+        arrivals: vec![],
+    })
+}
 
 impl FromRow for Timeline {
     fn from_row(row: &Row) -> crate::Result<Timeline> {
@@ -59,19 +77,18 @@ impl FromRow for Timeline {
     }
 }
 
-pub(crate) fn get_or_create(
-    sqlite_pool: &SqlitePool,
+fn get_or_create_conn(
+    conn: &mut rusqlite::Connection,
     user_id: Key,
-    title: &str,
-) -> crate::Result<Timeline> {
-    let mut conn = sqlite_pool.get()?;
+    title: String
+) -> Result<Timeline, DbError> {
     let tx = conn.transaction()?;
 
-    let (deck, _origin) = decks::deckbase_get_or_create(
+    let (deck, _origin) = decks::deckbase_get_or_create_conn(
         &tx,
         user_id,
         DeckKind::Timeline,
-        title,
+        &title,
         false,
         0,
         Font::Serif,
@@ -80,48 +97,82 @@ pub(crate) fn get_or_create(
 
     tx.commit()?;
 
-    Ok(deck.into())
+    let mut timeline: Timeline = deck.into();
+    let id = timeline.id;
+
+    augment(&mut timeline, conn, user_id, id)?;
+
+    Ok(timeline)
 }
 
-pub(crate) fn listings(sqlite_pool: &SqlitePool, user_id: Key) -> crate::Result<Vec<SlimDeck>> {
-    let conn = sqlite_pool.get()?;
 
-    let stmt = "SELECT id, name, kind, created_at, graph_terminator, insignia, font, impact
+pub(crate) async fn get_or_create(
+    sqlite_pool: &SqlitePool,
+    user_id: Key,
+    title: String,
+) -> crate::Result<Timeline> {
+    db(sqlite_pool, move |conn| get_or_create_conn(conn, user_id, title))
+        .await
+        .map_err(Into::into)
+}
+
+// note that the order is different compared to ideas, concepts etc
+fn listings_conn(
+    conn: &rusqlite::Connection,
+    user_id: Key,
+) -> Result<Vec<Timeline>, DbError> {
+    let stmt = "SELECT id, name, created_at, graph_terminator, insignia, font, impact
                 FROM decks
                 WHERE user_id = ?1 AND kind = 'timeline'
                 ORDER BY created_at DESC";
 
-    sqlite::many(&conn, stmt, params![&user_id])
+    sqlite::many_conn(&conn, stmt, params![&user_id])
 }
 
-pub(crate) fn get(
-    sqlite_pool: &SqlitePool,
-    user_id: Key,
-    timeline_id: Key,
-) -> crate::Result<Timeline> {
-    let conn = sqlite_pool.get()?;
 
-    let deck = sqlite::one(
-        &conn,
-        decks::DECKBASE_QUERY,
-        params![&user_id, &timeline_id, &DeckKind::Timeline.to_string()],
-    )?;
-
-    decks::hit(&conn, timeline_id)?;
-
-    Ok(deck)
+pub(crate) async fn listings(sqlite_pool: &SqlitePool, user_id: Key) -> crate::Result<Vec<Timeline>> {
+    db(sqlite_pool, move |conn| listings_conn(conn, user_id))
+        .await
+        .map_err(Into::into)
 }
 
-pub(crate) fn edit(
-    sqlite_pool: &SqlitePool,
+
+
+fn get_conn(
+    conn: &rusqlite::Connection,
     user_id: Key,
-    timeline: &ProtoSlimDeck,
-    timeline_id: Key,
-) -> crate::Result<Timeline> {
-    let mut conn = sqlite_pool.get()?;
+    timeline_id: Key
+) -> Result<Option<Timeline>, DbError> {
+    let mut timeline = conn.prepare_cached(DECKBASE_QUERY)?
+        .query_row(params![user_id, timeline_id, DeckKind::Timeline.to_string()], |row| from_rusqlite_row(row))
+        .optional()?;
+
+    if let Some(ref mut tl) = timeline {
+        tl.points = points_db::all_conn(conn, user_id, timeline_id)?;
+        tl.notes = notes_db::notes_for_deck_conn(conn, timeline_id)?;
+        tl.arrivals = notes_db::arrivals_for_deck_conn(conn, timeline_id)?;
+    }
+
+    decks::hit_conn(&conn, timeline_id)?;
+
+    Ok(timeline)
+}
+
+pub(crate) async fn get(sqlite_pool: &SqlitePool, user_id: Key, timeline_id: Key) -> crate::Result<Option<Timeline>> {
+    db(sqlite_pool, move |conn| get_conn(conn, user_id, timeline_id))
+        .await
+        .map_err(Into::into)
+}
+
+fn edit_conn(
+    conn: &mut rusqlite::Connection,
+    user_id: Key,
+    timeline: ProtoSlimDeck,
+    timeline_id: Key
+) -> Result<Timeline, DbError> {
     let tx = conn.transaction()?;
 
-    let deck = decks::deckbase_edit(
+    let deck = decks::deckbase_edit_conn(
         &tx,
         user_id,
         timeline_id,
@@ -135,13 +186,46 @@ pub(crate) fn edit(
 
     tx.commit()?;
 
-    Ok(deck.into())
+    let mut timeline: Timeline = deck.into();
+
+    augment(&mut timeline, conn, user_id, timeline_id)?;
+
+    Ok(timeline)
 }
 
-pub(crate) fn delete(
+pub(crate) async fn edit(
     sqlite_pool: &SqlitePool,
     user_id: Key,
+    timeline: ProtoSlimDeck,
     timeline_id: Key,
-) -> crate::Result<()> {
-    decks::delete(sqlite_pool, user_id, timeline_id)
+) -> crate::Result<Timeline> {
+    db(sqlite_pool, move |conn| edit_conn(conn, user_id, timeline, timeline_id))
+        .await
+        .map_err(Into::into)
+}
+
+
+fn delete_conn(
+    conn: &rusqlite::Connection,
+    user_id: Key,
+    timeline_id: Key
+) -> Result<(), DbError> {
+
+    decks::delete_conn(&conn, user_id, timeline_id)?;
+
+    Ok(())
+}
+
+pub(crate) async fn delete(sqlite_pool: &SqlitePool, user_id: Key, timeline_id: Key) -> crate::Result<()> {
+    db(sqlite_pool, move |conn| delete_conn(conn, user_id, timeline_id))
+        .await
+        .map_err(Into::into)
+}
+
+fn augment(timeline: &mut Timeline, conn: &rusqlite::Connection, user_id: Key, timeline_id: Key) -> Result<(), DbError> {
+    timeline.points = points_db::all_conn(conn, user_id, timeline_id)?;
+    timeline.notes = notes_db::notes_for_deck_conn(conn, timeline_id)?;
+    timeline.arrivals = notes_db::arrivals_for_deck_conn(conn, timeline_id)?;
+
+    Ok(())
 }

@@ -37,7 +37,7 @@ pub async fn create_card(
     let user_id = session::user_id(&session)?;
     let card = card.into_inner();
 
-    let db_card = db::create_card(&sqlite_pool, &card, user_id)?;
+    let db_card = db::create_card(&sqlite_pool, card, user_id).await?;
 
     Ok(HttpResponse::Ok().json(db_card))
 }
@@ -57,10 +57,10 @@ pub async fn card_rated(
     let rating = rating.into_inner().rating;
 
     if (0..=5).contains(&rating) {
-        let mut card = db::get_card_full_fat(&sqlite_pool, user_id, card_id)?;
+        let mut card = db::get_card_full_fat(&sqlite_pool, user_id, card_id).await?;
         card = sqlite_update_easiness_factor(card, rating)?;
 
-        db::card_rated(&sqlite_pool, card, rating)?;
+        db::card_rated(&sqlite_pool, card, rating).await?;
 
         Ok(HttpResponse::Ok().json(true))
     } else {
@@ -79,7 +79,7 @@ pub async fn edit(
     let flashcard = flashcard.into_inner();
     let user_id = session::user_id(&session)?;
 
-    let flashcard = db::edit_flashcard(&sqlite_pool, user_id, &flashcard, params.id)?;
+    let flashcard = db::edit_flashcard(&sqlite_pool, user_id, flashcard, params.id).await?;
 
     Ok(HttpResponse::Ok().json(flashcard))
 }
@@ -93,7 +93,7 @@ pub async fn delete(
 
     let user_id = session::user_id(&session)?;
 
-    db::delete_flashcard(&sqlite_pool, user_id, params.id)?;
+    db::delete_flashcard(&sqlite_pool, user_id, params.id).await?;
 
     Ok(HttpResponse::Ok().json(true))
 }
@@ -158,7 +158,7 @@ pub async fn get_cards(
     session: actix_session::Session,
 ) -> crate::Result<HttpResponse> {
     let user_id = session::user_id(&session)?;
-    let db_cards = db::get_cards(&sqlite_pool, user_id, Utc::now().naive_utc())?;
+    let db_cards = db::get_cards(&sqlite_pool, user_id, Utc::now().naive_utc()).await?;
 
     Ok(HttpResponse::Ok().json(db_cards))
 }
@@ -168,7 +168,7 @@ pub async fn get_practice_card(
     session: actix_session::Session,
 ) -> crate::Result<HttpResponse> {
     let user_id = session::user_id(&session)?;
-    let db_card = db::get_practice_card(&sqlite_pool, user_id)?;
+    let db_card = db::get_practice_card(&sqlite_pool, user_id).await?;
 
     Ok(HttpResponse::Ok().json(db_card))
 }

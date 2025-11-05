@@ -16,12 +16,11 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::db::articles as db;
-use crate::db::notes as notes_db;
 use crate::db::SqlitePool;
 use crate::handler::PaginationQuery;
 use crate::interop::articles as interop;
 use crate::interop::decks::ProtoDeck;
-use crate::interop::{IdParam, Key};
+use crate::interop::IdParam;
 use crate::session;
 use actix_web::web::{Data, Json, Path, Query};
 use actix_web::HttpResponse;
@@ -39,7 +38,7 @@ pub async fn create(
     let user_id = session::user_id(&session)?;
     let proto_deck = proto_deck.into_inner();
 
-    let article = db::get_or_create(&sqlite_pool, user_id, &proto_deck.title)?;
+    let article = db::get_or_create(&sqlite_pool, user_id, proto_deck.title).await?;
 
     Ok(HttpResponse::Ok().json(article))
 }
@@ -51,7 +50,8 @@ pub async fn get_all(
     info!("get_all");
 
     let user_id = session::user_id(&session)?;
-    let articles = db::all(&sqlite_pool, user_id)?;
+
+    let articles = db::all(&sqlite_pool, user_id).await?;
 
     Ok(HttpResponse::Ok().json(articles))
 }
@@ -72,7 +72,7 @@ pub async fn recent(
 ) -> crate::Result<HttpResponse> {
     let user_id = session::user_id(&session)?;
 
-    let paginated_recent = db::recent(&sqlite_pool, user_id, query.offset, query.num_items)?;
+    let paginated_recent = db::recent(&sqlite_pool, user_id, query.offset, query.num_items).await?;
 
     Ok(HttpResponse::Ok().json(paginated_recent))
 }
@@ -84,7 +84,7 @@ pub async fn orphans(
 ) -> crate::Result<HttpResponse> {
     let user_id = session::user_id(&session)?;
 
-    let paginated_orphans = db::orphans(&sqlite_pool, user_id, query.offset, query.num_items)?;
+    let paginated_orphans = db::orphans(&sqlite_pool, user_id, query.offset, query.num_items).await?;
 
     Ok(HttpResponse::Ok().json(paginated_orphans))
 }
@@ -96,7 +96,7 @@ pub async fn rated(
 ) -> crate::Result<HttpResponse> {
     let user_id = session::user_id(&session)?;
 
-    let paginated_rated = db::rated(&sqlite_pool, user_id, query.offset, query.num_items)?;
+    let paginated_rated = db::rated(&sqlite_pool, user_id, query.offset, query.num_items).await?;
 
     Ok(HttpResponse::Ok().json(paginated_rated))
 }
@@ -111,9 +111,10 @@ pub async fn get(
     let user_id = session::user_id(&session)?;
     let article_id = params.id;
 
-    let mut article = db::get(&sqlite_pool, user_id, article_id)?;
-
-    sqlite_augment(&sqlite_pool, &mut article, article_id)?;
+    let article = match db::get(sqlite_pool.get_ref(), user_id, article_id).await? {
+        Some(i) => i,
+        None => return Err(crate::Error::NotFound),
+    };
 
     Ok(HttpResponse::Ok().json(article))
 }
@@ -130,8 +131,7 @@ pub async fn edit(
     let article_id = params.id;
     let article = article.into_inner();
 
-    let mut article = db::edit(&sqlite_pool, user_id, &article, article_id)?;
-    sqlite_augment(&sqlite_pool, &mut article, article_id)?;
+    let article = db::edit(&sqlite_pool, user_id, article, article_id).await?;
 
     Ok(HttpResponse::Ok().json(article))
 }
@@ -145,18 +145,7 @@ pub async fn delete(
 
     let user_id = session::user_id(&session)?;
 
-    db::delete(&sqlite_pool, user_id, params.id)?;
+    db::delete(&sqlite_pool, user_id, params.id).await?;
 
     Ok(HttpResponse::Ok().json(true))
-}
-
-fn sqlite_augment(
-    sqlite_pool: &Data<SqlitePool>,
-    article: &mut interop::Article,
-    article_id: Key,
-) -> crate::Result<()> {
-    article.notes = notes_db::notes_for_deck(sqlite_pool, article_id)?;
-    article.arrivals = notes_db::arrivals_for_deck(sqlite_pool, article_id)?;
-
-    Ok(())
 }

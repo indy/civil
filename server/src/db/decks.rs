@@ -16,9 +16,8 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::db::notes;
-use crate::db::{SqlitePool, DbError};
+use crate::db::{SqlitePool, DbError, db};
 use crate::db::sqlite::{self, FromRow};
-use crate::error::Error;
 use crate::interop::decks as interop;
 use crate::interop::font::Font;
 use crate::interop::Key;
@@ -131,13 +130,11 @@ impl FromRow for Font {
     }
 }
 
-pub fn recently_visited_any(
-    sqlite_pool: &SqlitePool,
+fn recently_visited_any_conn(
+    conn: &rusqlite::Connection,
     user_id: Key,
     num: i32,
-) -> crate::Result<Vec<interop::SlimDeck>> {
-    let conn = sqlite_pool.get()?;
-
+) -> Result<Vec<interop::SlimDeck>, DbError> {
     let stmt = "SELECT decks.id, decks.name, decks.kind, decks.created_at, decks.graph_terminator, decks.insignia, decks.font, decks.impact, max(hits.created_at) as most_recent_visit
                 FROM hits INNER JOIN decks ON decks.id = hits.deck_id
                 WHERE decks.user_id = ?1
@@ -145,17 +142,21 @@ pub fn recently_visited_any(
                 ORDER BY most_recent_visit DESC
                 LIMIT ?2";
 
-    sqlite::many(&conn, stmt, params![&user_id, &num])
+    sqlite::many_conn(&conn, stmt, params![&user_id, &num])
 }
 
-pub fn recently_visited(
-    sqlite_pool: &SqlitePool,
+pub(crate) async fn recently_visited_any(sqlite_pool: &SqlitePool, user_id: Key, num: i32) -> crate::Result<Vec<interop::SlimDeck>> {
+    db(sqlite_pool, move |conn| recently_visited_any_conn(conn, user_id, num))
+        .await
+        .map_err(Into::into)
+}
+
+pub fn recently_visited_conn(
+    conn: &rusqlite::Connection,
     user_id: Key,
     deck_kind: interop::DeckKind,
     num: i32,
-) -> crate::Result<Vec<interop::SlimDeck>> {
-    let conn = sqlite_pool.get()?;
-
+) -> Result<Vec<interop::SlimDeck>, DbError> {
     let stmt = "SELECT decks.id, decks.name, decks.kind, decks.created_at, decks.graph_terminator, decks.insignia, decks.font, decks.impact, max(hits.created_at) as most_recent_visit
                 FROM hits INNER JOIN decks ON decks.id = hits.deck_id
                 WHERE decks.user_id = ?1 AND decks.kind=?2
@@ -163,29 +164,33 @@ pub fn recently_visited(
                 ORDER BY most_recent_visit DESC
                 LIMIT ?3";
 
-    sqlite::many(&conn, stmt, params![&user_id, &deck_kind.to_string(), &num])
+    sqlite::many_conn(&conn, stmt, params![&user_id, &deck_kind.to_string(), &num])
 }
 
-fn num_decks_for_deck_kind(
-    sqlite_pool: &SqlitePool,
+pub(crate) async fn recently_visited(sqlite_pool: &SqlitePool, user_id: Key, deck_kind: interop::DeckKind, num: i32) -> crate::Result<Vec<interop::SlimDeck>> {
+    db(sqlite_pool, move |conn| recently_visited_conn(conn, user_id, deck_kind, num))
+        .await
+        .map_err(Into::into)
+}
+
+
+fn num_decks_for_deck_kind_conn(
+    conn: &rusqlite::Connection,
     user_id: Key,
     deck_kind: interop::DeckKind,
-) -> crate::Result<i32> {
-    let conn = sqlite_pool.get()?;
+) -> Result<i32, DbError> {
     let stmt = "SELECT count(*) FROM decks where user_id=?1 AND kind=?2;";
 
-    sqlite::one(&conn, stmt, params![user_id, &deck_kind.to_string()])
+    sqlite::one_conn(&conn, stmt, params![user_id, &deck_kind.to_string()])
 }
 
-pub(crate) fn pagination(
-    sqlite_pool: &SqlitePool,
+fn pagination_2_conn(
+    conn: &rusqlite::Connection,
     user_id: Key,
     deck_kind: interop::DeckKind,
     offset: i32,
     num_items: i32,
-) -> crate::Result<interop::Pagination<interop::SlimDeck>> {
-    let conn = sqlite_pool.get()?;
-
+) -> Result<interop::Pagination<interop::SlimDeck>, DbError> {
     let stmt = "SELECT id, name, kind, created_at, graph_terminator, insignia, font, impact
                 FROM decks
                 WHERE user_id = ?1 AND kind = ?2
@@ -193,28 +198,38 @@ pub(crate) fn pagination(
                 LIMIT ?3
                 OFFSET ?4";
 
-    let items = sqlite::many(
+    let items = sqlite::many_conn(
         &conn,
         stmt,
         params![&user_id, &deck_kind.to_string(), &num_items, &offset],
     )?;
 
-    let total_items = num_decks_for_deck_kind(sqlite_pool, user_id, deck_kind)?;
+    let total_items = num_decks_for_deck_kind_conn(conn, user_id, deck_kind)?;
 
     let res = interop::Pagination::<interop::SlimDeck> { items, total_items };
 
     Ok(res)
 }
 
-pub(crate) fn pagination_events_chronologically(
+pub(crate) async fn pagination_2(
     sqlite_pool: &SqlitePool,
     user_id: Key,
     deck_kind: interop::DeckKind,
     offset: i32,
     num_items: i32,
 ) -> crate::Result<interop::Pagination<interop::SlimDeck>> {
-    let conn = sqlite_pool.get()?;
+    db(sqlite_pool, move |conn| pagination_2_conn(conn, user_id, deck_kind, offset, num_items))
+        .await
+        .map_err(Into::into)
+}
 
+fn pagination_events_chronologically_conn(
+    conn: &rusqlite::Connection,
+    user_id: Key,
+    deck_kind: interop::DeckKind,
+    offset: i32,
+    num_items: i32,
+) -> Result<interop::Pagination<interop::SlimDeck>, DbError> {
     let stmt = "SELECT d.id, d.name, d.kind, d.created_at, d.graph_terminator, d.insignia, d.font, d.impact
                 FROM decks as d LEFT JOIN points AS p ON p.deck_id = d.id
                 WHERE d.user_id = ?1 AND d.kind = ?2
@@ -223,17 +238,29 @@ pub(crate) fn pagination_events_chronologically(
                 LIMIT ?3
                 OFFSET ?4";
 
-    let items = sqlite::many(
+    let items = sqlite::many_conn(
         &conn,
         stmt,
         params![&user_id, &deck_kind.to_string(), &num_items, &offset],
     )?;
 
-    let total_items = num_decks_for_deck_kind(sqlite_pool, user_id, deck_kind)?;
+    let total_items = num_decks_for_deck_kind_conn(conn, user_id, deck_kind)?;
 
     let res = interop::Pagination::<interop::SlimDeck> { items, total_items };
 
     Ok(res)
+}
+
+pub(crate) async fn pagination_events_chronologically(
+    sqlite_pool: &SqlitePool,
+    user_id: Key,
+    deck_kind: interop::DeckKind,
+    offset: i32,
+    num_items: i32,
+) -> crate::Result<interop::Pagination<interop::SlimDeck>> {
+    db(sqlite_pool, move |conn| pagination_events_chronologically_conn(conn, user_id, deck_kind, offset, num_items))
+        .await
+        .map_err(Into::into)
 }
 
 // note: may execute multiple sql write statements so should be in a transaction
@@ -273,58 +300,31 @@ pub(crate) fn deckbase_get_or_create_conn(
     }
 }
 
-// note: may execute multiple sql write statements so should be in a transaction
-//
-// returns tuple where the second element is a bool indicating whether the deck
-// was created (true) or we're returning a pre-existing deck (false)
-//
-pub(crate) fn deckbase_get_or_create(
-    tx: &Connection,
-    user_id: Key,
-    kind: interop::DeckKind,
-    name: &str,
-    graph_terminator: bool,
-    insignia: i32,
-    font: Font,
-    impact: i32,
-) -> crate::Result<(DeckBase, DeckBaseOrigin)> {
-    let existing_deck_res = deckbase_get_by_name(tx, user_id, kind, name);
-    match existing_deck_res {
-        Ok(deck) => Ok((deck, DeckBaseOrigin::PreExisting)),
-        Err(e) => match e {
-            Error::NotFound => {
-                let deck = deckbase_create(
-                    tx,
-                    user_id,
-                    kind,
-                    name,
-                    graph_terminator,
-                    insignia,
-                    font,
-                    impact,
-                )?;
-                Ok((deck, DeckBaseOrigin::Created))
-            }
-            _ => Err(e),
-        },
-    }
-}
-
-pub(crate) fn hit(conn: &Connection, deck_id: Key) -> crate::Result<()> {
-    let stmt = "INSERT INTO hits(deck_id) VALUES (?1)";
-    sqlite::zero(conn, stmt, params![&deck_id])
-}
-
 pub(crate) fn hit_conn(conn: &Connection, deck_id: Key) -> Result<(), DbError> {
     let stmt = "INSERT INTO hits(deck_id) VALUES (?1)";
     sqlite::zero_conn(conn, stmt, params![&deck_id])
 }
 
-pub(crate) fn get_hits(sqlite_pool: &SqlitePool, deck_id: Key) -> crate::Result<Vec<interop::Hit>> {
-    let conn = sqlite_pool.get()?;
+// pub(crate) fn get_hits(sqlite_pool: &SqlitePool, deck_id: Key) -> crate::Result<Vec<interop::Hit>> {
+//     let conn = sqlite_pool.get()?;
+//     let stmt = "SELECT created_at FROM hits WHERE deck_id = ?1 ORDER BY created_at DESC;";
+//     sqlite::many(&conn, stmt, params![&deck_id])
+// }
+
+fn get_hits_conn(
+    conn: &rusqlite::Connection,
+    deck_id: Key,
+) -> Result<Vec<interop::Hit>, DbError> {
     let stmt = "SELECT created_at FROM hits WHERE deck_id = ?1 ORDER BY created_at DESC;";
-    sqlite::many(&conn, stmt, params![&deck_id])
+    sqlite::many_conn(&conn, stmt, params![&deck_id])
 }
+
+pub(crate) async fn get_hits(sqlite_pool: &SqlitePool, deck_id: Key) -> crate::Result<Vec<interop::Hit>> {
+    db(sqlite_pool, move |conn| get_hits_conn(conn, deck_id))
+        .await
+        .map_err(Into::into)
+}
+
 
 fn deckbase_get_by_name_conn(
     conn: &Connection,
@@ -336,18 +336,6 @@ fn deckbase_get_by_name_conn(
                 FROM DECKS
                 WHERE user_id = ?1 AND name = ?2 AND kind = ?3";
     sqlite::one_conn(conn, stmt, params![&user_id, &name, &kind.to_string()])
-}
-
-fn deckbase_get_by_name(
-    conn: &Connection,
-    user_id: Key,
-    kind: interop::DeckKind,
-    name: &str,
-) -> crate::Result<DeckBase> {
-    let stmt = "SELECT id, name, kind, created_at, graph_terminator, insignia, font, impact
-                FROM DECKS
-                WHERE user_id = ?1 AND name = ?2 AND kind = ?3";
-    sqlite::one(conn, stmt, params![&user_id, &name, &kind.to_string()])
 }
 
 pub(crate) fn deckbase_create_conn(
@@ -383,80 +371,6 @@ pub(crate) fn deckbase_create_conn(
 
     Ok(deckbase)
 }
-
-pub(crate) fn deckbase_create(
-    tx: &Connection,
-    user_id: Key,
-    kind: interop::DeckKind,
-    name: &str,
-    graph_terminator: bool,
-    insignia: i32,
-    font: Font,
-    impact: i32,
-) -> crate::Result<DeckBase> {
-    let stmt = "INSERT INTO decks(user_id, kind, name, graph_terminator, insignia, font, impact)
-                VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)
-                RETURNING id, name, kind, created_at, graph_terminator, insignia, font, impact";
-
-    let deckbase: DeckBase = sqlite::one(
-        tx,
-        stmt,
-        params![
-            &user_id,
-            &kind.to_string(),
-            name,
-            graph_terminator,
-            &insignia,
-            &i32::from(font),
-            impact
-        ],
-    )?;
-
-    // create the mandatory NoteKind::NoteDeckMeta
-    let _note = notes::create_note_deck_meta(tx, user_id, deckbase.id)?;
-
-    Ok(deckbase)
-}
-
-pub(crate) fn deckbase_edit(
-    tx: &Connection,
-    user_id: Key,
-    deck_id: Key,
-    kind: interop::DeckKind,
-    name: &str,
-    graph_terminator: bool,
-    insignia: i32,
-    font: Font,
-    impact: i32,
-) -> crate::Result<DeckBase> {
-    // if the font has changed
-    let original_font = get_font_of_deck(tx, deck_id)?;
-
-    if original_font != font {
-        // change all of this deck's notes that have the old font to the new font
-        notes::replace_note_fonts(tx, user_id, deck_id, original_font, font)?;
-    }
-
-    let stmt = "UPDATE decks
-                SET name = ?4, graph_terminator = ?5, insignia = ?6, font = ?7, impact = ?8
-                WHERE user_id = ?1 AND id = ?2 AND kind = ?3
-                RETURNING id, name, kind, created_at, graph_terminator, insignia, font, impact";
-    sqlite::one(
-        tx,
-        stmt,
-        params![
-            &user_id,
-            &deck_id,
-            &kind.to_string(),
-            name,
-            graph_terminator,
-            insignia,
-            &i32::from(font),
-            impact
-        ],
-    )
-}
-
 
 pub(crate) fn deckbase_edit_conn(
     tx: &Connection,
@@ -497,28 +411,27 @@ pub(crate) fn deckbase_edit_conn(
     )
 }
 
+// nocheckin: is this only used by graph get_conn?
 pub(crate) fn get_slimdeck(
     conn: &Connection,
     user_id: Key,
     deck_id: Key,
-) -> crate::Result<interop::SlimDeck> {
+) -> Result<interop::SlimDeck, DbError> {
     let stmt = "SELECT id, name, kind, created_at, graph_terminator, insignia, font, impact
                 FROM decks
                 WHERE user_id = ?1 AND id = ?2";
 
-    sqlite::one(conn, stmt, params![&user_id, &deck_id])
+    sqlite::one_conn(conn, stmt, params![&user_id, &deck_id])
 }
 
-pub(crate) fn insignia_filter(
-    sqlite_pool: &SqlitePool,
+fn insignia_filter_conn(
+    conn: &rusqlite::Connection,
     user_id: Key,
     deck_kind: interop::DeckKind,
     insignia: i32,
     offset: i32,
     num_items: i32,
-) -> crate::Result<interop::Pagination<interop::SlimDeck>> {
-    let conn = sqlite_pool.get()?;
-
+) -> Result<interop::Pagination<interop::SlimDeck>, DbError> {
     let stmt = "SELECT id, name, kind, created_at, graph_terminator, insignia, font, impact
                 FROM decks
                 WHERE user_id = ?1 AND insignia & ?2 AND kind = ?3
@@ -526,7 +439,7 @@ pub(crate) fn insignia_filter(
                 LIMIT ?4
                 OFFSET ?5";
 
-    let items = sqlite::many(
+    let items = sqlite::many_conn(
         &conn,
         stmt,
         params![
@@ -539,7 +452,7 @@ pub(crate) fn insignia_filter(
     )?;
 
     let stmt = "SELECT count(*) FROM decks where user_id=?1 AND insignia & ?2 AND kind=?3;";
-    let total_items = sqlite::one(
+    let total_items = sqlite::one_conn(
         &conn,
         stmt,
         params![user_id, &insignia, &deck_kind.to_string()],
@@ -550,15 +463,27 @@ pub(crate) fn insignia_filter(
     Ok(res)
 }
 
-pub(crate) fn insignia_filter_any(
+pub(crate) async fn insignia_filter(
     sqlite_pool: &SqlitePool,
     user_id: Key,
+    deck_kind: interop::DeckKind,
     insignia: i32,
     offset: i32,
     num_items: i32,
 ) -> crate::Result<interop::Pagination<interop::SlimDeck>> {
-    let conn = sqlite_pool.get()?;
+    db(sqlite_pool, move |conn| insignia_filter_conn(conn, user_id, deck_kind, insignia, offset, num_items))
+        .await
+        .map_err(Into::into)
+}
 
+
+fn insignia_filter_any_conn(
+    conn: &rusqlite::Connection,
+    user_id: Key,
+    insignia: i32,
+    offset: i32,
+    num_items: i32,
+) -> Result<interop::Pagination<interop::SlimDeck>, DbError> {
     let stmt = "SELECT id, name, kind, created_at, graph_terminator, insignia, font, impact
                 FROM decks
                 WHERE user_id = ?1 AND insignia & ?2
@@ -566,26 +491,38 @@ pub(crate) fn insignia_filter_any(
                 LIMIT ?3
                 OFFSET ?4";
 
-    let items = sqlite::many(
+    let items = sqlite::many_conn(
         &conn,
         stmt,
         params![&user_id, &insignia, &num_items, &offset],
     )?;
 
     let stmt = "SELECT count(*) FROM decks where user_id=?1 AND insignia & ?2;";
-    let total_items = sqlite::one(&conn, stmt, params![user_id, &insignia])?;
+    let total_items = sqlite::one_conn(&conn, stmt, params![user_id, &insignia])?;
 
     let res = interop::Pagination::<interop::SlimDeck> { items, total_items };
 
     Ok(res)
 }
 
-pub(crate) fn recent(
+
+pub(crate) async fn insignia_filter_any(
     sqlite_pool: &SqlitePool,
     user_id: Key,
+    insignia: i32,
+    offset: i32,
+    num_items: i32,
+) -> crate::Result<interop::Pagination<interop::SlimDeck>> {
+    db(sqlite_pool, move |conn| insignia_filter_any_conn(conn, user_id, insignia, offset, num_items))
+        .await
+        .map_err(Into::into)
+}
+
+fn recent_conn(
+    conn: &rusqlite::Connection,
+    user_id: Key,
     deck_kind: interop::DeckKind,
-) -> crate::Result<Vec<interop::SlimDeck>> {
-    let conn = sqlite_pool.get()?;
+) -> Result<Vec<interop::SlimDeck>, DbError> {
     let limit: i32 = 10;
 
     let stmt = "SELECT id, name, kind, created_at, graph_terminator, insignia, font, impact
@@ -596,22 +533,15 @@ pub(crate) fn recent(
     let stmt = stmt.replace("$deck_kind", &deck_kind.to_string());
     let stmt = stmt.replace("$limit", &limit.to_string());
 
-    sqlite::many(&conn, &stmt, params![&user_id])
+    sqlite::many_conn(&conn, &stmt, params![&user_id])
 }
 
-// delete anything that's represented as a deck (article, person, idea, timeline, quote, dialogue)
-//
-pub(crate) fn delete(sqlite_pool: &SqlitePool, user_id: Key, id: Key) -> crate::Result<()> {
-    let conn = sqlite_pool.get()?;
-
-    sqlite::zero(
-        &conn,
-        "DELETE FROM decks WHERE id = ?2 and user_id = ?1",
-        params![&user_id, &id],
-    )?;
-
-    Ok(())
+pub(crate) async fn recent(sqlite_pool: &SqlitePool, user_id: Key, deck_kind: interop::DeckKind) -> crate::Result<Vec<interop::SlimDeck>> {
+    db(sqlite_pool, move |conn| recent_conn(conn, user_id, deck_kind))
+        .await
+        .map_err(Into::into)
 }
+
 
 // delete anything that's represented as a deck (article, person, idea, timeline, quote, dialogue)
 //
@@ -625,14 +555,6 @@ pub(crate) fn delete_conn(conn: &Connection, user_id: Key, id: Key) -> Result<()
     Ok(())
 }
 
-fn get_font_of_deck(conn: &Connection, deck_id: Key) -> crate::Result<Font> {
-    sqlite::one(
-        conn,
-        "SELECT font FROM decks WHERE id = ?1",
-        params![&deck_id],
-    )
-}
-
 fn get_font_of_deck_conn(conn: &Connection, deck_id: Key) -> Result<Font, DbError> {
     sqlite::one_conn(
         conn,
@@ -641,13 +563,13 @@ fn get_font_of_deck_conn(conn: &Connection, deck_id: Key) -> Result<Font, DbErro
     )
 }
 
-pub(crate) fn overwrite_deck_font(
+pub(crate) fn overwrite_deck_font_conn(
     conn: &Connection,
     user_id: Key,
     deck_id: Key,
     new_font: Font,
-) -> crate::Result<()> {
-    sqlite::zero(
+) -> Result<(), DbError> {
+    sqlite::zero_conn(
         conn,
         "UPDATE decks
          SET font = ?3

@@ -38,7 +38,7 @@ pub async fn create_notes(
 
     let user_id = session::user_id(&session)?;
 
-    let notes = db::create_notes(&sqlite_pool, user_id, &note)?;
+    let notes = db::create_notes(&sqlite_pool, user_id, note).await?;
 
     // anything that alters the structure of a deck's notes should return _all_ the notes associated with that deck
     Ok(HttpResponse::Ok().json(notes))
@@ -55,7 +55,7 @@ pub async fn edit_note(
     let note = note.into_inner();
     let user_id = session::user_id(&session)?;
 
-    let note = db::edit_note(&sqlite_pool, user_id, &note, params.id)?;
+    let note = db::edit_note(&sqlite_pool, user_id, note, params.id).await?;
 
     Ok(HttpResponse::Ok().json(note))
 }
@@ -69,7 +69,7 @@ pub async fn delete_note(
 
     let user_id = session::user_id(&session)?;
 
-    let notes = db::delete_note_properly(&sqlite_pool, user_id, params.id)?;
+    let notes = db::delete_note_properly(&sqlite_pool, user_id, params.id).await?;
     // anything that alters the structure of a deck's notes should return _all_ the notes associated with that deck
     Ok(HttpResponse::Ok().json(notes))
 }
@@ -85,7 +85,7 @@ pub async fn edit_references(
     let diff = diff.into_inner();
     let user_id = session::user_id(&session)?;
 
-    let all_decks_for_note = db_refs::update_references(&sqlite_pool, &diff, user_id, params.id)?;
+    let all_decks_for_note = db_refs::update_references(&sqlite_pool, diff, user_id, params.id).await?;
 
     Ok(HttpResponse::Ok().json(all_decks_for_note))
 }

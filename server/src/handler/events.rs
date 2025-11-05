@@ -16,12 +16,11 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::db::events as db;
-use crate::db::notes as notes_db;
 use crate::handler::decks;
 use crate::handler::PaginationQuery;
 use crate::interop::decks::{DeckKind, ProtoDeck};
 use crate::interop::events as interop;
-use crate::interop::{IdParam, Key};
+use crate::interop::IdParam;
 use crate::session;
 use actix_web::web::{Data, Json, Path, Query};
 use actix_web::HttpResponse;
@@ -41,7 +40,7 @@ pub async fn create(
     let user_id = session::user_id(&session)?;
     let proto_deck = proto_deck.into_inner();
 
-    let event = db::get_or_create(&sqlite_pool, user_id, &proto_deck.title)?;
+    let event = db::get_or_create(&sqlite_pool, user_id, proto_deck.title).await?;
 
     Ok(HttpResponse::Ok().json(event))
 }
@@ -54,7 +53,8 @@ pub async fn get_all(
 
     let user_id = session::user_id(&session)?;
 
-    let events = db::listings(&sqlite_pool, user_id)?;
+    // nocheckin why isn't this called db::all like in ideas?
+    let events = db::listings(&sqlite_pool, user_id).await?;
 
     Ok(HttpResponse::Ok().json(events))
 }
@@ -83,8 +83,10 @@ pub async fn get(
     let user_id = session::user_id(&session)?;
     let event_id = params.id;
 
-    let mut event = db::get(&sqlite_pool, user_id, event_id)?;
-    sqlite_augment(&sqlite_pool, &mut event, event_id)?;
+    let event = match db::get(sqlite_pool.get_ref(), user_id, event_id).await? {
+        Some(i) => i,
+        None => return Err(crate::Error::NotFound),
+    };
 
     Ok(HttpResponse::Ok().json(event))
 }
@@ -101,8 +103,7 @@ pub async fn edit(
     let event_id = params.id;
     let event = event.into_inner();
 
-    let mut event = db::edit(&sqlite_pool, user_id, &event, event_id)?;
-    sqlite_augment(&sqlite_pool, &mut event, event_id)?;
+    let event = db::edit(&sqlite_pool, user_id, event, event_id).await?;
 
     Ok(HttpResponse::Ok().json(event))
 }
@@ -116,18 +117,7 @@ pub async fn delete(
 
     let user_id = session::user_id(&session)?;
 
-    db::delete(&sqlite_pool, user_id, params.id)?;
+    db::delete(&sqlite_pool, user_id, params.id).await?;
 
     Ok(HttpResponse::Ok().json(true))
-}
-
-fn sqlite_augment(
-    sqlite_pool: &Data<SqlitePool>,
-    event: &mut interop::Event,
-    event_id: Key,
-) -> crate::Result<()> {
-    event.notes = notes_db::notes_for_deck(sqlite_pool, event_id)?;
-    event.arrivals = notes_db::arrivals_for_deck(sqlite_pool, event_id)?;
-
-    Ok(())
 }

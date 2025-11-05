@@ -17,7 +17,8 @@
 
 use crate::db::notes as notes_db;
 use crate::db::decks::DECKBASE_QUERY;
-use crate::db::{SqlitePool, DbError, db, decks};
+use crate::db::decks;
+use crate::db::{SqlitePool, DbError, db};
 use crate::db::sqlite::{self, FromRow};
 use crate::interop::decks::{DeckKind, Pagination, ProtoSlimDeck, SlimDeck};
 use crate::interop::font::Font;
@@ -27,7 +28,6 @@ use rusqlite::{params, OptionalExtension, Row};
 
 #[allow(unused_imports)]
 use tracing::info;
-
 
 fn from_rusqlite_row(row: &Row) -> rusqlite::Result<Idea> {
     Ok(Idea {
@@ -108,7 +108,6 @@ fn get_or_create_conn(
     Ok(idea)
 }
 
-
 pub(crate) async fn get_or_create(
     sqlite_pool: &SqlitePool,
     user_id: Key,
@@ -119,14 +118,12 @@ pub(crate) async fn get_or_create(
         .map_err(Into::into)
 }
 
-pub(crate) fn recent(
-    sqlite_pool: &SqlitePool,
+fn recent_conn(
+    conn: &rusqlite::Connection,
     user_id: Key,
     offset: i32,
     num_items: i32,
-) -> crate::Result<Pagination<SlimDeck>> {
-    let conn = sqlite_pool.get()?;
-
+) -> Result<Pagination<SlimDeck>, DbError> {
     let stmt = "SELECT id, name, kind, created_at, graph_terminator, insignia, font, impact
                 FROM decks
                 WHERE user_id = ?1 AND kind = 'idea'
@@ -134,24 +131,33 @@ pub(crate) fn recent(
                 LIMIT ?2
                 OFFSET ?3";
 
-    let items = sqlite::many(&conn, stmt, params![&user_id, &num_items, &offset])?;
+    let items = sqlite::many_conn(&conn, stmt, params![&user_id, &num_items, &offset])?;
 
     let stmt = "SELECT count(*) FROM decks where user_id=?1 AND kind='idea';";
-    let total_items = sqlite::one(&conn, stmt, params![user_id])?;
+    let total_items = sqlite::one_conn(&conn, stmt, params![user_id])?;
 
     let res = Pagination::<SlimDeck> { items, total_items };
 
     Ok(res)
 }
 
-pub(crate) fn orphans(
+pub(crate) async fn recent(
     sqlite_pool: &SqlitePool,
     user_id: Key,
     offset: i32,
     num_items: i32,
 ) -> crate::Result<Pagination<SlimDeck>> {
-    let conn = sqlite_pool.get()?;
+    db(sqlite_pool, move |conn| recent_conn(conn, user_id, offset, num_items))
+        .await
+        .map_err(Into::into)
+}
 
+fn orphans_conn(
+    conn: &rusqlite::Connection,
+    user_id: Key,
+    offset: i32,
+    num_items: i32,
+) -> Result<Pagination<SlimDeck>, DbError> {
     let stmt = "SELECT id, name, kind, created_at, graph_terminator, insignia, font, impact
                 FROM decks
                 WHERE id NOT IN (SELECT deck_id
@@ -166,7 +172,7 @@ pub(crate) fn orphans(
                 LIMIT ?2
                 OFFSET ?3";
 
-    let items = sqlite::many(&conn, stmt, params![&user_id, &num_items, &offset])?;
+    let items = sqlite::many_conn(&conn, stmt, params![&user_id, &num_items, &offset])?;
 
     let stmt = "SELECT count(*)
                 FROM decks
@@ -178,21 +184,30 @@ pub(crate) fn orphans(
                                GROUP BY n.deck_id)
                 AND kind = 'idea'
                 AND user_id = ?1";
-    let total_items = sqlite::one(&conn, stmt, params![user_id])?;
+    let total_items = sqlite::one_conn(&conn, stmt, params![user_id])?;
 
     let res = Pagination::<SlimDeck> { items, total_items };
 
     Ok(res)
 }
 
-pub(crate) fn unnoted(
+pub(crate) async fn orphans(
     sqlite_pool: &SqlitePool,
     user_id: Key,
     offset: i32,
     num_items: i32,
 ) -> crate::Result<Pagination<SlimDeck>> {
-    let conn = sqlite_pool.get()?;
+    db(sqlite_pool, move |conn| orphans_conn(conn, user_id, offset, num_items))
+        .await
+        .map_err(Into::into)
+}
 
+fn unnoted_conn(
+    conn: &rusqlite::Connection,
+    user_id: Key,
+    offset: i32,
+    num_items: i32,
+) -> Result<Pagination<SlimDeck>, DbError> {
     let stmt = "SELECT d.id, d.name, d.kind, d.created_at, d.graph_terminator, d.insignia, d.font, d.impact
                 FROM decks d LEFT JOIN notes n ON (d.id = n.deck_id AND n.kind != 4)
                 WHERE n.deck_id IS NULL
@@ -201,7 +216,7 @@ pub(crate) fn unnoted(
                 ORDER BY d.created_at DESC
                 LIMIT ?2
                 OFFSET ?3";
-    let items = sqlite::many(&conn, stmt, params![&user_id, &num_items, &offset])?;
+    let items = sqlite::many_conn(&conn, stmt, params![&user_id, &num_items, &offset])?;
 
     let stmt = "SELECT count(*)
                 FROM decks d LEFT JOIN notes n ON (d.id = n.deck_id AND n.kind != 4)
@@ -209,18 +224,29 @@ pub(crate) fn unnoted(
                 AND d.kind='idea'
                 AND d.user_id=?1";
 
-    let total_items = sqlite::one(&conn, stmt, params![user_id])?;
+    let total_items = sqlite::one_conn(&conn, stmt, params![user_id])?;
 
     let res = Pagination::<SlimDeck> { items, total_items };
 
     Ok(res)
 }
 
+pub(crate) async fn unnoted(
+    sqlite_pool: &SqlitePool,
+    user_id: Key,
+    offset: i32,
+    num_items: i32,
+) -> crate::Result<Pagination<SlimDeck>> {
+    db(sqlite_pool, move |conn| unnoted_conn(conn, user_id, offset, num_items))
+        .await
+        .map_err(Into::into)
+}
+
 fn all_conn(
     conn: &rusqlite::Connection,
     user_id: Key,
 ) -> Result<Vec<Idea>, DbError> {
-    let stmt = "SELECT id, name, created_at, graph_terminator, insignia, font
+    let stmt = "SELECT id, name, created_at, graph_terminator, insignia, font, impact
                 FROM decks
                 WHERE user_id = ?1 AND kind = 'idea'
                 ORDER BY name";
@@ -234,19 +260,6 @@ pub(crate) async fn all(sqlite_pool: &SqlitePool, user_id: Key) -> crate::Result
         .await
         .map_err(Into::into)
 }
-
-/*
-pub(crate) fn all(sqlite_pool: &SqlitePool, user_id: Key) -> crate::Result<Vec<Idea>> {
-    let conn = sqlite_pool.get()?;
-
-    let stmt = "SELECT id, name, created_at, graph_terminator, insignia, font
-                FROM decks
-                WHERE user_id = ?1 AND kind = 'idea'
-                ORDER BY name";
-
-    sqlite::many(&conn, stmt, params![&user_id])
-}
- */
 
 fn convert_conn(
     conn: &rusqlite::Connection,

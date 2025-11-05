@@ -18,7 +18,7 @@
 use crate::db::memorise as db_memorise;
 use crate::db::notes as db_notes;
 use crate::db::sanitize_for_sqlite_match;
-use crate::db::{SqlitePool, DbError};
+use crate::db::{SqlitePool, DbError, db};
 use crate::db::sqlite::{self, FromRow};
 use crate::interop::decks::{Arrival, DeckKind, Ref, SlimDeck};
 use crate::interop::notes::Note;
@@ -172,13 +172,13 @@ impl FromRow for SearchDeckNoteRef {
     }
 }
 
-pub(crate) fn search_at_all_levels(
-    sqlite_pool: &SqlitePool,
+fn search_at_all_levels_conn(
+    conn: &rusqlite::Connection,
     user_id: Key,
-    query: &str,
-) -> crate::Result<SearchResults> {
-    let deck_level_results = search_at_deck_level(sqlite_pool, user_id, query)?;
-    let note_level_results = search_at_note_level(sqlite_pool, user_id, query)?;
+    query: String
+) -> Result<SearchResults, DbError> {
+    let deck_level_results = search_at_deck_level_conn(conn, user_id, query.clone())?;
+    let note_level_results = search_at_note_level_conn(conn, user_id, query.clone())?;
 
     // dedupe deck_level against note_level
     //
@@ -196,15 +196,27 @@ pub(crate) fn search_at_all_levels(
     Ok(res)
 }
 
-pub(crate) fn search_quotes(
+pub(crate) async fn search_at_all_levels(
     sqlite_pool: &SqlitePool,
     user_id: Key,
-    query: &str,
+    query: String
 ) -> crate::Result<SearchResults> {
-    let note_level_results = search_quotes_at_note_level(sqlite_pool, user_id, query)?;
+    db(sqlite_pool, move |conn| search_at_all_levels_conn(conn, user_id, query))
+        .await
+        .map_err(Into::into)
+}
+
+fn search_quotes_conn(
+    conn: &rusqlite::Connection,
+    user_id: Key,
+    query: String
+) -> Result<SearchResults, DbError> {
+    let q: String = query.clone();
+    let q2: String = q.clone();
+    let note_level_results = search_quotes_at_note_level(conn, user_id, q)?;
 
     let res = SearchResults {
-        search_text: String::from(query),
+        search_text: q2,
         deck_level: vec![],
         note_level: note_level_results,
     };
@@ -212,18 +224,31 @@ pub(crate) fn search_quotes(
     Ok(res)
 }
 
-fn search_quotes_at_note_level(
+pub(crate) async fn search_quotes(
     sqlite_pool: &SqlitePool,
     user_id: Key,
-    query: &str,
-) -> crate::Result<Vec<SearchDeck>> {
+    query: String
+) -> crate::Result<SearchResults> {
+    db(sqlite_pool, move |conn| search_quotes_conn(conn, user_id, query))
+        .await
+        .map_err(Into::into)
+}
+
+
+fn search_quotes_at_note_level(
+    conn: &rusqlite::Connection,
+    user_id: Key,
+    query: String,
+) -> Result<Vec<SearchDeck>, DbError> {
     // be lazy, re-use the search_query fn and then filter for quotes
     //
-    let search_deck_note_refs = search_query(sqlite_pool, user_id, query)?;
+    let q: String = query.clone();
+    let q2: String = q.clone();
+    let search_deck_note_refs = search_query_conn(conn, user_id, q)?;
 
     let mut search_decks = build_search_decks(search_deck_note_refs)?;
 
-    let flashcards = db_memorise::all_flashcards_for_search_query(sqlite_pool, user_id, query)?;
+    let flashcards = db_memorise::all_flashcards_for_search_query_conn(conn, user_id, q2)?;
 
     for search_deck in &mut *search_decks {
         db_notes::assign_flashcards_to_notes(&mut search_deck.notes, &flashcards)?;
@@ -237,21 +262,30 @@ fn search_quotes_at_note_level(
     Ok(search_quotes)
 }
 
-pub(crate) fn search_at_deck_level(
-    sqlite_pool: &SqlitePool,
+fn search_at_deck_level_conn(
+    conn: &rusqlite::Connection,
     user_id: Key,
-    query: &str,
-) -> crate::Result<Vec<SearchDeck>> {
-    search_at_deck_level_base(sqlite_pool, user_id, &query, false)
+    query: String
+) -> Result<Vec<SearchDeck>, DbError> {
+    search_at_deck_level_base_conn(conn, user_id, query, false)
 }
 
-pub(crate) fn search_names_at_deck_level(
+pub(crate) async fn search_at_deck_level(
     sqlite_pool: &SqlitePool,
     user_id: Key,
-    query: &str,
+    query: String
 ) -> crate::Result<Vec<SearchDeck>> {
-    let conn = sqlite_pool.get()?;
+    db(sqlite_pool, move |conn| search_at_deck_level_conn(conn, user_id, query))
+        .await
+        .map_err(Into::into)
+}
 
+
+fn search_names_at_deck_level_conn(
+    conn: &rusqlite::Connection,
+    user_id: Key,
+    query: String
+) -> Result<Vec<SearchDeck>, DbError> {
     let stmt = "select d.id, d.name, d.kind, d.created_at, d.graph_terminator, d.insignia, d.font, d.impact,
                        decks_fts.rank AS rank_sum, 1 as rank_count
                 from decks_fts left join decks d on d.id = decks_fts.rowid
@@ -260,7 +294,7 @@ pub(crate) fn search_names_at_deck_level(
                 group by d.id
                 order by rank_sum asc, length(d.name) asc
                 limit 20";
-    let mut results: Vec<SearchDeck> = sqlite::many(&conn, stmt, params![&user_id, &query])?;
+    let mut results: Vec<SearchDeck> = sqlite::many_conn(&conn, stmt, params![&user_id, &query])?;
 
     let stmt =
         "select id, name, kind, created_at, graph_terminator, insignia, font, impact, 0 as rank_sum, 1 as rank_count
@@ -268,7 +302,7 @@ pub(crate) fn search_names_at_deck_level(
                 where name like '%' || ?2 || '%'
                 and user_id = ?1
                 limit 20";
-    let res2: Vec<SearchDeck> = sqlite::many(&conn, stmt, params![&user_id, &query])?;
+    let res2: Vec<SearchDeck> = sqlite::many_conn(&conn, stmt, params![&user_id, &query])?;
 
     for r in res2 {
         if !contains(&results, r.deck.id) {
@@ -279,15 +313,25 @@ pub(crate) fn search_names_at_deck_level(
     Ok(results)
 }
 
-pub(crate) fn additional_search_at_deck_level(
+pub(crate) async fn search_names_at_deck_level(
     sqlite_pool: &SqlitePool,
     user_id: Key,
+    query: String
+) -> crate::Result<Vec<SearchDeck>> {
+    db(sqlite_pool, move |conn| search_names_at_deck_level_conn(conn, user_id, query))
+        .await
+        .map_err(Into::into)
+}
+
+
+fn additional_search_at_deck_level_conn(
+    conn: &rusqlite::Connection,
+    user_id: Key,
     deck_id: Key,
-) -> crate::Result<SearchResults> {
+) -> Result<SearchResults, DbError> {
     info!("additional_search {:?}", deck_id);
 
-    let conn = sqlite_pool.get()?;
-    let name = get_name_of_deck(&conn, deck_id)?;
+    let name = get_name_of_deck_conn(&conn, deck_id)?;
     let sane_name = sanitize_for_sqlite_match(name.clone())?;
 
     if sane_name.is_empty() {
@@ -300,9 +344,9 @@ pub(crate) fn additional_search_at_deck_level(
 
     // explicitly connected decks should be excluded from search results
     //
-    let arrivals = db_notes::arrivals_for_deck(sqlite_pool, deck_id)?;
+    let arrivals = db_notes::arrivals_for_deck_conn(conn, deck_id)?;
 
-    let deck_level_results = search_at_deck_level_base(sqlite_pool, user_id, &sane_name, true)?;
+    let deck_level_results = search_at_deck_level_base_conn(conn, user_id, sane_name, true)?;
 
     // dedupe deck_level_results against the arrivals
     let deck_level_results: Vec<SearchDeck> = deck_level_results
@@ -310,7 +354,7 @@ pub(crate) fn additional_search_at_deck_level(
         .filter(|br| br.deck.id != deck_id && !in_arrivals(br, &arrivals))
         .collect();
 
-    let note_level_results = additional_search_at_note_level(sqlite_pool, user_id, deck_id)?;
+    let note_level_results = additional_search_at_note_level(conn, user_id, deck_id)?;
 
     // dedupe note_level_results against the arrivals
     let note_level_results: Vec<SearchDeck> = note_level_results
@@ -335,6 +379,17 @@ pub(crate) fn additional_search_at_deck_level(
     Ok(res)
 }
 
+pub(crate) async fn additional_search_at_deck_level(
+    sqlite_pool: &SqlitePool,
+    user_id: Key,
+    deck_id: Key,
+) -> crate::Result<SearchResults> {
+    db(sqlite_pool, move |conn| additional_search_at_deck_level_conn(conn, user_id, deck_id))
+        .await
+        .map_err(Into::into)
+}
+
+
 fn in_searchdecks(search_deck: &SearchDeck, search_decks: &[SearchDeck]) -> bool {
     search_decks
         .iter()
@@ -345,29 +400,29 @@ fn in_arrivals(searchdeck: &SearchDeck, arrivals: &[Arrival]) -> bool {
     arrivals.iter().any(|br| br.deck.id == searchdeck.deck.id)
 }
 
-fn get_name_of_deck(conn: &Connection, deck_id: Key) -> crate::Result<String> {
-    sqlite::one(
+fn get_name_of_deck_conn(conn: &Connection, deck_id: Key) -> Result<String, DbError> {
+    sqlite::one_conn(
         conn,
         "select name from decks where id = ?1",
         params![&deck_id],
     )
 }
 
+// nocheckin: there is only one call for this???
 fn additional_search_at_note_level(
-    sqlite_pool: &SqlitePool,
+    conn: &rusqlite::Connection,
     user_id: Key,
     deck_id: Key,
-) -> crate::Result<Vec<SearchDeck>> {
-    let conn = sqlite_pool.get()?;
-    let name = get_name_of_deck(&conn, deck_id)?;
+) -> Result<Vec<SearchDeck>, DbError> {
+    let name = get_name_of_deck_conn(&conn, deck_id)?;
     let sane_name = sanitize_for_sqlite_match(name)?;
 
     let search_deck_note_refs =
-        search_deck_additional_query(sqlite_pool, user_id, deck_id, &sane_name)?;
+        search_deck_additional_query(conn, user_id, deck_id, &sane_name)?;
     let mut search_decks = build_search_decks(search_deck_note_refs)?;
 
     let flashcards = db_memorise::all_flashcards_for_deck_additional_query(
-        sqlite_pool,
+        &conn,
         user_id,
         deck_id,
         &sane_name,
@@ -400,9 +455,9 @@ fn additional_search_at_note_level(
     Ok(search_decks_c)
 }
 
-fn build_search_decks(
+fn build_search_decks_conn(
     search_deck_note_refs: Vec<SearchDeckNoteRef>,
-) -> crate::Result<Vec<SearchDeck>> {
+) -> Result<Vec<SearchDeck>, DbError> {
     let mut res: Vec<SearchDeck> = vec![];
 
     for sdnr in search_deck_note_refs {
@@ -444,15 +499,59 @@ fn build_search_decks(
     Ok(res)
 }
 
-pub(crate) fn search_at_note_level(
-    sqlite_pool: &SqlitePool,
-    user_id: Key,
-    query: &str,
-) -> crate::Result<Vec<SearchDeck>> {
-    let search_deck_note_refs = search_query(sqlite_pool, user_id, query)?;
-    let mut search_decks = build_search_decks(search_deck_note_refs)?;
+fn build_search_decks(
+    search_deck_note_refs: Vec<SearchDeckNoteRef>,
+) -> Result<Vec<SearchDeck>, DbError> {
+    let mut res: Vec<SearchDeck> = vec![];
 
-    let flashcards = db_memorise::all_flashcards_for_search_query(sqlite_pool, user_id, query)?;
+    for sdnr in search_deck_note_refs {
+        let mut found: bool = false;
+        let mut deck_index: usize = 0;
+        for r in &res {
+            if r.deck.id == sdnr.deck.id {
+                found = true;
+                break;
+            }
+            deck_index += 1;
+        }
+        if !found {
+            res.push(SearchDeck {
+                rank: sdnr.rank,
+                deck: sdnr.deck,
+                notes: vec![],
+            });
+        }
+
+        found = false;
+        let mut note_index: usize = 0;
+        for n in &res[deck_index].notes {
+            if n.id == sdnr.note.id {
+                found = true;
+                break;
+            }
+            note_index += 1;
+        }
+        if !found {
+            res[deck_index].notes.push(sdnr.note)
+        }
+
+        if let Some(rrr) = sdnr.reference_maybe {
+            res[deck_index].notes[note_index].refs.push(rrr);
+        }
+    }
+
+    Ok(res)
+}
+
+pub(crate) fn search_at_note_level_conn(
+    conn: &rusqlite::Connection,
+    user_id: Key,
+    query: String
+) -> Result<Vec<SearchDeck>, DbError> {
+    let search_deck_note_refs = search_query_conn(conn, user_id, query.clone())?;
+    let mut search_decks = build_search_decks_conn(search_deck_note_refs)?;
+
+    let flashcards = db_memorise::all_flashcards_for_search_query_conn(conn, user_id, query.clone())?;
 
     for search_deck in &mut *search_decks {
         db_notes::assign_flashcards_to_notes(&mut search_deck.notes, &flashcards)?;
@@ -480,13 +579,11 @@ fn remove_notes_with_refs_to_deck_id(search_deck: SearchDeck, deck_id: Key) -> S
     }
 }
 
-fn search_query(
-    sqlite_pool: &SqlitePool,
+fn search_query_conn(
+    conn: &rusqlite::Connection,
     user_id: Key,
-    query: &str,
-) -> crate::Result<Vec<SearchDeckNoteRef>> {
-    let conn = sqlite_pool.get()?;
-
+    query: String
+) -> Result<Vec<SearchDeckNoteRef>, DbError> {
     let stmt = "SELECT notes_fts.rank AS rank,
                        d.id, d.name, d.kind, d.created_at, d.graph_terminator, d.insignia, d.font, d.impact,
                        n.id, n.prev_note_id, n.kind,
@@ -505,19 +602,17 @@ fn search_query(
                      AND (dm.role IS null OR dm.role <> 'system')
                ORDER BY rank ASC
                LIMIT 100";
-    sqlite::many(&conn, stmt, params![&user_id, &query])
+    sqlite::many_conn(&conn, stmt, params![&user_id, &query])
 }
 
 // only searching via notes for the moment, will have to add additional search queries that look in points, article_extras etc
 //
 fn search_deck_additional_query(
-    sqlite_pool: &SqlitePool,
+    conn: &rusqlite::Connection,
     user_id: Key,
     deck_id: Key,
     sane_name: &str,
-) -> crate::Result<Vec<SearchDeckNoteRef>> {
-    let conn = sqlite_pool.get()?;
-
+) -> Result<Vec<SearchDeckNoteRef>, DbError> {
     // let name = get_name_of_deck(&conn, deck_id)?;
     // let sane_name = sanitize_for_sqlite_match(name)?;
 
@@ -545,17 +640,15 @@ fn search_deck_additional_query(
                ORDER BY rank ASC
                LIMIT 100";
 
-    sqlite::many(&conn, stmt, params![&user_id, &sane_name, &deck_id])
+    sqlite::many_conn(&conn, stmt, params![&user_id, &sane_name, &deck_id])
 }
 
-fn search_at_deck_level_base(
-    sqlite_pool: &SqlitePool,
+fn search_at_deck_level_base_conn(
+    conn: &rusqlite::Connection,
     user_id: Key,
-    query: &str,
+    query: String,
     ignore_notes: bool,
-) -> crate::Result<Vec<SearchDeck>> {
-    let conn = sqlite_pool.get()?;
-
+) -> Result<Vec<SearchDeck>, DbError> {
     let q = query;
 
     let stmt = "SELECT d.id, d.name, d.kind, d.created_at, d.graph_terminator, d.insignia, d.font, d.impact,
@@ -566,7 +659,7 @@ fn search_at_deck_level_base(
          GROUP BY d.id
          ORDER BY rank_sum ASC, length(d.name) ASC, d.created_at DESC
          LIMIT 30";
-    let mut results: Vec<SearchDeck> = sqlite::many(&conn, stmt, params![&user_id, &q])?;
+    let mut results: Vec<SearchDeck> = sqlite::many_conn(&conn, stmt, params![&user_id, &q])?;
 
     let stmt = "select d.id, d.name, d.kind, d.created_at, d.graph_terminator, d.insignia, d.font, d.impact,
                        article_extras_fts.rank AS rank_sum, 1 as rank_count
@@ -576,7 +669,7 @@ fn search_at_deck_level_base(
                 group by d.id
                 order by rank_sum asc, length(d.name) asc
                 limit 30";
-    let results_via_pub_ext: Vec<SearchDeck> = sqlite::many(&conn, stmt, params![&user_id, &q])?;
+    let results_via_pub_ext: Vec<SearchDeck> = sqlite::many_conn(&conn, stmt, params![&user_id, &q])?;
 
     let stmt = "select res.id, res.name, res.kind, res.created_at, res.graph_terminator, res.insignia, res.font, res.impact,
                        sum(res.rank) as rank_sum, count(res.rank) as rank_count
@@ -592,7 +685,7 @@ fn search_at_deck_level_base(
                 group by res.id, res.kind, res.name
                 order by sum(res.rank) asc, length(res.name) asc
                 limit 30";
-    let results_via_points: Vec<SearchDeck> = sqlite::many(&conn, stmt, params![&user_id, &q])?;
+    let results_via_points: Vec<SearchDeck> = sqlite::many_conn(&conn, stmt, params![&user_id, &q])?;
 
     for r in results_via_pub_ext {
         if !contains(&results, r.deck.id) {
@@ -616,7 +709,7 @@ fn search_at_deck_level_base(
                 group by res.id, res.kind, res.name
                 order by sum(res.rank) asc, length(res.name) asc
                 limit 30";
-        let results_via_notes: Vec<SearchDeck> = sqlite::many(&conn, stmt, params![&user_id, &q])?;
+        let results_via_notes: Vec<SearchDeck> = sqlite::many_conn(&conn, stmt, params![&user_id, &q])?;
         for r in results_via_notes {
             if !contains(&results, r.deck.id) {
                 results.push(r);

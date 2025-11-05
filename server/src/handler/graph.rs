@@ -35,7 +35,7 @@ pub async fn get(
     let user_id = session::user_id(&session)?;
     let deck_id = params.id;
 
-    let connectivity = db::get(&sqlite_pool, user_id, deck_id)?;
+    let connectivity = db::get(&sqlite_pool, user_id, deck_id).await?;
 
     Ok(HttpResponse::Ok().json(connectivity))
 }

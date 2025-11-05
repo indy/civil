@@ -50,7 +50,7 @@ pub async fn get(
 ) -> crate::Result<HttpResponse> {
     let user_id = session::user_id(&session)?;
 
-    let recent = db::get_recent(&sqlite_pool, user_id, params.at_least)?;
+    let recent = db::get_recent(&sqlite_pool, user_id, params.at_least).await?;
 
     Ok(HttpResponse::Ok().json(recent))
 }
@@ -68,7 +68,7 @@ pub async fn create(
         .recursive(true)
         .create(&user_directory)?;
 
-    let mut user_total_image_count = db::get_image_count(&sqlite_pool, user_id)?;
+    let mut user_total_image_count = db::get_image_count(&sqlite_pool, user_id).await?;
     let mut upload_image_count = 0;
 
     // iterate over multipart stream
@@ -106,9 +106,9 @@ pub async fn create(
         }
 
         // save the entry in the images table
-        db::add_image_entry(&sqlite_pool, user_id, &derived_filename)?;
+        db::add_image_entry(&sqlite_pool, user_id, derived_filename).await?;
     }
-    db::set_image_count(&sqlite_pool, user_id, user_total_image_count)?;
+    db::set_image_count(&sqlite_pool, user_id, user_total_image_count).await?;
 
     Ok(HttpResponse::Ok().json(upload_image_count))
 }

@@ -42,7 +42,7 @@ pub async fn get_points(
 
     let lower = params.lower;
     let upper = params.upper;
-    let points = db::all_points_within_interval(&sqlite_pool, user_id, lower, upper)?;
+    let points = db::all_points_within_interval(&sqlite_pool, user_id, lower, upper).await?;
 
     Ok(HttpResponse::Ok().json(interop::PointsWithinYears {
         lower_year: lower,

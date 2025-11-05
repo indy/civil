@@ -53,6 +53,7 @@ pub enum DbError {
     #[error(transparent)]
     Join(#[from] tokio::task::JoinError),
     #[error("Not Found")] NotFound,
+    #[error("Too Many Found")] TooManyFound,
 }
 
 // Blocking helper: only DbError crosses the thread boundary.
@@ -69,7 +70,7 @@ where
     .await?                        // JoinError -> DbError via `From`
 }
 
-fn sanitize_for_sqlite_match(s: String) -> crate::Result<String> {
+fn sanitize_for_sqlite_match(s: String) -> Result<String, DbError> {
     let res: String = s
         .chars()
         .map(|x| match x {

@@ -15,17 +15,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+use crate::db::notes as notes_db;
 use crate::db::decks::{self, DeckBase, DeckBaseOrigin};
-use crate::db::{SqlitePool, DbError};
+use crate::db::{SqlitePool, DbError, db};
 use crate::db::sqlite::{self, FromRow};
 use crate::interop::decks::{DeckKind, SlimDeck};
 use crate::interop::events::{Event, ProtoEvent};
 use crate::interop::font::Font;
 use crate::interop::Key;
 
-use rusqlite::{params, Row};
-
-use tracing::info;
+use rusqlite::{params, OptionalExtension, Row};
 
 #[derive(Debug, Clone)]
 struct EventExtra {
@@ -106,6 +105,33 @@ impl FromRow for EventExtra {
     }
 }
 
+fn from_rusqlite_row(row: &Row) -> rusqlite::Result<Event> {
+    Ok(Event {
+        id: row.get(0)?,
+        title: row.get(1)?,
+        deck_kind: row.get(2)?,
+        created_at: row.get(3)?,
+        graph_terminator: row.get(4)?,
+        insignia: row.get(5)?,
+        font: row.get(6)?,
+        impact: row.get(7)?,
+
+        location_textual: row.get(8)?,
+        longitude: row.get(9)?,
+        latitude: row.get(10)?,
+        location_fuzz: row.get(11)?,
+
+        date_textual: row.get(12)?,
+        exact_date: row.get(13)?,
+        lower_date: row.get(14)?,
+        upper_date: row.get(15)?,
+        date_fuzz: row.get(16)?,
+
+        notes: vec![],
+        arrivals: vec![],
+    })
+}
+
 impl FromRow for Event {
     fn from_row(row: &Row) -> crate::Result<Event> {
         Ok(Event {
@@ -162,22 +188,19 @@ impl FromRow for Event {
     }
 }
 
-pub(crate) fn get_or_create(
-    sqlite_pool: &SqlitePool,
+fn get_or_create_conn(
+    conn: &mut rusqlite::Connection,
     user_id: Key,
-    title: &str,
-) -> crate::Result<Event> {
-    info!("get_or_create");
-
-    let mut conn = sqlite_pool.get()?;
+    title: String
+) -> Result<Event, DbError> {
     let tx = conn.transaction()?;
 
     let default_font = Font::Serif;
-    let (deck, origin) = decks::deckbase_get_or_create(
+    let (deck, origin) = decks::deckbase_get_or_create_conn(
         &tx,
         user_id,
         DeckKind::Event,
-        title,
+        &title,
         false,
         0,
         default_font,
@@ -186,7 +209,7 @@ pub(crate) fn get_or_create(
 
     let point_kind = String::from("point");
     let event_extras = match origin {
-        DeckBaseOrigin::Created => sqlite::one(
+        DeckBaseOrigin::Created => sqlite::one_conn(
             &tx,
             "INSERT INTO points(deck_id, title, kind, font)
                  VALUES (?1, ?2, ?3, ?4)
@@ -195,7 +218,7 @@ pub(crate) fn get_or_create(
                            upper_realdate, date_fuzz",
             params![&deck.id, title, &point_kind, &i32::from(default_font)],
         )?,
-        DeckBaseOrigin::PreExisting => sqlite::one(
+        DeckBaseOrigin::PreExisting => sqlite::one_conn(
             &tx,
             "SELECT location_textual, longitude, latitude, location_fuzz, date_textual,
                         date(exact_realdate), date(lower_realdate), date(upper_realdate),
@@ -208,39 +231,79 @@ pub(crate) fn get_or_create(
 
     tx.commit()?;
 
-    Ok((deck, event_extras).into())
+    let mut event: Event = (deck, event_extras).into();
+
+    event.notes = notes_db::notes_for_deck_conn(conn, event.id)?;
+    event.arrivals = notes_db::arrivals_for_deck_conn(conn, event.id)?;
+
+    Ok(event)
 }
 
-pub(crate) fn listings(sqlite_pool: &SqlitePool, user_id: Key) -> crate::Result<Vec<SlimDeck>> {
-    let conn = sqlite_pool.get()?;
 
+pub(crate) async fn get_or_create(
+    sqlite_pool: &SqlitePool,
+    user_id: Key,
+    title: String,
+) -> crate::Result<Event> {
+    db(sqlite_pool, move |conn| get_or_create_conn(conn, user_id, title))
+        .await
+        .map_err(Into::into)
+}
+
+fn listings_conn(
+    conn: &rusqlite::Connection,
+    user_id: Key,
+) -> Result<Vec<SlimDeck>, DbError> {
     // TODO: sort this by the event date in event_extras
     let stmt = "SELECT id, name, kind, created_at, graph_terminator, insignia, font, impact
                 FROM decks
                 WHERE user_id = ?1 AND kind = 'event'
                 ORDER BY created_at DESC";
 
-    sqlite::many(&conn, stmt, params![&user_id])
+    sqlite::many_conn(&conn, stmt, params![&user_id])
 }
 
-pub(crate) fn get(sqlite_pool: &SqlitePool, user_id: Key, event_id: Key) -> crate::Result<Event> {
-    let conn = sqlite_pool.get()?;
 
-    let stmt = "SELECT decks.id, decks.name, decks.kind, decks.created_at, decks.graph_terminator, decks.insignia, decks.font, decks.impact,
+pub(crate) async fn listings(sqlite_pool: &SqlitePool, user_id: Key) -> crate::Result<Vec<SlimDeck>> {
+    db(sqlite_pool, move |conn| listings_conn(conn, user_id))
+        .await
+        .map_err(Into::into)
+}
+
+fn get_conn(
+    conn: &rusqlite::Connection,
+    user_id: Key,
+    event_id: Key
+) -> Result<Option<Event>, DbError> {
+    // nocheckin should this also have a check that deck kind is event?
+    let mut event = conn.prepare_cached("SELECT decks.id, decks.name, decks.kind, decks.created_at, decks.graph_terminator, decks.insignia, decks.font, decks.impact,
                        points.location_textual, points.longitude,
                        points.latitude, points.location_fuzz,
                        points.date_textual, date(points.exact_realdate),
                        date(points.lower_realdate), date(points.upper_realdate),
                        points.date_fuzz
                 FROM decks LEFT JOIN points ON points.deck_id = decks.id
-                WHERE user_id = ?1 AND decks.id = ?2";
-    let res = sqlite::one(&conn, stmt, params![&user_id, &event_id])?;
+                WHERE user_id = ?1 AND decks.id = ?2")?
+        .query_row(params![user_id, event_id], |row| from_rusqlite_row(row))
+        .optional()?;
 
-    decks::hit(&conn, event_id)?;
+    if let Some(ref mut i) = event {
+        i.notes = notes_db::notes_for_deck_conn(conn, event_id)?;
+        i.arrivals = notes_db::arrivals_for_deck_conn(conn, event_id)?;
+    }
 
-    Ok(res)
+    decks::hit_conn(&conn, event_id)?;
+
+    Ok(event)
 }
 
+pub(crate) async fn get(sqlite_pool: &SqlitePool, user_id: Key, event_id: Key) -> crate::Result<Option<Event>> {
+    db(sqlite_pool, move |conn| get_conn(conn, user_id, event_id))
+        .await
+        .map_err(Into::into)
+}
+
+/*
 pub(crate) fn edit(
     sqlite_pool: &SqlitePool,
     user_id: Key,
@@ -293,7 +356,89 @@ pub(crate) fn edit(
 
     Ok((edited_deck, event_extras).into())
 }
+*/
 
-pub(crate) fn delete(sqlite_pool: &SqlitePool, user_id: Key, event_id: Key) -> crate::Result<()> {
-    decks::delete(sqlite_pool, user_id, event_id)
+fn edit_conn(
+    conn: &mut rusqlite::Connection,
+    user_id: Key,
+    event: ProtoEvent,
+    event_id: Key
+) -> Result<Event, DbError> {
+    let tx = conn.transaction()?;
+
+    let edited_deck = decks::deckbase_edit_conn(
+        &tx,
+        user_id,
+        event_id,
+        DeckKind::Event,
+        &event.title,
+        event.graph_terminator,
+        event.insignia,
+        event.font,
+        event.impact,
+    )?;
+
+    let sql_query = "
+             UPDATE points
+             SET location_textual = ?2, longitude = ?3, latitude = ?4, location_fuzz = ?5,
+                 date_textual = ?6, exact_realdate = julianday(?7), lower_realdate = julianday(?8),
+                 upper_realdate = julianday(?9), date_fuzz = ?10
+             WHERE deck_id = ?1
+             RETURNING location_textual, longitude, latitude, location_fuzz, date_textual,
+                       date(exact_realdate), date(lower_realdate), date(upper_realdate),
+                       date_fuzz";
+
+    let event_extras = sqlite::one_conn(
+        &tx,
+        sql_query,
+        params![
+            &event_id,
+            &event.location_textual,
+            &event.longitude,
+            &event.latitude,
+            &event.location_fuzz,
+            &event.date_textual,
+            &event.exact_date,
+            &event.lower_date,
+            &event.upper_date,
+            &event.date_fuzz,
+        ],
+    )?;
+
+    tx.commit()?;
+
+    let mut event: Event = (edited_deck, event_extras).into();
+
+    event.notes = notes_db::notes_for_deck_conn(conn, event_id)?;
+    event.arrivals = notes_db::arrivals_for_deck_conn(conn, event_id)?;
+
+    Ok(event)
+}
+
+pub(crate) async fn edit(
+    sqlite_pool: &SqlitePool,
+    user_id: Key,
+    event: ProtoEvent,
+    event_id: Key,
+) -> crate::Result<Event> {
+    db(sqlite_pool, move |conn| edit_conn(conn, user_id, event, event_id))
+        .await
+        .map_err(Into::into)
+}
+
+fn delete_conn(
+    conn: &rusqlite::Connection,
+    user_id: Key,
+    event_id: Key
+) -> Result<(), DbError> {
+
+    decks::delete_conn(&conn, user_id, event_id)?;
+
+    Ok(())
+}
+
+pub(crate) async fn delete(sqlite_pool: &SqlitePool, user_id: Key, event_id: Key) -> crate::Result<()> {
+    db(sqlite_pool, move |conn| delete_conn(conn, user_id, event_id))
+        .await
+        .map_err(Into::into)
 }

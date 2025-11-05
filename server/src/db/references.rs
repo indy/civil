@@ -15,8 +15,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::db::decks::deckbase_get_or_create;
-use crate::db::{SqlitePool, DbError};
+use crate::db::decks::deckbase_get_or_create_conn;
+use crate::db::{SqlitePool, DbError, db};
 use crate::db::sqlite::{self, FromRow};
 use crate::interop::decks::Ref;
 use crate::interop::decks::{DeckKind, SlimDeck};
@@ -64,21 +64,20 @@ impl FromRow for Ref {
     }
 }
 
-pub(crate) fn update_references(
-    sqlite_pool: &SqlitePool,
-    diff: &ReferencesDiff,
+fn update_references_conn(
+    conn: &mut rusqlite::Connection,
+    diff: ReferencesDiff,
     user_id: Key,
     note_id: Key,
-) -> crate::Result<ReferencesApplied> {
+) -> Result<ReferencesApplied, DbError> {
     info!("update_references");
-    let mut conn = sqlite_pool.get()?;
     let tx = conn.transaction()?;
 
     let stmt_refs_removed = "DELETE FROM refs WHERE note_id = ?1 AND deck_id = ?2";
     for removed in &diff.references_removed {
         // this deck has been removed from the note by the user
         info!("deleting {}, {}", &note_id, &removed.id);
-        sqlite::zero(&tx, stmt_refs_removed, params![&note_id, &removed.id])?;
+        sqlite::zero_conn(&tx, stmt_refs_removed, params![&note_id, &removed.id])?;
     }
 
     let stmt_refs_changed = "UPDATE refs
@@ -90,7 +89,7 @@ pub(crate) fn update_references(
             note_id, changed.id
         );
 
-        sqlite::zero(
+        sqlite::zero_conn(
             &tx,
             stmt_refs_changed,
             params![
@@ -109,7 +108,7 @@ pub(crate) fn update_references(
             "creating new edge to pre-existing deck {}, {}",
             &note_id, &added.id
         );
-        sqlite::zero(
+        sqlite::zero_conn(
             &tx,
             stmt_refs_added,
             params![
@@ -125,7 +124,7 @@ pub(crate) fn update_references(
     //
     for created in &diff.references_created {
         info!("create new idea: {} and a new edge", created.title);
-        let (deck, _created) = deckbase_get_or_create(
+        let (deck, _created) = deckbase_get_or_create_conn(
             &tx,
             user_id,
             DeckKind::Idea,
@@ -135,7 +134,7 @@ pub(crate) fn update_references(
             Font::Serif,
             1,
         )?;
-        sqlite::zero(
+        sqlite::zero_conn(
             &tx,
             stmt_refs_added,
             params![
@@ -155,24 +154,37 @@ pub(crate) fn update_references(
                           d.graph_terminator, d.insignia, d.font, d.impact
          FROM refs r, decks d
          WHERE r.note_id = ?1 AND d.id = r.deck_id";
-    let refs: Vec<Ref> = sqlite::many(&tx, stmt_all_decks, params![&note_id])?;
+    let refs: Vec<Ref> = sqlite::many_conn(&tx, stmt_all_decks, params![&note_id])?;
 
-    let recents = decks_recently_referenced(&tx, user_id)?;
+    let recents = decks_recently_referenced_conn(&tx, user_id)?;
 
     tx.commit()?;
 
     Ok(ReferencesApplied { refs, recents })
 }
 
-pub(crate) fn get_decks_recently_referenced(
+pub(crate) async fn update_references(
+    sqlite_pool: &SqlitePool,
+    diff: ReferencesDiff,
+    user_id: Key,
+    note_id: Key,
+) -> crate::Result<ReferencesApplied> {
+    db(sqlite_pool, move |conn| update_references_conn(conn, diff, user_id, note_id))
+        .await
+        .map_err(Into::into)
+}
+
+pub(crate) async fn get_decks_recently_referenced(
     sqlite_pool: &SqlitePool,
     user_id: Key,
 ) -> crate::Result<Vec<SlimDeck>> {
-    let conn = sqlite_pool.get()?;
-    decks_recently_referenced(&conn, user_id)
+    db(sqlite_pool, move |conn| decks_recently_referenced_conn(conn, user_id))
+        .await
+        .map_err(Into::into)
 }
 
-fn decks_recently_referenced(conn: &Connection, user_id: Key) -> crate::Result<Vec<SlimDeck>> {
+
+fn decks_recently_referenced_conn(conn: &Connection, user_id: Key) -> Result<Vec<SlimDeck>, DbError> {
     let stmt_recent_refs = "
          SELECT DISTINCT deck_id, title, kind, created_at, graph_terminator, insignia, font, impact
          FROM (
@@ -183,5 +195,5 @@ fn decks_recently_referenced(conn: &Connection, user_id: Key) -> crate::Result<V
               LIMIT 100) -- without this limit query returns incorrect results
          LIMIT 8";
 
-    sqlite::many(conn, stmt_recent_refs, params![&user_id])
+    sqlite::many_conn(conn, stmt_recent_refs, params![&user_id])
 }

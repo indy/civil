@@ -16,7 +16,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 
-use crate::db::{SqlitePool, DbError};
+use crate::db::{SqlitePool, DbError, db};
 use crate::db::sqlite::{self, FromRow};
 use crate::interop::decks::SlimDeck;
 use crate::interop::memorise::{Card, CardUpcomingReview, FlashCard, ProtoCard};
@@ -125,27 +125,11 @@ pub(crate) fn all_flashcards_for_deck_conn(
     )
 }
 
-pub(crate) fn all_flashcards_for_deck(
-    sqlite_pool: &SqlitePool,
-    deck_id: Key,
-) -> crate::Result<Vec<FlashCard>> {
-    let conn = sqlite_pool.get()?;
-    sqlite::many(
-        &conn,
-        "SELECT c.id, c.note_id, c.prompt, c.next_test_date,
-                c.easiness_factor, c.interval, c.repetition
-         FROM cards c, decks d, notes n
-         WHERE d.id=?1 AND n.deck_id = d.id AND c.note_id = n.id",
-        params![&deck_id],
-    )
-}
-
 pub(crate) fn all_flashcards_for_note(
-    sqlite_pool: &SqlitePool,
+    conn: &rusqlite::Connection,
     note_id: Key,
-) -> crate::Result<Vec<FlashCard>> {
-    let conn = sqlite_pool.get()?;
-    sqlite::many(
+) -> Result<Vec<FlashCard>, DbError> {
+    sqlite::many_conn(
         &conn,
         "SELECT c.id, c.note_id, c.prompt, c.next_test_date,
                 c.easiness_factor, c.interval, c.repetition
@@ -172,37 +156,17 @@ pub(crate) fn all_flashcards_for_deck_arrivals_conn(
     )
 }
 
-pub(crate) fn all_flashcards_for_deck_arrivals(
-    sqlite_pool: &SqlitePool,
-    deck_id: Key,
-) -> crate::Result<Vec<FlashCard>> {
-    let conn = sqlite_pool.get()?;
-    sqlite::many(
-        &conn,
-        "SELECT   c.id, c.note_id, c.prompt, c.next_test_date,
-                  c.easiness_factor, c.interval, c.repetition
-         FROM     refs r
-                  FULL JOIN notes n on r.note_id = n.id
-                  FULL JOIN decks owner_deck on n.deck_id = owner_deck.id
-                  INNER JOIN cards c on c.note_id = n.id
-         WHERE    r.deck_id = ?1",
-        params![&deck_id],
-    )
-}
-
 pub(crate) fn all_flashcards_for_deck_additional_query(
-    sqlite_pool: &SqlitePool,
+    conn: &rusqlite::Connection,
     user_id: Key,
     deck_id: Key,
     sane_name: &str,
-) -> crate::Result<Vec<FlashCard>> {
-    let conn = sqlite_pool.get()?;
-
+) -> Result<Vec<FlashCard>, DbError> {
     if sane_name.is_empty() {
         return Ok(vec![]);
     }
 
-    sqlite::many(
+    sqlite::many_conn(
         &conn,
         "SELECT c.id, c.note_id, c.prompt, c.next_test_date,
                 c.easiness_factor, c.interval, c.repetition,
@@ -222,14 +186,12 @@ pub(crate) fn all_flashcards_for_deck_additional_query(
     )
 }
 
-pub(crate) fn all_flashcards_for_search_query(
-    sqlite_pool: &SqlitePool,
+pub(crate) fn all_flashcards_for_search_query_conn(
+    conn: &rusqlite::Connection,
     user_id: Key,
-    query: &str,
-) -> crate::Result<Vec<FlashCard>> {
-    let conn = sqlite_pool.get()?;
-
-    sqlite::many(
+    query: String
+) -> Result<Vec<FlashCard>, DbError> {
+    sqlite::many_conn(
         &conn,
         "SELECT c.id, c.note_id, c.prompt, c.next_test_date,
                    c.easiness_factor, c.interval, c.repetition,
@@ -248,14 +210,13 @@ pub(crate) fn all_flashcards_for_search_query(
     )
 }
 
-pub(crate) fn create_card(
-    sqlite_pool: &SqlitePool,
-    card: &ProtoCard,
+fn create_card_conn(
+    conn: &mut rusqlite::Connection,
+    card: ProtoCard,
     user_id: Key,
-) -> crate::Result<FlashCard> {
+) -> Result<FlashCard, DbError> {
     info!("create_card");
 
-    let mut conn = sqlite_pool.get()?;
     let tx = conn.transaction()?;
 
     let easiness_factor: f32 = 2.5;
@@ -263,7 +224,7 @@ pub(crate) fn create_card(
     let repetition: i32 = 1;
     let next_test_date = Utc::now().naive_utc();
 
-    let flashcard = sqlite::one(
+    let flashcard = sqlite::one_conn(
         &tx,
         "INSERT INTO cards(user_id, note_id, prompt, next_test_date, easiness_factor, interval, repetition)
          VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)
@@ -284,16 +245,20 @@ pub(crate) fn create_card(
     Ok(flashcard)
 }
 
-pub(crate) fn get_card_full_fat(
-    sqlite_pool: &SqlitePool,
+pub(crate) async fn create_card(sqlite_pool: &SqlitePool, card: ProtoCard, user_id: Key) -> crate::Result<FlashCard> {
+    db(sqlite_pool, move |conn| create_card_conn(conn, card, user_id))
+        .await
+        .map_err(Into::into)
+}
+
+fn get_card_full_fat_conn(
+    conn: &rusqlite::Connection,
     user_id: Key,
     card_id: Key,
-) -> crate::Result<FlashCard> {
+) -> Result<FlashCard, DbError> {
     info!("get_card_full_fat");
 
-    let conn = sqlite_pool.get()?;
-
-    sqlite::one(
+    sqlite::one_conn(
         &conn,
         "SELECT id, note_id, prompt, next_test_date, easiness_factor, interval, repetition
          FROM cards
@@ -302,17 +267,23 @@ pub(crate) fn get_card_full_fat(
     )
 }
 
-pub(crate) fn card_rated(
-    sqlite_pool: &SqlitePool,
+pub(crate) async fn get_card_full_fat(sqlite_pool: &SqlitePool, user_id: Key, card_id: Key) -> crate::Result<FlashCard> {
+    db(sqlite_pool, move |conn| get_card_full_fat_conn(conn, user_id, card_id))
+        .await
+        .map_err(Into::into)
+}
+
+
+fn card_rated_conn(
+    conn: &mut rusqlite::Connection,
     card: FlashCard,
     rating: i16,
-) -> crate::Result<()> {
+) -> Result<(), DbError> {
     info!("card_rated");
 
-    let mut conn = sqlite_pool.get()?;
     let tx = conn.transaction()?;
 
-    sqlite::zero(
+    sqlite::zero_conn(
         &tx,
         "UPDATE cards
          SET next_test_date = ?2, easiness_factor = ?3, interval = ?4, repetition = ?5
@@ -326,7 +297,7 @@ pub(crate) fn card_rated(
         ],
     )?;
 
-    sqlite::zero(
+    sqlite::zero_conn(
         &tx,
         "INSERT INTO card_ratings(card_id, rating)
          VALUES (?1, ?2)",
@@ -338,15 +309,19 @@ pub(crate) fn card_rated(
     Ok(())
 }
 
-pub(crate) fn edit_flashcard(
-    sqlite_pool: &SqlitePool,
-    user_id: Key,
-    flashcard: &FlashCard,
-    flashcard_id: Key,
-) -> crate::Result<FlashCard> {
-    let conn = sqlite_pool.get()?;
+pub(crate) async fn card_rated(sqlite_pool: &SqlitePool, card: FlashCard, rating: i16) -> crate::Result<()> {
+    db(sqlite_pool, move |conn| card_rated_conn(conn, card, rating))
+        .await
+        .map_err(Into::into)
+}
 
-    sqlite::one(
+fn edit_flashcard_conn(
+    conn: &rusqlite::Connection,
+    user_id: Key,
+    flashcard: FlashCard,
+    flashcard_id: Key,
+) -> Result<FlashCard, DbError> {
+    sqlite::one_conn(
         &conn,
         "UPDATE cards
          SET prompt = ?3
@@ -356,21 +331,26 @@ pub(crate) fn edit_flashcard(
     )
 }
 
-pub(crate) fn delete_flashcard(
-    sqlite_pool: &SqlitePool,
+pub(crate) async fn edit_flashcard(sqlite_pool: &SqlitePool, user_id: Key, flashcard: FlashCard, flashcard_id: Key) -> crate::Result<FlashCard> {
+    db(sqlite_pool, move |conn| edit_flashcard_conn(conn, user_id, flashcard, flashcard_id))
+        .await
+        .map_err(Into::into)
+}
+
+fn delete_flashcard_conn(
+    conn: &mut rusqlite::Connection,
     user_id: Key,
     flashcard_id: Key,
-) -> crate::Result<()> {
-    let mut conn = sqlite_pool.get()?;
+) -> Result<(), DbError> {
     let tx = conn.transaction()?;
 
-    sqlite::zero(
+    sqlite::zero_conn(
         &tx,
         "DELETE FROM card_ratings WHERE card_id = ?1",
         params![&flashcard_id],
     )?;
 
-    sqlite::zero(
+    sqlite::zero_conn(
         &tx,
         "DELETE FROM cards WHERE id = ?1 AND user_id = ?2",
         params![&flashcard_id, &user_id],
@@ -381,16 +361,20 @@ pub(crate) fn delete_flashcard(
     Ok(())
 }
 
-pub(crate) fn get_cards(
-    sqlite_pool: &SqlitePool,
+pub(crate) async fn delete_flashcard(sqlite_pool: &SqlitePool, user_id: Key, flashcard_id: Key) -> crate::Result<()> {
+    db(sqlite_pool, move |conn| delete_flashcard_conn(conn, user_id, flashcard_id))
+        .await
+        .map_err(Into::into)
+}
+
+fn get_cards_conn(
+    conn: &rusqlite::Connection,
     user_id: Key,
     due: chrono::NaiveDateTime,
-) -> crate::Result<Vec<Card>> {
+) -> Result<Vec<Card>, DbError> {
     info!("get_cards");
 
-    let conn = sqlite_pool.get()?;
-
-    sqlite::many(
+    sqlite::many_conn(
         &conn,
         "SELECT c.id, c.note_id, c.prompt, n.content, d.id,
                 d.name, d.kind, d.created_at, d.graph_terminator,
@@ -402,12 +386,20 @@ pub(crate) fn get_cards(
     )
 }
 
-pub(crate) fn get_practice_card(sqlite_pool: &SqlitePool, user_id: Key) -> crate::Result<Card> {
+pub(crate) async fn get_cards(
+    sqlite_pool: &SqlitePool,
+    user_id: Key,
+    due: chrono::NaiveDateTime,
+) -> crate::Result<Vec<Card>> {
+    db(sqlite_pool, move |conn| get_cards_conn(conn, user_id, due))
+        .await
+        .map_err(Into::into)
+}
+
+fn get_practice_card_conn(conn: &rusqlite::Connection, user_id: Key) -> Result<Card, DbError> {
     info!("get_practice_card");
 
-    let conn = sqlite_pool.get()?;
-
-    sqlite::one(
+    sqlite::one_conn(
         &conn,
         "SELECT c.id, c.note_id, c.prompt, n.content, d.id,
                 d.name, d.kind, d.created_at, d.graph_terminator,
@@ -420,17 +412,24 @@ pub(crate) fn get_practice_card(sqlite_pool: &SqlitePool, user_id: Key) -> crate
     )
 }
 
-pub(crate) fn get_cards_upcoming_review(
+pub(crate) async fn get_practice_card(
     sqlite_pool: &SqlitePool,
     user_id: Key,
-    due: chrono::NaiveDateTime,
-) -> crate::Result<CardUpcomingReview> {
-    info!("get_cards_upcoming_review");
+) -> crate::Result<Card> {
+    db(sqlite_pool, move |conn| get_practice_card_conn(conn, user_id))
+        .await
+        .map_err(Into::into)
+}
 
-    let mut conn = sqlite_pool.get()?;
+fn get_cards_upcoming_review_conn(
+    conn: &mut rusqlite::Connection,
+    user_id: Key,
+    due: chrono::NaiveDateTime,
+) -> Result<CardUpcomingReview, DbError> {
+    info!("get_cards_upcoming_review");
     let tx = conn.transaction()?;
 
-    let review_count = sqlite::one(
+    let review_count = sqlite::one_conn(
         &tx,
         "SELECT count(*) as review_count
          FROM cards
@@ -438,7 +437,7 @@ pub(crate) fn get_cards_upcoming_review(
         params![&user_id, &due],
     )?;
 
-    let num_cards: i32 = sqlite::one(
+    let num_cards: i32 = sqlite::one_conn(
         &tx,
         "SELECT count(*) as review_count
          FROM cards
@@ -447,7 +446,7 @@ pub(crate) fn get_cards_upcoming_review(
     )?;
 
     let earliest_review_date: Option<chrono::NaiveDateTime> = if num_cards > 0 {
-        Some(sqlite::one(
+        Some(sqlite::one_conn(
             &tx,
             "SELECT MIN(next_test_date) as earliest_review_date
              FROM cards
@@ -465,4 +464,14 @@ pub(crate) fn get_cards_upcoming_review(
         review_count,
         earliest_review_date,
     })
+}
+
+pub(crate) async fn get_cards_upcoming_review(
+    sqlite_pool: &SqlitePool,
+    user_id: Key,
+    due: chrono::NaiveDateTime,
+) -> crate::Result<CardUpcomingReview> {
+    db(sqlite_pool, move |conn| get_cards_upcoming_review_conn(conn, user_id, due))
+        .await
+        .map_err(Into::into)
 }

@@ -42,7 +42,7 @@ pub async fn hits(
     let _user_id = session::user_id(&session)?;
     let deck_id = params.id;
 
-    let hits = db::get_hits(&sqlite_pool, deck_id)?;
+    let hits = db::get_hits(&sqlite_pool, deck_id).await?;
 
     Ok(HttpResponse::Ok().json(hits))
 }
@@ -74,7 +74,7 @@ pub async fn insignias(
             query.insignia,
             query.offset,
             query.num_items,
-        )?
+        ).await?
     } else {
         db::insignia_filter_any(
             &sqlite_pool,
@@ -82,7 +82,7 @@ pub async fn insignias(
             query.insignia,
             query.offset,
             query.num_items,
-        )?
+        ).await?
     };
 
     Ok(HttpResponse::Ok().json(paginated))
@@ -103,7 +103,7 @@ pub async fn recent(
     let user_id = session::user_id(&session)?;
 
     let deck_kind = resource_string_to_deck_kind(&query.resource)?;
-    let results = db::recent(&sqlite_pool, user_id, deck_kind)?;
+    let results = db::recent(&sqlite_pool, user_id, deck_kind).await?;
 
     let res = SlimResults { results };
     Ok(HttpResponse::Ok().json(res))
@@ -124,9 +124,9 @@ pub async fn recently_visited(
 
     let results: Vec<SlimDeck> = if let Some(resource_string) = query.resource {
         let deck_kind = resource_string_to_deck_kind(&resource_string)?;
-        db::recently_visited(&sqlite_pool, user_id, deck_kind, query.num)?
+        db::recently_visited(&sqlite_pool, user_id, deck_kind, query.num).await?
     } else {
-        db::recently_visited_any(&sqlite_pool, user_id, query.num)?
+        db::recently_visited_any(&sqlite_pool, user_id, query.num).await?
     };
 
     let res = SlimResults { results };
@@ -188,8 +188,8 @@ pub async fn summarize(
                     user_id,
                     deck_id,
                     summarize_struct.prev_id,
-                    summary.trim(),
-                )?;
+                    summary.trim().to_string(),
+                ).await?;
 
                 Ok(HttpResponse::Ok().json(note))
             }
@@ -302,7 +302,7 @@ pub async fn preview(
     let user_id = session::user_id(&session)?;
     let deck_id = params.id;
 
-    let preview = db_notes::preview(&sqlite_pool, user_id, deck_id)?;
+    let preview = db_notes::preview(&sqlite_pool, user_id, deck_id).await?;
 
     Ok(HttpResponse::Ok().json(preview))
 }
@@ -326,15 +326,15 @@ pub(crate) async fn pagination(
             deck_kind,
             query.offset,
             query.num_items,
-        )?;
+        ).await?;
     } else {
-        pagination_results = db::pagination(
+        pagination_results = db::pagination_2(
             &sqlite_pool,
             user_id,
             deck_kind,
             query.offset,
             query.num_items,
-        )?;
+        ).await?;
     }
 
     Ok(HttpResponse::Ok().json(pagination_results))

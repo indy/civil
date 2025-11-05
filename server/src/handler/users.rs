@@ -38,10 +38,12 @@ pub async fn login(
     info!("login");
     let login = login.into_inner();
 
-    let (id, password, mut user) = db::login(&db_pool, &login)?;
+    let pw: String = login.password.clone();
+
+    let (id, password, mut user) = db::login(&db_pool, login).await?;
 
     // compare hashed password of matched_user with the given LoginCredentials
-    let is_valid_password = verify_encoded(&password, login.password.as_bytes())?;
+    let is_valid_password = verify_encoded(&password, pw.as_bytes())?;
     if is_valid_password {
         // save id to the session
         session::save_user_id(&session, id)?;
@@ -90,7 +92,7 @@ pub async fn create_user(
     if server_config.registration_magic_word == registration.magic_word {
         let hash = hash_password(&registration.password)?;
 
-        let (id, mut user) = db::create(&db_pool, &registration, &hash)?;
+        let (id, mut user) = db::create(&db_pool, registration, hash).await?;
 
         // save id to the session
         session::save_user_id(&session, id)?;
@@ -144,7 +146,7 @@ pub async fn edit_ui_config(
 
     let edit_ui_config = edit_ui_config.into_inner();
 
-    db::edit_ui_config(&db_pool, user_id, &edit_ui_config.json)?;
+    db::edit_ui_config(&db_pool, user_id, edit_ui_config.json).await?;
 
     // send response
     Ok(HttpResponse::Ok().json(true))

@@ -16,7 +16,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::db::decks::get_slimdeck;
-use crate::db::{SqlitePool, DbError};
+use crate::db::{SqlitePool, DbError, db};
 use crate::db::sqlite::{self, FromRow};
 use crate::interop::decks::{DeckKind, RefKind, SlimDeck};
 use crate::interop::font::Font;
@@ -144,13 +144,11 @@ fn add_edge(edges_map: &mut HashMap<(Key, Key, Direction), Edge>, edge: Edge) {
     edges_map.insert(edges_map_key, edge);
 }
 
-pub(crate) fn get(
-    sqlite_pool: &SqlitePool,
+fn get_conn(
+    conn: &mut rusqlite::Connection,
     user_id: Key,
     deck_id: Key,
-) -> crate::Result<ConnectivityData> {
-    let conn = sqlite_pool.get()?;
-
+) -> Result<ConnectivityData, DbError> {
     let source_deck = get_slimdeck(&conn, user_id, deck_id)?;
 
     let mut decks_map: HashMap<Key, SlimDeck> = HashMap::new();
@@ -185,10 +183,16 @@ pub(crate) fn get(
     })
 }
 
-fn neighbours(conn: &Connection, user_id: Key, deck_id: Key) -> crate::Result<Vec<Connectivity>> {
+pub(crate) async fn get(sqlite_pool: &SqlitePool, user_id: Key, deck_id: Key) -> crate::Result<ConnectivityData> {
+    db(sqlite_pool, move |conn| get_conn(conn, user_id, deck_id))
+        .await
+        .map_err(Into::into)
+}
+
+fn neighbours(conn: &Connection, user_id: Key, deck_id: Key) -> Result<Vec<Connectivity>, DbError> {
     // 'incoming query' union 'outgoing query'
     //
-    sqlite::many(
+    sqlite::many_conn(
         conn,
         "SELECT 0, r.kind, d.id, d.name, d.kind, d.created_at, d.graph_terminator, d.insignia, d.font, d.impact
          FROM refs r, notes n, decks d

@@ -57,14 +57,13 @@ impl FromRow for (Key, String, User) {
     }
 }
 
-pub(crate) fn login(
-    sqlite_pool: &SqlitePool,
-    login_credentials: &LoginCredentials,
-) -> crate::Result<(Key, String, User)> {
-    let email = login_credentials.email.trim();
 
-    let conn = sqlite_pool.get()?;
-    sqlite::one(
+fn login_conn(
+    conn: &rusqlite::Connection,
+    login_credentials: LoginCredentials,
+) -> Result<(Key, String, User), DbError> {
+    let email = login_credentials.email.trim();
+    sqlite::one_conn(
         &conn,
         r#"
            select id, email, username, password, ui_config_json
@@ -74,6 +73,13 @@ pub(crate) fn login(
         params![email],
     )
 }
+
+pub(crate) async fn login(sqlite_pool: &SqlitePool, login_credentials: LoginCredentials) -> crate::Result<(Key, String, User)> {
+    db(sqlite_pool, move |conn| login_conn(conn, login_credentials))
+        .await
+        .map_err(|e: DbError| e.into())
+}
+
 
 // used by create
 impl FromRow for (Key, User) {
@@ -106,16 +112,14 @@ impl FromRow for (Key, User) {
     }
 }
 
-pub(crate) fn create(
-    sqlite_pool: &SqlitePool,
-    registration: &Registration,
-    hash: &str,
-) -> crate::Result<(Key, User)> {
+fn create_conn(
+    conn: &rusqlite::Connection,
+    registration: Registration,
+    hash: String
+) -> Result<(Key, User), DbError> {
     info!("create");
 
-    let conn = sqlite_pool.get()?;
-
-    sqlite::one(
+    sqlite::one_conn(
         &conn,
         r#"
            insert into users (email, username, password, ui_config_json)
@@ -129,6 +133,16 @@ pub(crate) fn create(
             registration.ui_config
         ],
     )
+}
+
+pub(crate) async fn create(
+    sqlite_pool: &SqlitePool,
+    registration: Registration,
+    hash: String
+) -> crate::Result<(Key, User)> {
+    db(sqlite_pool, move |conn| create_conn(conn, registration, hash))
+        .await
+        .map_err(|e: DbError| e.into())
 }
 
 fn get_conn(
@@ -159,13 +173,12 @@ pub(crate) async fn get(sqlite_pool: &SqlitePool, user_id: Key) -> crate::Result
         .map_err(|e: DbError| e.into())
 }
 
-pub(crate) fn edit_ui_config(
-    sqlite_pool: &SqlitePool,
+fn edit_ui_config_conn(
+    conn: &rusqlite::Connection,
     user_id: Key,
-    ui_config_json: &str,
-) -> crate::Result<bool> {
-    let conn = sqlite_pool.get()?;
-    sqlite::zero(
+    ui_config_json: String
+) -> Result<bool, DbError> {
+    sqlite::zero_conn(
         &conn,
         r#"
            update users
@@ -176,6 +189,16 @@ pub(crate) fn edit_ui_config(
     )?;
 
     Ok(true)
+}
+
+pub(crate) async fn edit_ui_config(
+    sqlite_pool: &SqlitePool,
+    user_id: Key,
+    ui_config_json: String
+) -> crate::Result<bool> {
+    db(sqlite_pool, move |conn| edit_ui_config_conn(conn, user_id, ui_config_json))
+        .await
+        .map_err(|e: DbError| e.into())
 }
 
 impl FromRow for UserId {

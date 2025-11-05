@@ -22,12 +22,10 @@ use crate::interop::memorise::FlashCard;
 use crate::interop::notes::{Note, NoteKind, PreviewNotes, ProtoNote};
 use crate::interop::Key;
 
-use crate::error::Error;
-
 #[allow(unused_imports)]
 use tracing::{error, info, warn};
 
-use crate::db::{SqlitePool, DbError};
+use crate::db::{SqlitePool, DbError, db};
 use crate::db::sqlite::{self, FromRow};
 use rusqlite::{params, Connection, Row};
 
@@ -274,44 +272,6 @@ pub(crate) fn notes_for_deck_conn(conn: &rusqlite::Connection, deck_id: Key) -> 
     Ok(notes)
 }
 
-// get all notes that are children of the given deck
-//
-pub(crate) fn notes_for_deck(sqlite_pool: &SqlitePool, deck_id: Key) -> crate::Result<Vec<Note>> {
-    let conn = sqlite_pool.get()?;
-
-    let stmt = "SELECT   n.id,
-                         n.prev_note_id,
-                         n.kind,
-                         n.content,
-                         n.point_id,
-                         n.font,
-                         r.kind as ref_kind,
-                         r.annotation,
-                         d.id,
-                         d.name,
-                         d.kind as deck_kind,
-                         d.created_at,
-                         d.graph_terminator,
-                         d.insignia,
-                         d.font,
-                         d.impact
-                FROM     notes n
-                         FULL JOIN refs r on r.note_id = n.id
-                         FULL JOIN decks d on r.deck_id = d.id
-                WHERE    n.deck_id = ?1
-                ORDER BY n.id";
-    let notes_and_refs: Vec<NoteAndRef> = sqlite::many(&conn, stmt, params!(&deck_id))?;
-
-    let mut notes = notes_from_notes_and_refs(notes_and_refs)?;
-
-    let flashcards = memorise_db::all_flashcards_for_deck(sqlite_pool, deck_id)?;
-
-    assign_flashcards_to_notes(&mut notes, &flashcards)?;
-
-    Ok(notes)
-}
-
-
 fn copy_flashcard(flashcard: &FlashCard) -> FlashCard {
     FlashCard {
         id: flashcard.id,
@@ -342,7 +302,7 @@ pub(crate) fn assign_flashcards_to_notes_conn(
 pub(crate) fn assign_flashcards_to_notes(
     notes: &mut [Note],
     flashcards: &Vec<FlashCard>,
-) -> crate::Result<()> {
+) -> Result<(), DbError> {
     for flashcard in flashcards {
         if let Some(index) = notes.iter().position(|n| n.id == flashcard.note_id) {
             notes[index].flashcards.push(copy_flashcard(flashcard));
@@ -350,28 +310,6 @@ pub(crate) fn assign_flashcards_to_notes(
     }
 
     Ok(())
-}
-
-fn notes_from_notes_and_refs(notes_and_refs: Vec<NoteAndRef>) -> crate::Result<Vec<Note>> {
-    let mut res: Vec<Note> = vec![];
-
-    for note_and_ref in notes_and_refs {
-        // only check the last element in the vector since the rows have been ordered by note id
-        //
-        if res.is_empty() || res[res.len() - 1].id != note_and_ref.note.id {
-            res.push(Note {
-                refs: vec![],
-                ..note_and_ref.note
-            });
-        }
-
-        if let Some(reference) = note_and_ref.reference_maybe {
-            let len = res.len();
-            res[len - 1].refs.push(reference);
-        }
-    }
-
-    Ok(res)
 }
 
 fn notes_from_notes_and_refs_conn(notes_and_refs: Vec<NoteAndRef>) -> Result<Vec<Note>, DbError> {
@@ -443,75 +381,10 @@ pub(crate) fn arrivals_for_deck_conn(
     Ok(arrivals)
 }
 
-pub(crate) fn arrivals_for_deck(
-    sqlite_pool: &SqlitePool,
-    deck_id: Key,
-) -> crate::Result<Vec<Arrival>> {
-    let conn = sqlite_pool.get()?;
-
-    let stmt = "SELECT   n.id,
-                         n.prev_note_id,
-                         n.kind,
-                         n.content,
-                         n.point_id,
-                         n.font,
-                         r2.kind as ref_kind,
-                         r2.annotation,
-                         d3.id,
-                         d3.name,
-                         d3.kind as deck_kind,
-                         d3.created_at,
-                         d3.graph_terminator,
-                         d3.insignia,
-                         d3.font,
-                         d3.impact,
-                         owner_deck.id,
-                         owner_deck.name,
-                         owner_deck.kind as deck_kind,
-                         owner_deck.created_at,
-                         owner_deck.graph_terminator,
-                         owner_deck.insignia,
-                         owner_deck.font,
-                         owner_deck.impact
-                FROM     refs r
-                         FULL JOIN notes n on r.note_id = n.id
-                         FULL JOIN decks owner_deck on n.deck_id = owner_deck.id
-                         FULL JOIN refs r2 on r2.note_id = n.id
-                         FULL JOIN decks d3 on r2.deck_id = d3.id
-                WHERE    r.deck_id = ?1
-                ORDER BY owner_deck.id, n.id";
-    let notes_and_refs_and_decks: Vec<NoteAndRefAndDeck> =
-        sqlite::many(&conn, stmt, params!(&deck_id))?;
-
-    let mut arrivals = arrivals_from_notes_and_refs_and_decks(notes_and_refs_and_decks)?;
-
-    let flashcards = memorise_db::all_flashcards_for_deck_arrivals(sqlite_pool, deck_id)?;
-
-    assign_flashcards_to_arrivals(&mut arrivals, flashcards)?;
-
-    Ok(arrivals)
-}
-
 fn assign_flashcards_to_arrivals_conn(
     arrivals: &mut [Arrival],
     flashcards: Vec<FlashCard>,
 ) -> Result<(), DbError> {
-    for flashcard in flashcards {
-        for arrival in &mut *arrivals {
-            if let Some(index) = arrival.notes.iter().position(|n| n.id == flashcard.note_id) {
-                arrival.notes[index].flashcards.push(flashcard);
-                break;
-            }
-        }
-    }
-
-    Ok(())
-}
-
-fn assign_flashcards_to_arrivals(
-    arrivals: &mut [Arrival],
-    flashcards: Vec<FlashCard>,
-) -> crate::Result<()> {
     for flashcard in flashcards {
         for arrival in &mut *arrivals {
             if let Some(index) = arrival.notes.iter().position(|n| n.id == flashcard.note_id) {
@@ -558,58 +431,23 @@ fn arrivals_from_notes_and_refs_and_decks_conn(
     Ok(res)
 }
 
-fn arrivals_from_notes_and_refs_and_decks(
-    notes_and_refs_and_decks: Vec<NoteAndRefAndDeck>,
-) -> crate::Result<Vec<Arrival>> {
-    let mut res: Vec<Arrival> = vec![];
-
-    for note_and_ref_and_deck in notes_and_refs_and_decks {
-        // only check the last element in the vector since the rows have been ordered by note id
-        //
-        if res.is_empty() || res[res.len() - 1].deck.id != note_and_ref_and_deck.deck.id {
-            res.push(Arrival {
-                notes: vec![],
-                deck: note_and_ref_and_deck.deck,
-            });
-        }
-
-        let idx = res.len() - 1;
-        let notes = &mut res[idx].notes;
-        if notes.is_empty() || notes[notes.len() - 1].id != note_and_ref_and_deck.note.id {
-            notes.push(Note {
-                refs: vec![],
-                ..note_and_ref_and_deck.note
-            });
-        }
-
-        if let Some(reference) = note_and_ref_and_deck.reference_maybe {
-            let len = res.len();
-            let len2 = res[len - 1].notes.len();
-            res[len - 1].notes[len2 - 1].refs.push(reference);
-        }
-    }
-
-    Ok(res)
-}
-
-pub(crate) fn delete_note_properly(
-    sqlite_pool: &SqlitePool,
+fn delete_note_properly_conn(
+    conn: &mut rusqlite::Connection,
     user_id: Key,
     note_id: Key,
-) -> crate::Result<Vec<Note>> {
-    let mut conn = sqlite_pool.get()?;
+) -> Result<Vec<Note>, DbError> {
     let tx = conn.transaction()?;
 
     let stmt = "SELECT deck_id
                 FROM notes
                 WHERE id = ?1";
-    let deck_id: Key = sqlite::one(&tx, stmt, params![&note_id])?;
+    let deck_id: Key = sqlite::one_conn(&tx, stmt, params![&note_id])?;
 
     // point the next note to the previous note
     let stmt = "SELECT id
                 FROM notes
                 WHERE prev_note_id = ?1";
-    let next_ids: Vec<Key> = sqlite::many(&tx, stmt, params![&note_id])?;
+    let next_ids: Vec<Key> = sqlite::many_conn(&tx, stmt, params![&note_id])?;
     if next_ids.len() == 1 {
         let next_id = next_ids[0];
 
@@ -617,14 +455,14 @@ pub(crate) fn delete_note_properly(
         let stmt = "SELECT prev_note_id
                     FROM notes
                     WHERE id = ?1 AND user_id = ?2";
-        let prev_note_id: Option<Key> = sqlite::one(&tx, stmt, params![&note_id, &user_id])?;
+        let prev_note_id: Option<Key> = sqlite::one_conn(&tx, stmt, params![&note_id, &user_id])?;
 
         if let Some(prev_note_id) = prev_note_id {
             // if there is a note that points to this note, change it to point to prev_note_id
-            update_prev_note_id(&tx, next_id, prev_note_id)?;
+            update_prev_note_id_conn(&tx, next_id, prev_note_id)?;
         } else {
             // if there is a note that points to this note, change it to point to null
-            clear_prev_note_id(&tx, next_id)?;
+            clear_prev_note_id_conn(&tx, next_id)?;
         }
     }
 
@@ -632,18 +470,27 @@ pub(crate) fn delete_note_properly(
     let stmt = "DELETE
                 FROM refs
                 WHERE note_id = ?1";
-    sqlite::zero(&tx, stmt, params![&note_id])?;
+    sqlite::zero_conn(&tx, stmt, params![&note_id])?;
 
     let stmt = "DELETE
                 FROM notes
                 WHERE id = ?1 AND user_id = ?2";
-    sqlite::zero(&tx, stmt, params![&note_id, &user_id])?;
+    sqlite::zero_conn(&tx, stmt, params![&note_id, &user_id])?;
 
     tx.commit()?;
 
     // return all the notes that the parent deck has
-    let all_notes = notes_for_deck(sqlite_pool, deck_id)?;
-    Ok(all_notes)
+    notes_for_deck_conn(conn, deck_id)
+}
+
+pub(crate) async fn delete_note_properly(
+    sqlite_pool: &SqlitePool,
+    user_id: Key,
+    note_id: Key,
+) -> crate::Result<Vec<Note>> {
+    db(sqlite_pool, move |conn| delete_note_properly_conn(conn, user_id, note_id))
+        .await
+        .map_err(Into::into)
 }
 
 pub(crate) fn create_common_conn(
@@ -681,42 +528,6 @@ pub(crate) fn create_common_conn(
     Ok(note)
 }
 
-
-pub(crate) fn create_common(
-    conn: &Connection,
-    user_id: Key,
-    deck_id: Key,
-    font: Font,
-    kind: NoteKind,
-    point_id: Option<Key>,
-    content: &str,
-    prev_note_id: Option<Key>,
-    next_note_id: Option<Key>,
-) -> crate::Result<Note> {
-    let stmt = "INSERT INTO notes(user_id, deck_id, font, kind, point_id, content, prev_note_id)
-                VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)
-                RETURNING id, content, kind, point_id, prev_note_id, font";
-    let note: Note = sqlite::one(
-        conn,
-        stmt,
-        params![
-            &user_id,
-            &deck_id,
-            i32::from(font),
-            &i32::from(kind),
-            &point_id,
-            &content,
-            &prev_note_id
-        ],
-    )?;
-
-    if let Some(next_note_id) = next_note_id {
-        update_prev_note_id(conn, next_note_id, note.id)?;
-    }
-
-    Ok(note)
-}
-
 // note: this should be part of a transaction
 //
 pub(crate) fn create_note_deck_meta_conn(
@@ -737,33 +548,12 @@ pub(crate) fn create_note_deck_meta_conn(
     )
 }
 
-// note: this should be part of a transaction
-//
-pub(crate) fn create_note_deck_meta(
-    tx: &Connection,
+fn create_notes_conn(
+    conn: &mut rusqlite::Connection,
     user_id: Key,
-    deck_id: Key,
-) -> crate::Result<Note> {
-    create_common(
-        tx,
-        user_id,
-        deck_id,
-        Font::Serif,
-        NoteKind::NoteDeckMeta,
-        None,
-        "",
-        None,
-        None,
-    )
-}
-
-pub(crate) fn create_notes(
-    sqlite_pool: &SqlitePool,
-    user_id: Key,
-    note: &ProtoNote,
-) -> crate::Result<Vec<Note>> {
+    note: ProtoNote,
+) -> Result<Vec<Note>, DbError> {
     // let mut notes: Vec<Note> = Vec::new();
-    let mut conn = sqlite_pool.get()?;
     let tx = conn.transaction()?;
 
     let mut new_prev = note.prev_note_id;
@@ -772,7 +562,7 @@ pub(crate) fn create_notes(
     if let Some(next_note_id) = next_note_id {
         // when the ProtoNote has a Some(next_note_id) then it can have a None for prev_note_id,
         // it's upto this code to get the correct prev_note_id
-        new_prev = get_prev_note_id(sqlite_pool, next_note_id)?;
+        new_prev = get_prev_note_id(&tx, next_note_id)?;
     }
 
     let mut it = note.content.iter().peekable();
@@ -784,7 +574,7 @@ pub(crate) fn create_notes(
             continue;
         }
 
-        let new_note = create_common(
+        let new_note = create_common_conn(
             &tx,
             user_id,
             note.deck_id,
@@ -805,9 +595,20 @@ pub(crate) fn create_notes(
 
     tx.commit()?;
 
-    let all_notes = notes_for_deck(sqlite_pool, note.deck_id)?;
+    let all_notes = notes_for_deck_conn(conn, note.deck_id)?;
     Ok(all_notes)
 }
+
+pub(crate) async fn create_notes(
+    sqlite_pool: &SqlitePool,
+    user_id: Key,
+    note: ProtoNote,
+) -> crate::Result<Vec<Note>> {
+    db(sqlite_pool, move |conn| create_notes_conn(conn, user_id, note))
+        .await
+        .map_err(Into::into)
+}
+
 
 fn update_prev_note_id_conn(conn: &Connection, note_id: Key, prev_note_id: Key) -> Result<(), DbError> {
     let stmt = "UPDATE notes
@@ -816,27 +617,18 @@ fn update_prev_note_id_conn(conn: &Connection, note_id: Key, prev_note_id: Key) 
     sqlite::zero_conn(conn, stmt, params![&note_id, &prev_note_id])
 }
 
-fn update_prev_note_id(conn: &Connection, note_id: Key, prev_note_id: Key) -> crate::Result<()> {
-    let stmt = "UPDATE notes
-                SET prev_note_id = ?2
-                WHERE id = ?1";
-    sqlite::zero(conn, stmt, params![&note_id, &prev_note_id])
-}
-
-fn clear_prev_note_id(conn: &Connection, note_id: Key) -> crate::Result<()> {
+fn clear_prev_note_id_conn(conn: &Connection, note_id: Key) -> Result<(), DbError> {
     let stmt = "UPDATE notes
                 SET prev_note_id = null
                 WHERE id = ?1";
-    sqlite::zero(conn, stmt, params![&note_id])
+    sqlite::zero_conn(conn, stmt, params![&note_id])
 }
 
-pub(crate) fn preview(
-    sqlite_pool: &SqlitePool,
+fn preview_conn(
+    conn: &rusqlite::Connection,
     user_id: Key,
     deck_id: Key,
-) -> crate::Result<PreviewNotes> {
-    let conn = sqlite_pool.get()?;
-
+) -> Result<PreviewNotes, DbError> {
     let stmt = "SELECT n.id,
                        n.content,
                        n.kind,
@@ -845,57 +637,60 @@ pub(crate) fn preview(
                        n.font
                 FROM notes n
                 WHERE n.point_id is null AND n.deck_id = ?1 AND n.user_id = ?2";
-    let notes = sqlite::many(&conn, stmt, params![&deck_id, &user_id])?;
+    let notes = sqlite::many_conn(&conn, stmt, params![&deck_id, &user_id])?;
 
     Ok(PreviewNotes { deck_id, notes })
 }
 
-pub(crate) fn add_auto_summary(
-    sqlite_pool: &SqlitePool,
+pub(crate) async fn preview(sqlite_pool: &SqlitePool, user_id: Key, deck_id: Key) -> crate::Result<PreviewNotes> {
+    db(sqlite_pool, move |conn| preview_conn(conn, user_id, deck_id))
+        .await
+        .map_err(Into::into)
+}
+
+fn add_auto_summary_conn(
+    conn: &rusqlite::Connection,
     user_id: Key,
     deck_id: Key,
     prev_id: Option<Key>,
-    summary: &str,
-) -> crate::Result<Note> {
-    let conn = sqlite_pool.get()?;
-    create_common(
+    summary: String,
+) -> Result<Note, DbError> {
+    create_common_conn(
         &conn,
         user_id,
         deck_id,
         Font::AI,
         NoteKind::NoteSummary,
         None,
-        summary,
+        &summary,
         prev_id,
         None,
     )
 }
 
+pub(crate) async fn add_auto_summary(sqlite_pool: &SqlitePool, user_id: Key, deck_id: Key, prev_id: Option<Key>, summary: String) -> crate::Result<Note> {
+    db(sqlite_pool, move |conn| add_auto_summary_conn(conn, user_id, deck_id, prev_id, summary))
+        .await
+        .map_err(Into::into)
+}
+
+
 // isg todo: this won't get the note's refs, so maybe use two queries: one to edit another to return the full note
 //
-pub fn edit_note(
-    sqlite_pool: &SqlitePool,
+fn edit_note_conn(
+    conn: &rusqlite::Connection,
     user_id: Key,
-    note: &Note,
+    note: Note,
     note_id: Key,
-) -> crate::Result<Note> {
-    let conn = sqlite_pool.get()?;
+) -> Result<Note, DbError> {
     let stmt = "UPDATE notes
                 SET content = ?3, font= ?4
                 WHERE id = ?2 AND user_id = ?1";
-    sqlite::zero(
+    sqlite::zero_conn(
         &conn,
         stmt,
         params![&user_id, &note_id, &note.content, &i32::from(note.font)],
     )?;
-
-    single_note(sqlite_pool, note_id)
-}
-
-// get single note
-//
-fn single_note(sqlite_pool: &SqlitePool, note_id: Key) -> crate::Result<Note> {
-    let conn = sqlite_pool.get()?;
 
     let stmt = "SELECT   n.id,
                          n.prev_note_id,
@@ -917,17 +712,28 @@ fn single_note(sqlite_pool: &SqlitePool, note_id: Key) -> crate::Result<Note> {
                          FULL JOIN refs r on r.note_id = n.id
                          FULL JOIN decks d on r.deck_id = d.id
                 WHERE    n.id = ?1";
-    let notes_and_refs: Vec<NoteAndRef> = sqlite::many(&conn, stmt, params!(&note_id))?;
+    let notes_and_refs: Vec<NoteAndRef> = sqlite::many_conn(&conn, stmt, params!(&note_id))?;
 
-    let mut notes = notes_from_notes_and_refs(notes_and_refs)?;
-    let flashcards = memorise_db::all_flashcards_for_note(sqlite_pool, note_id)?;
+    let mut notes = notes_from_notes_and_refs_conn(notes_and_refs)?;
+    let flashcards = memorise_db::all_flashcards_for_note(conn, note_id)?;
     assign_flashcards_to_notes(&mut notes, &flashcards)?;
 
     if notes.len() == 1 {
         Ok(notes[0].clone())
     } else {
-        Err(Error::TooManyFound)
+        Err(DbError::TooManyFound)
     }
+}
+
+pub(crate) async fn edit_note(
+    sqlite_pool: &SqlitePool,
+    user_id: Key,
+    note: Note,
+    note_id: Key,
+) -> crate::Result<Note> {
+    db(sqlite_pool, move |conn| edit_note_conn(conn, user_id, note, note_id))
+        .await
+        .map_err(Into::into)
 }
 
 pub fn get_all_notes_in_db(sqlite_pool: &SqlitePool) -> crate::Result<Vec<Note>> {
@@ -943,35 +749,11 @@ pub fn get_all_notes_in_db(sqlite_pool: &SqlitePool) -> crate::Result<Vec<Note>>
     sqlite::many(&conn, stmt, &[])
 }
 
-fn get_prev_note_id(sqlite_pool: &SqlitePool, id: Key) -> crate::Result<Option<Key>> {
-    let conn = sqlite_pool.get()?;
+fn get_prev_note_id(conn: &rusqlite::Connection, id: Key) -> Result<Option<Key>, DbError> {
     let stmt = "SELECT prev_note_id
                 FROM   notes
                 WHERE  id=?1";
-    sqlite::one(&conn, stmt, &[&id])
-}
-
-pub(crate) fn replace_note_fonts(
-    conn: &Connection,
-    user_id: Key,
-    deck_id: Key,
-    original_font: Font,
-    new_font: Font,
-) -> crate::Result<()> {
-    let stmt = "UPDATE notes
-                SET font = ?4
-                WHERE user_id = ?1 AND deck_id = ?2 AND font = ?3";
-
-    sqlite::zero(
-        conn,
-        stmt,
-        params![
-            &user_id,
-            &deck_id,
-            &i32::from(original_font),
-            &i32::from(new_font)
-        ],
-    )
+    sqlite::one_conn(&conn, stmt, &[&id])
 }
 
 pub(crate) fn replace_note_fonts_conn(
@@ -997,17 +779,17 @@ pub(crate) fn replace_note_fonts_conn(
     )
 }
 
-pub(crate) fn overwrite_note_fonts(
+pub(crate) fn overwrite_note_fonts_conn(
     conn: &Connection,
     user_id: Key,
     deck_id: Key,
     new_font: Font,
-) -> crate::Result<()> {
+) -> Result<(), DbError> {
     let stmt = "UPDATE notes
                 SET font = ?3
                 WHERE user_id = ?1 AND deck_id = ?2 AND font <> ?3";
 
-    sqlite::zero(
+    sqlite::zero_conn(
         conn,
         stmt,
         params![&user_id, &deck_id, &i32::from(new_font)],

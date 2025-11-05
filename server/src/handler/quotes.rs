@@ -15,13 +15,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::db::notes as notes_db;
 use crate::db::quotes as db;
 use crate::handler::decks;
 use crate::handler::PaginationQuery;
 use crate::interop::decks::DeckKind;
 use crate::interop::quotes as interop;
-use crate::interop::{IdParam, Key};
+use crate::interop::IdParam;
 use crate::session;
 use actix_web::web::{Data, Json, Path, Query};
 use actix_web::HttpResponse;
@@ -41,7 +40,7 @@ pub async fn create(
     let user_id = session::user_id(&session)?;
     let proto_quote = proto_quote.into_inner();
 
-    let quote = db::get_or_create(&sqlite_pool, user_id, &proto_quote)?;
+    let quote = db::get_or_create(&sqlite_pool, user_id, proto_quote).await?;
 
     Ok(HttpResponse::Ok().json(quote))
 }
@@ -54,8 +53,11 @@ pub async fn random(
 
     let user_id = session::user_id(&session)?;
 
-    let mut quote = db::random(&sqlite_pool, user_id)?;
-    sqlite_augment(&sqlite_pool, &mut quote)?;
+    let quote = match db::random(sqlite_pool.get_ref(), user_id).await? {
+        Some(i) => i,
+        None => return Err(crate::Error::NotFound),
+    };
+
 
     Ok(HttpResponse::Ok().json(quote))
 }
@@ -82,9 +84,12 @@ pub async fn get(
     info!("get {:?}", params.id);
 
     let user_id = session::user_id(&session)?;
+    let quote_id = params.id;
 
-    let mut quote = db::get(&sqlite_pool, user_id, params.id)?;
-    sqlite_augment(&sqlite_pool, &mut quote)?;
+    let quote = match db::get(sqlite_pool.get_ref(), user_id, quote_id).await? {
+        Some(i) => i,
+        None => return Err(crate::Error::NotFound),
+    };
 
     Ok(HttpResponse::Ok().json(quote))
 }
@@ -97,9 +102,12 @@ pub async fn next(
     info!("next {:?}", params.id);
 
     let user_id = session::user_id(&session)?;
+    let quote_id = params.id;
 
-    let mut quote = db::next(&sqlite_pool, user_id, params.id)?;
-    sqlite_augment(&sqlite_pool, &mut quote)?;
+    let quote = match db::next(sqlite_pool.get_ref(), user_id, quote_id).await? {
+        Some(i) => i,
+        None => return Err(crate::Error::NotFound),
+    };
 
     Ok(HttpResponse::Ok().json(quote))
 }
@@ -112,9 +120,12 @@ pub async fn prev(
     info!("prev {:?}", params.id);
 
     let user_id = session::user_id(&session)?;
+    let quote_id = params.id;
 
-    let mut quote = db::prev(&sqlite_pool, user_id, params.id)?;
-    sqlite_augment(&sqlite_pool, &mut quote)?;
+    let quote = match db::prev(sqlite_pool.get_ref(), user_id, quote_id).await? {
+        Some(i) => i,
+        None => return Err(crate::Error::NotFound),
+    };
 
     Ok(HttpResponse::Ok().json(quote))
 }
@@ -131,8 +142,7 @@ pub async fn edit(
     let quote_id = params.id;
     let quote = quote.into_inner();
 
-    let mut quote = db::edit(&sqlite_pool, user_id, &quote, quote_id)?;
-    sqlite_augment(&sqlite_pool, &mut quote)?;
+    let quote = db::edit(&sqlite_pool, user_id, quote, quote_id).await?;
 
     Ok(HttpResponse::Ok().json(quote))
 }
@@ -146,16 +156,7 @@ pub async fn delete(
 
     let user_id = session::user_id(&session)?;
 
-    db::delete(&sqlite_pool, user_id, params.id)?;
+    db::delete(&sqlite_pool, user_id, params.id).await?;
 
     Ok(HttpResponse::Ok().json(true))
-}
-
-fn sqlite_augment(sqlite_pool: &Data<SqlitePool>, quote: &mut interop::Quote) -> crate::Result<()> {
-    let quote_id: Key = quote.id;
-
-    quote.notes = notes_db::notes_for_deck(sqlite_pool, quote_id)?;
-    quote.arrivals = notes_db::arrivals_for_deck(sqlite_pool, quote_id)?;
-
-    Ok(())
 }

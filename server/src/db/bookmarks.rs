@@ -15,13 +15,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::db::{SqlitePool, DbError};
+use crate::db::{SqlitePool, DbError, db};
 use crate::db::sqlite::{self, FromRow};
 use crate::interop::bookmarks as interop;
 use crate::interop::decks::SlimDeck;
 use crate::interop::Key;
 
 use rusqlite::{params, Row};
+
 #[allow(unused_imports)]
 use tracing::{error, info};
 
@@ -41,27 +42,32 @@ impl FromRow for interop::Bookmark {
     }
 }
 
-pub(crate) fn create_bookmark(
-    sqlite_pool: &SqlitePool,
+fn create_bookmark_conn(
+    conn: &rusqlite::Connection,
     user_id: Key,
-    deck_id: Key,
-) -> crate::Result<()> {
-    let conn = sqlite_pool.get()?;
+    deck_id: Key
+) -> Result<(), DbError> {
+
     let stmt = "INSERT INTO bookmarks(user_id, deck_id) VALUES (?1, ?2)";
-    sqlite::zero(&conn, stmt, params![&user_id, &deck_id])
+    sqlite::zero_conn(&conn, stmt, params![&user_id, &deck_id])
 }
 
-pub(crate) fn create_multiple_bookmarks(
-    sqlite_pool: &SqlitePool,
+pub(crate) async fn create_bookmark(sqlite_pool: &SqlitePool, user_id: Key, deck_id: Key) -> crate::Result<()> {
+    db(sqlite_pool, move |conn| create_bookmark_conn(conn, user_id, deck_id))
+        .await
+        .map_err(Into::into)
+}
+
+fn create_multiple_bookmarks_conn(
+    conn: &mut rusqlite::Connection,
     user_id: Key,
-    deck_ids: Vec<Key>,
-) -> crate::Result<()> {
-    let mut conn = sqlite_pool.get()?;
+    deck_ids: Vec<Key>
+) -> Result<(), DbError> {
     let tx = conn.transaction()?;
 
     let stmt = "INSERT INTO bookmarks(user_id, deck_id) VALUES (?1, ?2)";
     for deck_id in deck_ids {
-        sqlite::zero(&tx, stmt, params![&user_id, &deck_id])?;
+        sqlite::zero_conn(&tx, stmt, params![&user_id, &deck_id])?;
     }
 
     tx.commit()?;
@@ -69,23 +75,40 @@ pub(crate) fn create_multiple_bookmarks(
     Ok(())
 }
 
-pub(crate) fn get_bookmarks(
-    sqlite_pool: &SqlitePool,
+pub(crate) async fn create_multiple_bookmarks(sqlite_pool: &SqlitePool, user_id: Key, deck_ids: Vec<Key>) -> crate::Result<()> {
+    db(sqlite_pool, move |conn| create_multiple_bookmarks_conn(conn, user_id, deck_ids))
+        .await
+        .map_err(Into::into)
+}
+
+fn get_bookmarks_conn(
+    conn: &rusqlite::Connection,
     user_id: Key,
-) -> crate::Result<Vec<interop::Bookmark>> {
-    let conn = sqlite_pool.get()?;
+) -> Result<Vec<interop::Bookmark>, DbError> {
     let stmt = "select d.id, d.name, d.kind, d.created_at, d.graph_terminator, d.insignia, d.font, d.impact, b.id
                 from decks d, bookmarks b
                 where b.user_id = ?1 and b.deck_id = d.id";
-    sqlite::many(&conn, stmt, params![&user_id])
+    sqlite::many_conn(&conn, stmt, params![&user_id])
 }
 
-pub(crate) fn delete_bookmark(
-    sqlite_pool: &SqlitePool,
+
+pub(crate) async fn get_bookmarks(sqlite_pool: &SqlitePool, user_id: Key) -> crate::Result<Vec<interop::Bookmark>> {
+    db(sqlite_pool, move |conn| get_bookmarks_conn(conn, user_id))
+        .await
+        .map_err(Into::into)
+}
+
+fn delete_bookmark_conn(
+    conn: &rusqlite::Connection,
     user_id: Key,
-    bookmark_id: Key,
-) -> crate::Result<()> {
-    let conn = sqlite_pool.get()?;
+    bookmark_id: Key
+) -> Result<(), DbError> {
     let stmt = "DELETE FROM bookmarks WHERE user_id = ?1 and id = ?2";
-    sqlite::zero(&conn, stmt, params![&user_id, &bookmark_id])
+    sqlite::zero_conn(&conn, stmt, params![&user_id, &bookmark_id])
+}
+
+pub(crate) async fn delete_bookmark(sqlite_pool: &SqlitePool, user_id: Key, bookmark_id: Key) -> crate::Result<()> {
+    db(sqlite_pool, move |conn| delete_bookmark_conn(conn, user_id, bookmark_id))
+        .await
+        .map_err(Into::into)
 }

@@ -15,15 +15,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::db::notes as notes_db;
 use crate::db::points as points_db;
 use crate::db::timelines as db;
 use crate::handler::decks;
 use crate::handler::PaginationQuery;
 use crate::interop::decks::{DeckKind, ProtoDeck, ProtoSlimDeck};
 use crate::interop::points as points_interop;
-use crate::interop::timelines as interop;
-use crate::interop::{IdParam, Key};
+use crate::interop::IdParam;
 use crate::session;
 use actix_web::web::{Data, Json, Path, Query};
 use actix_web::HttpResponse;
@@ -43,7 +41,7 @@ pub async fn create(
     let user_id = session::user_id(&session)?;
     let proto_deck = proto_deck.into_inner();
 
-    let timeline = db::get_or_create(&sqlite_pool, user_id, &proto_deck.title)?;
+    let timeline = db::get_or_create(&sqlite_pool, user_id, proto_deck.title).await?;
 
     Ok(HttpResponse::Ok().json(timeline))
 }
@@ -56,7 +54,8 @@ pub async fn get_all(
 
     let user_id = session::user_id(&session)?;
 
-    let timelines = db::listings(&sqlite_pool, user_id)?;
+    // nocheckin: why is this db::listings when the ideas equivalent is db::all?
+    let timelines = db::listings(&sqlite_pool, user_id).await?;
 
     Ok(HttpResponse::Ok().json(timelines))
 }
@@ -85,8 +84,10 @@ pub async fn get(
     let user_id = session::user_id(&session)?;
     let timeline_id = params.id;
 
-    let mut timeline = db::get(&sqlite_pool, user_id, timeline_id)?;
-    sqlite_augment(&sqlite_pool, &mut timeline, timeline_id, user_id)?;
+    let timeline = match db::get(sqlite_pool.get_ref(), user_id, timeline_id).await? {
+        Some(i) => i,
+        None => return Err(crate::Error::NotFound),
+    };
 
     Ok(HttpResponse::Ok().json(timeline))
 }
@@ -103,8 +104,7 @@ pub async fn edit(
     let timeline_id = params.id;
     let timeline = timeline.into_inner();
 
-    let mut timeline = db::edit(&sqlite_pool, user_id, &timeline, timeline_id)?;
-    sqlite_augment(&sqlite_pool, &mut timeline, timeline_id, user_id)?;
+    let timeline = db::edit(&sqlite_pool, user_id, timeline, timeline_id).await?;
 
     Ok(HttpResponse::Ok().json(timeline))
 }
@@ -118,7 +118,7 @@ pub async fn delete(
 
     let user_id = session::user_id(&session)?;
 
-    db::delete(&sqlite_pool, user_id, params.id)?;
+    db::delete(&sqlite_pool, user_id, params.id).await?;
 
     Ok(HttpResponse::Ok().json(true))
 }
@@ -135,10 +135,12 @@ pub async fn add_point(
     let point = point.into_inner();
     let user_id = session::user_id(&session)?;
 
-    points_db::create(&sqlite_pool, &point, timeline_id)?;
+    points_db::create(&sqlite_pool, point, timeline_id).await?;
 
-    let mut timeline = db::get(&sqlite_pool, user_id, timeline_id)?;
-    sqlite_augment(&sqlite_pool, &mut timeline, timeline_id, user_id)?;
+    let timeline = match db::get(sqlite_pool.get_ref(), user_id, timeline_id).await? {
+        Some(i) => i,
+        None => return Err(crate::Error::NotFound),
+    };
 
     Ok(HttpResponse::Ok().json(timeline))
 }
@@ -155,25 +157,15 @@ pub async fn add_multipoints(
     let points = points.into_inner();
     let user_id = session::user_id(&session)?;
 
+    // todo: I think it's bad to do this, where every loop dispatches to the db thread
     for point in points {
-        points_db::create(&sqlite_pool, &point, timeline_id)?;
+        points_db::create(&sqlite_pool, point, timeline_id).await?;
     }
 
-    let mut timeline = db::get(&sqlite_pool, user_id, timeline_id)?;
-    sqlite_augment(&sqlite_pool, &mut timeline, timeline_id, user_id)?;
+    let timeline = match db::get(sqlite_pool.get_ref(), user_id, timeline_id).await? {
+        Some(i) => i,
+        None => return Err(crate::Error::NotFound),
+    };
 
     Ok(HttpResponse::Ok().json(timeline))
-}
-
-fn sqlite_augment(
-    sqlite_pool: &Data<SqlitePool>,
-    timeline: &mut interop::Timeline,
-    timeline_id: Key,
-    user_id: Key,
-) -> crate::Result<()> {
-    timeline.points = points_db::all(sqlite_pool, user_id, timeline_id)?;
-    timeline.notes = notes_db::notes_for_deck(sqlite_pool, timeline_id)?;
-    timeline.arrivals = notes_db::arrivals_for_deck(sqlite_pool, timeline_id)?;
-
-    Ok(())
 }

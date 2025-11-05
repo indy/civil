@@ -35,10 +35,10 @@ pub async fn create_bookmark(
 
     let user_id = session::user_id(&session)?;
 
-    db::create_bookmark(&sqlite_pool, user_id, deck_id)?;
+    db::create_bookmark(&sqlite_pool, user_id, deck_id).await?;
 
     // return all of the user's bookmarks
-    let bookmarks = db::get_bookmarks(&sqlite_pool, user_id)?;
+    let bookmarks = db::get_bookmarks(&sqlite_pool, user_id).await?;
     Ok(HttpResponse::Ok().json(bookmarks))
 }
 
@@ -52,10 +52,10 @@ pub async fn create_multiple_bookmarks(
 
     let user_id = session::user_id(&session)?;
 
-    db::create_multiple_bookmarks(&sqlite_pool, user_id, deck_ids)?;
+    db::create_multiple_bookmarks(&sqlite_pool, user_id, deck_ids).await?;
 
     // return all of the user's bookmarks
-    let bookmarks = db::get_bookmarks(&sqlite_pool, user_id)?;
+    let bookmarks = db::get_bookmarks(&sqlite_pool, user_id).await?;
     Ok(HttpResponse::Ok().json(bookmarks))
 }
 
@@ -67,7 +67,7 @@ pub async fn get_bookmarks(
 
     let user_id = session::user_id(&session)?;
 
-    let bookmarks = db::get_bookmarks(&sqlite_pool, user_id)?;
+    let bookmarks = db::get_bookmarks(&sqlite_pool, user_id).await?;
     Ok(HttpResponse::Ok().json(bookmarks))
 }
 
@@ -80,9 +80,9 @@ pub async fn delete_bookmark(
 
     let user_id = session::user_id(&session)?;
 
-    db::delete_bookmark(&sqlite_pool, user_id, params.id)?;
+    db::delete_bookmark(&sqlite_pool, user_id, params.id).await?;
 
     // return all of the user's bookmarks
-    let bookmarks = db::get_bookmarks(&sqlite_pool, user_id)?;
+    let bookmarks = db::get_bookmarks(&sqlite_pool, user_id).await?;
     Ok(HttpResponse::Ok().json(bookmarks))
 }

@@ -16,13 +16,11 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::db::concepts as db;
-use crate::db::notes as notes_db;
 use crate::db::SqlitePool;
 use crate::handler::decks;
 use crate::handler::PaginationQuery;
-use crate::interop::concepts as interop;
 use crate::interop::decks::{DeckKind, ProtoDeck, ProtoSlimDeck};
-use crate::interop::{IdParam, Key};
+use crate::interop::IdParam;
 use crate::session;
 use actix_web::web::{Data, Json, Path, Query};
 use actix_web::HttpResponse;
@@ -40,7 +38,7 @@ pub async fn create(
     let user_id = session::user_id(&session)?;
     let proto_deck = proto_deck.into_inner();
 
-    let concept = db::get_or_create(&sqlite_pool, user_id, &proto_deck.title)?;
+    let concept = db::get_or_create(&sqlite_pool, user_id, proto_deck.title).await?;
 
     Ok(HttpResponse::Ok().json(concept))
 }
@@ -53,7 +51,7 @@ pub async fn get_all(
 
     let user_id = session::user_id(&session)?;
 
-    let concepts = db::all(&sqlite_pool, user_id)?;
+    let concepts = db::all(&sqlite_pool, user_id).await?;
 
     Ok(HttpResponse::Ok().json(concepts))
 }
@@ -79,7 +77,7 @@ pub async fn recent(
 ) -> crate::Result<HttpResponse> {
     let user_id = session::user_id(&session)?;
 
-    let paginated_recent = db::recent(&sqlite_pool, user_id, query.offset, query.num_items)?;
+    let paginated_recent = db::recent(&sqlite_pool, user_id, query.offset, query.num_items).await?;
 
     Ok(HttpResponse::Ok().json(paginated_recent))
 }
@@ -91,7 +89,7 @@ pub async fn orphans(
 ) -> crate::Result<HttpResponse> {
     let user_id = session::user_id(&session)?;
 
-    let paginated_orphans = db::orphans(&sqlite_pool, user_id, query.offset, query.num_items)?;
+    let paginated_orphans = db::orphans(&sqlite_pool, user_id, query.offset, query.num_items).await?;
 
     Ok(HttpResponse::Ok().json(paginated_orphans))
 }
@@ -103,7 +101,7 @@ pub async fn unnoted(
 ) -> crate::Result<HttpResponse> {
     let user_id = session::user_id(&session)?;
 
-    let paginated_unnoted = db::unnoted(&sqlite_pool, user_id, query.offset, query.num_items)?;
+    let paginated_unnoted = db::unnoted(&sqlite_pool, user_id, query.offset, query.num_items).await?;
 
     Ok(HttpResponse::Ok().json(paginated_unnoted))
 }
@@ -118,9 +116,10 @@ pub async fn convert(
     let user_id = session::user_id(&session)?;
     let concept_id = params.id;
 
-    let mut idea = db::convert(&sqlite_pool, user_id, concept_id)?;
-
-    sqlite_augment(&sqlite_pool, &mut idea, concept_id)?;
+    let idea = match db::convert(sqlite_pool.get_ref(), user_id, concept_id).await? {
+        Some(i) => i,
+        None => return Err(crate::Error::NotFound),
+    };
 
     Ok(HttpResponse::Ok().json(idea))
 }
@@ -135,8 +134,10 @@ pub async fn get(
     let user_id = session::user_id(&session)?;
     let concept_id = params.id;
 
-    let mut concept = db::get(&sqlite_pool, user_id, concept_id)?;
-    sqlite_augment(&sqlite_pool, &mut concept, concept_id)?;
+    let concept = match db::get(sqlite_pool.get_ref(), user_id, concept_id).await? {
+        Some(i) => i,
+        None => return Err(crate::Error::NotFound),
+    };
 
     Ok(HttpResponse::Ok().json(concept))
 }
@@ -153,8 +154,7 @@ pub async fn edit(
     let concept_id = params.id;
     let concept = concept.into_inner();
 
-    let mut concept = db::edit(&sqlite_pool, user_id, &concept, concept_id)?;
-    sqlite_augment(&sqlite_pool, &mut concept, concept_id)?;
+    let concept = db::edit(&sqlite_pool, user_id, concept, concept_id).await?;
 
     Ok(HttpResponse::Ok().json(concept))
 }
@@ -168,18 +168,7 @@ pub async fn delete(
 
     let user_id = session::user_id(&session)?;
 
-    db::delete(&sqlite_pool, user_id, params.id)?;
+    db::delete(&sqlite_pool, user_id, params.id).await?;
 
     Ok(HttpResponse::Ok().json(true))
-}
-
-fn sqlite_augment(
-    sqlite_pool: &Data<SqlitePool>,
-    concept: &mut interop::Concept,
-    concept_id: Key,
-) -> crate::Result<()> {
-    concept.notes = notes_db::notes_for_deck(sqlite_pool, concept_id)?;
-    concept.arrivals = notes_db::arrivals_for_deck(sqlite_pool, concept_id)?;
-
-    Ok(())
 }
