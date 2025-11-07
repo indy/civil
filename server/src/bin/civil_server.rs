@@ -38,7 +38,7 @@ fn configure(conn: &Connection) -> rusqlite::Result<()> {
     )
 }
 
-#[actix_rt::main]
+#[actix_web::main]
 async fn main() -> civil_server::Result<()> {
     civil_server::init_dotenv();
     civil_server::init_tracing();

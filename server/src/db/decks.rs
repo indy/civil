@@ -511,7 +511,7 @@ pub(crate) async fn recent(
 
 // delete anything that's represented as a deck (article, person, idea, timeline, quote, dialogue)
 //
-pub(crate) fn delete(conn: &Connection, user_id: Key, id: Key) -> Result<(), DbError> {
+fn delete_conn(conn: &Connection, user_id: Key, id: Key) -> Result<(), DbError> {
     sqlite::zero(
         &conn,
         "DELETE FROM decks WHERE id = ?2 and user_id = ?1",
@@ -520,6 +520,18 @@ pub(crate) fn delete(conn: &Connection, user_id: Key, id: Key) -> Result<(), DbE
 
     Ok(())
 }
+
+pub(crate) async fn delete(
+    sqlite_pool: &SqlitePool,
+    user_id: Key,
+    deck_id: Key,
+) -> crate::Result<()> {
+    db(sqlite_pool, move |conn| delete_conn(conn, user_id, deck_id))
+        .await
+        .map_err(Into::into)
+}
+
+
 
 fn get_font_of_deck(conn: &Connection, deck_id: Key) -> Result<Font, DbError> {
     sqlite::one(

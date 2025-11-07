@@ -310,20 +310,10 @@ pub(crate) async fn edit(
     .map_err(Into::into)
 }
 
-fn delete_conn(conn: &rusqlite::Connection, user_id: Key, event_id: Key) -> Result<(), DbError> {
-    decks::delete(&conn, user_id, event_id)?;
-
-    Ok(())
-}
-
 pub(crate) async fn delete(
     sqlite_pool: &SqlitePool,
     user_id: Key,
-    event_id: Key,
+    deck_id: Key,
 ) -> crate::Result<()> {
-    db(sqlite_pool, move |conn| {
-        delete_conn(conn, user_id, event_id)
-    })
-    .await
-    .map_err(Into::into)
+    decks::delete(sqlite_pool, user_id, deck_id).await
 }
