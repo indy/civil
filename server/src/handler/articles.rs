@@ -84,7 +84,8 @@ pub async fn orphans(
 ) -> crate::Result<HttpResponse> {
     let user_id = session::user_id(&session)?;
 
-    let paginated_orphans = db::orphans(&sqlite_pool, user_id, query.offset, query.num_items).await?;
+    let paginated_orphans =
+        db::orphans(&sqlite_pool, user_id, query.offset, query.num_items).await?;
 
     Ok(HttpResponse::Ok().json(paginated_orphans))
 }

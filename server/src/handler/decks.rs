@@ -74,7 +74,8 @@ pub async fn insignias(
             query.insignia,
             query.offset,
             query.num_items,
-        ).await?
+        )
+        .await?
     } else {
         db::insignia_filter_any(
             &sqlite_pool,
@@ -82,7 +83,8 @@ pub async fn insignias(
             query.insignia,
             query.offset,
             query.num_items,
-        ).await?
+        )
+        .await?
     };
 
     Ok(HttpResponse::Ok().json(paginated))
@@ -189,7 +191,8 @@ pub async fn summarize(
                     deck_id,
                     summarize_struct.prev_id,
                     summary.trim().to_string(),
-                ).await?;
+                )
+                .await?;
 
                 Ok(HttpResponse::Ok().json(note))
             }
@@ -326,15 +329,17 @@ pub(crate) async fn pagination(
             deck_kind,
             query.offset,
             query.num_items,
-        ).await?;
+        )
+        .await?;
     } else {
-        pagination_results = db::pagination_2(
+        pagination_results = db::pagination(
             &sqlite_pool,
             user_id,
             deck_kind,
             query.offset,
             query.num_items,
-        ).await?;
+        )
+        .await?;
     }
 
     Ok(HttpResponse::Ok().json(pagination_results))

@@ -15,54 +15,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::db::notes as notes_db;
-use crate::db::decks::DECKBASE_QUERY;
 use crate::db::decks;
-use crate::db::{SqlitePool, DbError, db};
+use crate::db::decks::DECKBASE_QUERY;
+use crate::db::notes as notes_db;
 use crate::db::sqlite::{self, FromRow};
+use crate::db::{db, DbError, SqlitePool};
 use crate::interop::decks::{DeckKind, Pagination, ProtoSlimDeck, SlimDeck};
 use crate::interop::font::Font;
 use crate::interop::ideas::Idea;
 use crate::interop::Key;
-use rusqlite::{params, OptionalExtension, Row};
+use rusqlite::{params, Row};
 
 #[allow(unused_imports)]
 use tracing::info;
 
-fn from_rusqlite_row(row: &Row) -> rusqlite::Result<Idea> {
-    Ok(Idea {
-        id: row.get(0)?,
-        title: row.get(1)?,
-        deck_kind: row.get(2)?,
-        created_at: row.get(3)?,
-        graph_terminator: row.get(4)?,
-        insignia: row.get(5)?,
-        font: row.get(6)?,
-        impact: row.get(7)?,
-
-        notes: vec![],
-        arrivals: vec![],
-    })
-}
-
 impl FromRow for Idea {
-    fn from_row(row: &Row) -> crate::Result<Idea> {
-        Ok(Idea {
-            id: row.get(0)?,
-            title: row.get(1)?,
-            deck_kind: row.get(2)?,
-            created_at: row.get(3)?,
-            graph_terminator: row.get(4)?,
-            insignia: row.get(5)?,
-            font: row.get(6)?,
-            impact: row.get(7)?,
-
-            notes: vec![],
-            arrivals: vec![],
-        })
-    }
-
-    fn from_row_conn(row: &Row) -> Result<Idea, DbError> {
+    fn from_row(row: &Row) -> rusqlite::Result<Idea> {
         Ok(Idea {
             id: row.get(0)?,
             title: row.get(1)?,
@@ -78,16 +46,15 @@ impl FromRow for Idea {
         })
     }
 }
-
 
 fn get_or_create_conn(
     conn: &mut rusqlite::Connection,
     user_id: Key,
-    title: String
+    title: String,
 ) -> Result<Idea, DbError> {
     let tx = conn.transaction()?;
 
-    let (deck, _origin) = decks::deckbase_get_or_create_conn(
+    let (deck, _origin) = decks::deckbase_get_or_create(
         &tx,
         user_id,
         DeckKind::Idea,
@@ -102,8 +69,8 @@ fn get_or_create_conn(
 
     let mut idea: Idea = deck.into();
 
-    idea.notes = notes_db::notes_for_deck_conn(conn, idea.id)?;
-    idea.arrivals = notes_db::arrivals_for_deck_conn(conn, idea.id)?;
+    idea.notes = notes_db::notes_for_deck(conn, idea.id)?;
+    idea.arrivals = notes_db::arrivals_for_deck(conn, idea.id)?;
 
     Ok(idea)
 }
@@ -113,9 +80,11 @@ pub(crate) async fn get_or_create(
     user_id: Key,
     title: String,
 ) -> crate::Result<Idea> {
-    db(sqlite_pool, move |conn| get_or_create_conn(conn, user_id, title))
-        .await
-        .map_err(Into::into)
+    db(sqlite_pool, move |conn| {
+        get_or_create_conn(conn, user_id, title)
+    })
+    .await
+    .map_err(Into::into)
 }
 
 fn recent_conn(
@@ -131,10 +100,10 @@ fn recent_conn(
                 LIMIT ?2
                 OFFSET ?3";
 
-    let items = sqlite::many_conn(&conn, stmt, params![&user_id, &num_items, &offset])?;
+    let items = sqlite::many(&conn, stmt, params![&user_id, &num_items, &offset])?;
 
     let stmt = "SELECT count(*) FROM decks where user_id=?1 AND kind='idea';";
-    let total_items = sqlite::one_conn(&conn, stmt, params![user_id])?;
+    let total_items = sqlite::one(&conn, stmt, params![user_id])?;
 
     let res = Pagination::<SlimDeck> { items, total_items };
 
@@ -147,9 +116,11 @@ pub(crate) async fn recent(
     offset: i32,
     num_items: i32,
 ) -> crate::Result<Pagination<SlimDeck>> {
-    db(sqlite_pool, move |conn| recent_conn(conn, user_id, offset, num_items))
-        .await
-        .map_err(Into::into)
+    db(sqlite_pool, move |conn| {
+        recent_conn(conn, user_id, offset, num_items)
+    })
+    .await
+    .map_err(Into::into)
 }
 
 fn orphans_conn(
@@ -172,7 +143,7 @@ fn orphans_conn(
                 LIMIT ?2
                 OFFSET ?3";
 
-    let items = sqlite::many_conn(&conn, stmt, params![&user_id, &num_items, &offset])?;
+    let items = sqlite::many(&conn, stmt, params![&user_id, &num_items, &offset])?;
 
     let stmt = "SELECT count(*)
                 FROM decks
@@ -184,7 +155,7 @@ fn orphans_conn(
                                GROUP BY n.deck_id)
                 AND kind = 'idea'
                 AND user_id = ?1";
-    let total_items = sqlite::one_conn(&conn, stmt, params![user_id])?;
+    let total_items = sqlite::one(&conn, stmt, params![user_id])?;
 
     let res = Pagination::<SlimDeck> { items, total_items };
 
@@ -197,9 +168,11 @@ pub(crate) async fn orphans(
     offset: i32,
     num_items: i32,
 ) -> crate::Result<Pagination<SlimDeck>> {
-    db(sqlite_pool, move |conn| orphans_conn(conn, user_id, offset, num_items))
-        .await
-        .map_err(Into::into)
+    db(sqlite_pool, move |conn| {
+        orphans_conn(conn, user_id, offset, num_items)
+    })
+    .await
+    .map_err(Into::into)
 }
 
 fn unnoted_conn(
@@ -216,7 +189,7 @@ fn unnoted_conn(
                 ORDER BY d.created_at DESC
                 LIMIT ?2
                 OFFSET ?3";
-    let items = sqlite::many_conn(&conn, stmt, params![&user_id, &num_items, &offset])?;
+    let items = sqlite::many(&conn, stmt, params![&user_id, &num_items, &offset])?;
 
     let stmt = "SELECT count(*)
                 FROM decks d LEFT JOIN notes n ON (d.id = n.deck_id AND n.kind != 4)
@@ -224,7 +197,7 @@ fn unnoted_conn(
                 AND d.kind='idea'
                 AND d.user_id=?1";
 
-    let total_items = sqlite::one_conn(&conn, stmt, params![user_id])?;
+    let total_items = sqlite::one(&conn, stmt, params![user_id])?;
 
     let res = Pagination::<SlimDeck> { items, total_items };
 
@@ -237,23 +210,21 @@ pub(crate) async fn unnoted(
     offset: i32,
     num_items: i32,
 ) -> crate::Result<Pagination<SlimDeck>> {
-    db(sqlite_pool, move |conn| unnoted_conn(conn, user_id, offset, num_items))
-        .await
-        .map_err(Into::into)
+    db(sqlite_pool, move |conn| {
+        unnoted_conn(conn, user_id, offset, num_items)
+    })
+    .await
+    .map_err(Into::into)
 }
 
-fn all_conn(
-    conn: &rusqlite::Connection,
-    user_id: Key,
-) -> Result<Vec<Idea>, DbError> {
+fn all_conn(conn: &rusqlite::Connection, user_id: Key) -> Result<Vec<Idea>, DbError> {
     let stmt = "SELECT id, name, created_at, graph_terminator, insignia, font, impact
                 FROM decks
                 WHERE user_id = ?1 AND kind = 'idea'
                 ORDER BY name";
 
-    sqlite::many_conn(&conn, stmt, params![&user_id])
+    sqlite::many(&conn, stmt, params![&user_id])
 }
-
 
 pub(crate) async fn all(sqlite_pool: &SqlitePool, user_id: Key) -> crate::Result<Vec<Idea>> {
     db(sqlite_pool, move |conn| all_conn(conn, user_id))
@@ -264,59 +235,71 @@ pub(crate) async fn all(sqlite_pool: &SqlitePool, user_id: Key) -> crate::Result
 fn convert_conn(
     conn: &rusqlite::Connection,
     user_id: Key,
-    idea_id: Key
+    idea_id: Key,
 ) -> Result<Option<Idea>, DbError> {
-    let mut idea = conn.prepare_cached(DECKBASE_QUERY)?
-        .query_row(params![user_id, idea_id, DeckKind::Idea.to_string()], |row| from_rusqlite_row(row))
-        .optional()?;
+    let mut idea: Option<Idea> = sqlite::one_optional(
+        &conn,
+        DECKBASE_QUERY,
+        params![user_id, idea_id, DeckKind::Idea.to_string()],
+    )?;
 
     if let Some(ref mut i) = idea {
-        i.notes = notes_db::notes_for_deck_conn(conn, idea_id)?;
-        i.arrivals = notes_db::arrivals_for_deck_conn(conn, idea_id)?;
+        i.notes = notes_db::notes_for_deck(conn, idea_id)?;
+        i.arrivals = notes_db::arrivals_for_deck(conn, idea_id)?;
     }
 
     let target_kind = DeckKind::Concept;
     let stmt = "UPDATE decks
                 SET kind = ?3
                 WHERE user_id = ?1 AND id = ?2";
-    sqlite::zero_conn(
+    sqlite::zero(
         &conn,
         stmt,
         params![&user_id, &idea_id, &target_kind.to_string()],
     )?;
-
 
     Ok(idea)
 }
 
 // convert this idea into a concept
 //
-pub(crate) async fn convert(sqlite_pool: &SqlitePool, user_id: Key, idea_id: Key) -> crate::Result<Option<Idea>> {
-    db(sqlite_pool, move |conn| convert_conn(conn, user_id, idea_id))
-        .await
-        .map_err(Into::into)
+pub(crate) async fn convert(
+    sqlite_pool: &SqlitePool,
+    user_id: Key,
+    idea_id: Key,
+) -> crate::Result<Option<Idea>> {
+    db(sqlite_pool, move |conn| {
+        convert_conn(conn, user_id, idea_id)
+    })
+    .await
+    .map_err(Into::into)
 }
 
 fn get_conn(
     conn: &rusqlite::Connection,
     user_id: Key,
-    idea_id: Key
+    idea_id: Key,
 ) -> Result<Option<Idea>, DbError> {
-    let mut idea = conn.prepare_cached(DECKBASE_QUERY)?
-        .query_row(params![user_id, idea_id, DeckKind::Idea.to_string()], |row| from_rusqlite_row(row))
-        .optional()?;
+    let mut idea: Option<Idea> = sqlite::one_optional(
+        &conn,
+        DECKBASE_QUERY,
+        params![user_id, idea_id, DeckKind::Idea.to_string()],
+    )?;
 
     if let Some(ref mut i) = idea {
-        i.notes = notes_db::notes_for_deck_conn(conn, idea_id)?;
-        i.arrivals = notes_db::arrivals_for_deck_conn(conn, idea_id)?;
+        i.notes = notes_db::notes_for_deck(conn, idea_id)?;
+        i.arrivals = notes_db::arrivals_for_deck(conn, idea_id)?;
+        decks::hit(&conn, idea_id)?;
     }
-
-    decks::hit_conn(&conn, idea_id)?;
 
     Ok(idea)
 }
 
-pub(crate) async fn get(sqlite_pool: &SqlitePool, user_id: Key, idea_id: Key) -> crate::Result<Option<Idea>> {
+pub(crate) async fn get(
+    sqlite_pool: &SqlitePool,
+    user_id: Key,
+    idea_id: Key,
+) -> crate::Result<Option<Idea>> {
     db(sqlite_pool, move |conn| get_conn(conn, user_id, idea_id))
         .await
         .map_err(Into::into)
@@ -326,11 +309,11 @@ fn edit_conn(
     conn: &mut rusqlite::Connection,
     user_id: Key,
     idea: ProtoSlimDeck,
-    idea_id: Key
+    idea_id: Key,
 ) -> Result<Idea, DbError> {
     let tx = conn.transaction()?;
 
-    let deck = decks::deckbase_edit_conn(
+    let deck = decks::deckbase_edit(
         &tx,
         user_id,
         idea_id,
@@ -346,8 +329,8 @@ fn edit_conn(
 
     let mut idea: Idea = deck.into();
 
-    idea.notes = notes_db::notes_for_deck_conn(conn, idea_id)?;
-    idea.arrivals = notes_db::arrivals_for_deck_conn(conn, idea_id)?;
+    idea.notes = notes_db::notes_for_deck(conn, idea_id)?;
+    idea.arrivals = notes_db::arrivals_for_deck(conn, idea_id)?;
 
     Ok(idea)
 }
@@ -358,23 +341,24 @@ pub(crate) async fn edit(
     idea: ProtoSlimDeck,
     idea_id: Key,
 ) -> crate::Result<Idea> {
-    db(sqlite_pool, move |conn| edit_conn(conn, user_id, idea, idea_id))
-        .await
-        .map_err(Into::into)
+    db(sqlite_pool, move |conn| {
+        edit_conn(conn, user_id, idea, idea_id)
+    })
+    .await
+    .map_err(Into::into)
 }
 
-fn delete_conn(
-    conn: &rusqlite::Connection,
-    user_id: Key,
-    idea_id: Key
-) -> Result<(), DbError> {
-
-    decks::delete_conn(&conn, user_id, idea_id)?;
+fn delete_conn(conn: &rusqlite::Connection, user_id: Key, idea_id: Key) -> Result<(), DbError> {
+    decks::delete(&conn, user_id, idea_id)?;
 
     Ok(())
 }
 
-pub(crate) async fn delete(sqlite_pool: &SqlitePool, user_id: Key, idea_id: Key) -> crate::Result<()> {
+pub(crate) async fn delete(
+    sqlite_pool: &SqlitePool,
+    user_id: Key,
+    idea_id: Key,
+) -> crate::Result<()> {
     db(sqlite_pool, move |conn| delete_conn(conn, user_id, idea_id))
         .await
         .map_err(Into::into)

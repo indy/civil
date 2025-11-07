@@ -102,7 +102,8 @@ pub async fn converse(
     let chat_message = chat_message.into_inner();
 
     // save the user's chat message
-    let mut prev_note_id = db::add_chat_message(&sqlite_pool, user_id, deck_id, chat_message).await?;
+    let mut prev_note_id =
+        db::add_chat_message(&sqlite_pool, user_id, deck_id, chat_message).await?;
 
     let (ai_kind, history) = db::get_chat_history(&sqlite_pool, user_id, deck_id).await?;
 
@@ -134,7 +135,6 @@ pub async fn get(
 
     let user_id = session::user_id(&session)?;
     let dialogue_id = params.id;
-
 
     let dialogue = match db::get(sqlite_pool.get_ref(), user_id, dialogue_id).await? {
         Some(i) => i,

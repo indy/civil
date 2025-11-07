@@ -15,8 +15,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::db::{SqlitePool, DbError, db};
 use crate::db::sqlite::{self, FromRow};
+use crate::db::{db, DbError, SqlitePool};
 use crate::interop::points::{Point, PointKind, ProtoPoint};
 use crate::interop::Key;
 
@@ -37,28 +37,7 @@ impl fmt::Display for PointKind {
 }
 
 impl FromRow for Point {
-    fn from_row(row: &Row) -> crate::Result<Point> {
-        Ok(Point {
-            id: row.get(0)?,
-            kind: row.get(1)?,
-            title: row.get(2)?,
-            font: row.get(3)?,
-
-            location_textual: row.get(4)?,
-
-            date_textual: row.get(5)?,
-            date: row.get(6)?,
-
-            deck_id: row.get(7)?,
-            deck_title: row.get(8)?,
-            deck_kind: row.get(9)?,
-            deck_insignia: row.get(10)?,
-            deck_font: row.get(11)?,
-            deck_impact: row.get(12)?,
-        })
-    }
-
-    fn from_row_conn(row: &Row) -> Result<Point, DbError> {
+    fn from_row(row: &Row) -> rusqlite::Result<Point> {
         Ok(Point {
             id: row.get(0)?,
             kind: row.get(1)?,
@@ -85,7 +64,7 @@ pub(crate) fn all_conn(
     user_id: Key,
     deck_id: Key,
 ) -> Result<Vec<Point>, DbError> {
-    sqlite::many_conn(
+    sqlite::many(
         &conn,
         "select p.id,
                 p.kind,
@@ -150,7 +129,7 @@ fn all_points_within_interval_conn(
     let lower_year = year_as_date_string(lower);
     let upper_year = year_as_date_string(upper + 1);
 
-    sqlite::many_conn(
+    sqlite::many(
         &conn,
         "select p.id,
                 p.kind,
@@ -177,13 +156,20 @@ fn all_points_within_interval_conn(
     )
 }
 
-pub(crate) async fn all_points_within_interval(sqlite_pool: &SqlitePool, user_id: Key, lower: i32, upper: i32) -> crate::Result<Vec<Point>> {
-    db(sqlite_pool, move |conn| all_points_within_interval_conn(conn, user_id, lower, upper))
-        .await
-        .map_err(Into::into)
+pub(crate) async fn all_points_within_interval(
+    sqlite_pool: &SqlitePool,
+    user_id: Key,
+    lower: i32,
+    upper: i32,
+) -> crate::Result<Vec<Point>> {
+    db(sqlite_pool, move |conn| {
+        all_points_within_interval_conn(conn, user_id, lower, upper)
+    })
+    .await
+    .map_err(Into::into)
 }
 
-pub(crate) fn all_points_during_life_conn(
+pub(crate) fn all_points_during_life(
     conn: &rusqlite::Connection,
     user_id: Key,
     deck_id: Key,
@@ -192,7 +178,7 @@ pub(crate) fn all_points_during_life_conn(
     // 1. all the points associated with a person (may include posthumous points)
     // 2. all the points between the person's birth and death (if not dead then up until the present day)
     //
-    sqlite::many_conn(
+    sqlite::many(
         &conn,
         "select p.id,
                 p.kind,
@@ -250,7 +236,7 @@ fn create_conn(
     point: ProtoPoint,
     deck_id: Key,
 ) -> Result<(), DbError> {
-    sqlite::zero_conn(
+    sqlite::zero(
         &conn,
         "INSERT INTO points(deck_id, title, kind, location_textual, longitude, latitude, location_fuzz,
                             date_textual, exact_realdate, lower_realdate, upper_realdate, date_fuzz)
@@ -270,7 +256,6 @@ fn create_conn(
             &point.date_fuzz,
         ])
 }
-
 
 pub(crate) async fn create(
     sqlite_pool: &SqlitePool,

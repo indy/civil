@@ -15,56 +15,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::db::points as points_db;
-use crate::db::notes as notes_db;
 use crate::db::decks;
+use crate::db::notes as notes_db;
+use crate::db::points as points_db;
+use crate::db::sqlite::{self, FromRow};
+use crate::db::{db, DbError, SqlitePool};
 use crate::interop::decks::{DeckKind, Pagination, ProtoSlimDeck, SlimDeck};
 use crate::interop::font::Font;
 use crate::interop::people::Person;
 use crate::interop::Key;
-use rusqlite::{params, OptionalExtension, Row};
-use crate::db::{SqlitePool, DbError, db};
-use crate::db::sqlite::{self, FromRow};
+use rusqlite::{params, Row};
 
 #[allow(unused_imports)]
 use tracing::{error, info};
 
-fn from_rusqlite_row(row: &Row) -> rusqlite::Result<Person> {
-        Ok(Person {
-            id: row.get(0)?,
-            title: row.get(1)?,
-            deck_kind: row.get(2)?,
-            created_at: row.get(3)?,
-            graph_terminator: row.get(4)?,
-            insignia: row.get(5)?,
-            font: row.get(6)?,
-            impact: row.get(7)?,
-            sort_date: row.get(8)?,
-            points: vec![],
-            notes: vec![],
-            arrivals: vec![],
-        })
-}
-
 impl FromRow for Person {
-    fn from_row(row: &Row) -> crate::Result<Person> {
-        Ok(Person {
-            id: row.get(0)?,
-            title: row.get(1)?,
-            deck_kind: row.get(2)?,
-            created_at: row.get(3)?,
-            graph_terminator: row.get(4)?,
-            insignia: row.get(5)?,
-            font: row.get(6)?,
-            impact: row.get(7)?,
-            sort_date: row.get(8)?,
-            points: vec![],
-            notes: vec![],
-            arrivals: vec![],
-        })
-    }
-
-    fn from_row_conn(row: &Row) -> Result<Person, DbError> {
+    fn from_row(row: &Row) -> rusqlite::Result<Person> {
         Ok(Person {
             id: row.get(0)?,
             title: row.get(1)?,
@@ -81,16 +47,15 @@ impl FromRow for Person {
         })
     }
 }
-
 
 fn get_or_create_conn(
     conn: &mut rusqlite::Connection,
     user_id: Key,
-    title: String
+    title: String,
 ) -> Result<Person, DbError> {
     let tx = conn.transaction()?;
 
-    let (deck, _origin) = decks::deckbase_get_or_create_conn(
+    let (deck, _origin) = decks::deckbase_get_or_create(
         &tx,
         user_id,
         DeckKind::Person,
@@ -105,28 +70,26 @@ fn get_or_create_conn(
 
     let mut person: Person = deck.into();
 
-    person.points = points_db::all_points_during_life_conn(conn, user_id, person.id)?;
-    person.notes = notes_db::notes_for_deck_conn(conn, person.id)?;
-    person.arrivals = notes_db::arrivals_for_deck_conn(conn, person.id)?;
+    person.points = points_db::all_points_during_life(conn, user_id, person.id)?;
+    person.notes = notes_db::notes_for_deck(conn, person.id)?;
+    person.arrivals = notes_db::arrivals_for_deck(conn, person.id)?;
 
     Ok(person)
 }
-
 
 pub(crate) async fn get_or_create(
     sqlite_pool: &SqlitePool,
     user_id: Key,
     title: String,
 ) -> crate::Result<Person> {
-    db(sqlite_pool, move |conn| get_or_create_conn(conn, user_id, title))
-        .await
-        .map_err(Into::into)
+    db(sqlite_pool, move |conn| {
+        get_or_create_conn(conn, user_id, title)
+    })
+    .await
+    .map_err(Into::into)
 }
 
-fn all_conn(
-    conn: &rusqlite::Connection,
-    user_id: Key,
-) -> Result<Vec<Person>, DbError> {
+fn all_conn(conn: &rusqlite::Connection, user_id: Key) -> Result<Vec<Person>, DbError> {
     let stmt = "select d.id,
                 d.name,
                 d.kind,
@@ -158,9 +121,8 @@ fn all_conn(
                and p.deck_id is null
          order by birth_date";
 
-    sqlite::many_conn(&conn, stmt, params![&user_id])
+    sqlite::many(&conn, stmt, params![&user_id])
 }
-
 
 pub(crate) async fn all(sqlite_pool: &SqlitePool, user_id: Key) -> crate::Result<Vec<Person>> {
     db(sqlite_pool, move |conn| all_conn(conn, user_id))
@@ -183,7 +145,7 @@ fn uncategorised_conn(
                 LIMIT ?2
                 OFFSET ?3";
 
-    let items = sqlite::many_conn(&conn, stmt, params![&user_id, &num_items, &offset])?;
+    let items = sqlite::many(&conn, stmt, params![&user_id, &num_items, &offset])?;
 
     let stmt = "SELECT count(*)
                 FROM decks d
@@ -192,7 +154,7 @@ fn uncategorised_conn(
                       AND d.kind = 'person'
                       AND p.deck_id is null";
 
-    let total_items = sqlite::one_conn(&conn, stmt, params![user_id])?;
+    let total_items = sqlite::one(&conn, stmt, params![user_id])?;
 
     let res = Pagination::<SlimDeck> { items, total_items };
 
@@ -205,9 +167,11 @@ pub(crate) async fn uncategorised(
     offset: i32,
     num_items: i32,
 ) -> crate::Result<Pagination<SlimDeck>> {
-    db(sqlite_pool, move |conn| uncategorised_conn(conn, user_id, offset, num_items))
-        .await
-        .map_err(Into::into)
+    db(sqlite_pool, move |conn| {
+        uncategorised_conn(conn, user_id, offset, num_items)
+    })
+    .await
+    .map_err(Into::into)
 }
 
 fn ancient_conn(
@@ -230,7 +194,7 @@ fn ancient_conn(
                 LIMIT ?2
                 OFFSET ?3";
 
-    let items = sqlite::many_conn(&conn, stmt, params![&user_id, &num_items, &offset])?;
+    let items = sqlite::many(&conn, stmt, params![&user_id, &num_items, &offset])?;
 
     let stmt = "SELECT count(*)
                 FROM (
@@ -242,7 +206,7 @@ fn ancient_conn(
                           AND p.kind = 'point_begin'
                           AND birth_date < '0354-01-01')";
 
-    let total_items = sqlite::one_conn(&conn, stmt, params![user_id])?;
+    let total_items = sqlite::one(&conn, stmt, params![user_id])?;
 
     let res = Pagination::<SlimDeck> { items, total_items };
 
@@ -255,9 +219,11 @@ pub(crate) async fn ancient(
     offset: i32,
     num_items: i32,
 ) -> crate::Result<Pagination<SlimDeck>> {
-    db(sqlite_pool, move |conn| ancient_conn(conn, user_id, offset, num_items))
-        .await
-        .map_err(Into::into)
+    db(sqlite_pool, move |conn| {
+        ancient_conn(conn, user_id, offset, num_items)
+    })
+    .await
+    .map_err(Into::into)
 }
 
 fn medieval_conn(
@@ -279,7 +245,7 @@ fn medieval_conn(
                 LIMIT ?2
                 OFFSET ?3";
 
-    let items = sqlite::many_conn(&conn, stmt, params![&user_id, &num_items, &offset])?;
+    let items = sqlite::many(&conn, stmt, params![&user_id, &num_items, &offset])?;
 
     let stmt = "SELECT count(*)
                 FROM (SELECT COALESCE(date(p.exact_realdate), date(p.lower_realdate)) AS birth_date
@@ -290,7 +256,7 @@ fn medieval_conn(
                             AND p.kind = 'point_begin'
                             AND birth_date >= '0354-01-01' AND birth_date < '1469-01-01')";
 
-    let total_items = sqlite::one_conn(&conn, stmt, params![user_id])?;
+    let total_items = sqlite::one(&conn, stmt, params![user_id])?;
 
     let res = Pagination::<SlimDeck> { items, total_items };
 
@@ -303,9 +269,11 @@ pub(crate) async fn medieval(
     offset: i32,
     num_items: i32,
 ) -> crate::Result<Pagination<SlimDeck>> {
-    db(sqlite_pool, move |conn| medieval_conn(conn, user_id, offset, num_items))
-        .await
-        .map_err(Into::into)
+    db(sqlite_pool, move |conn| {
+        medieval_conn(conn, user_id, offset, num_items)
+    })
+    .await
+    .map_err(Into::into)
 }
 
 fn modern_conn(
@@ -327,7 +295,7 @@ fn modern_conn(
                 LIMIT ?2
                 OFFSET ?3";
 
-    let items = sqlite::many_conn(&conn, stmt, params![&user_id, &num_items, &offset])?;
+    let items = sqlite::many(&conn, stmt, params![&user_id, &num_items, &offset])?;
 
     let stmt = "SELECT count(*)
                 FROM (
@@ -339,7 +307,7 @@ fn modern_conn(
                           AND p.kind = 'point_begin'
                           AND birth_date >= '1469-01-01' AND birth_date < '1856-01-01')";
 
-    let total_items = sqlite::one_conn(&conn, stmt, params![user_id])?;
+    let total_items = sqlite::one(&conn, stmt, params![user_id])?;
 
     let res = Pagination::<SlimDeck> { items, total_items };
 
@@ -352,9 +320,11 @@ pub(crate) async fn modern(
     offset: i32,
     num_items: i32,
 ) -> crate::Result<Pagination<SlimDeck>> {
-    db(sqlite_pool, move |conn| modern_conn(conn, user_id, offset, num_items))
-        .await
-        .map_err(Into::into)
+    db(sqlite_pool, move |conn| {
+        modern_conn(conn, user_id, offset, num_items)
+    })
+    .await
+    .map_err(Into::into)
 }
 
 fn contemporary_conn(
@@ -376,7 +346,7 @@ fn contemporary_conn(
                 LIMIT ?2
                 OFFSET ?3";
 
-    let items = sqlite::many_conn(&conn, stmt, params![&user_id, &num_items, &offset])?;
+    let items = sqlite::many(&conn, stmt, params![&user_id, &num_items, &offset])?;
 
     let stmt = "SELECT count(*)
                 FROM (SELECT COALESCE(date(p.exact_realdate), date(p.lower_realdate)) AS birth_date
@@ -387,7 +357,7 @@ fn contemporary_conn(
                             AND p.kind = 'point_begin'
                             AND birth_date >= '1856-01-01')";
 
-    let total_items = sqlite::one_conn(&conn, stmt, params![user_id])?;
+    let total_items = sqlite::one(&conn, stmt, params![user_id])?;
 
     let res = Pagination::<SlimDeck> { items, total_items };
 
@@ -400,35 +370,43 @@ pub(crate) async fn contemporary(
     offset: i32,
     num_items: i32,
 ) -> crate::Result<Pagination<SlimDeck>> {
-    db(sqlite_pool, move |conn| contemporary_conn(conn, user_id, offset, num_items))
-        .await
-        .map_err(Into::into)
+    db(sqlite_pool, move |conn| {
+        contemporary_conn(conn, user_id, offset, num_items)
+    })
+    .await
+    .map_err(Into::into)
 }
 
 fn get_conn(
     conn: &rusqlite::Connection,
     user_id: Key,
-    person_id: Key
+    person_id: Key,
 ) -> Result<Option<Person>, DbError> {
-    // nocheckin why is this different from the get in ideas?
-    let mut person = conn.prepare_cached("SELECT id, name, kind, created_at, graph_terminator, insignia, font, impact, null as sort_date
+    // can't use DECKBASE_QUERY since the FromRow trait for Person will try and read the sort_date
+    let stmt = "SELECT id, name, kind, created_at, graph_terminator, insignia, font, impact, null as sort_date
      FROM decks
-     WHERE user_id = ?1 AND id = ?2 AND kind = ?3")?
-        .query_row(params![user_id, person_id, DeckKind::Person.to_string()], |row| from_rusqlite_row(row))
-        .optional()?;
+     WHERE user_id = ?1 AND id = ?2 AND kind = ?3";
+    let mut person: Option<Person> = sqlite::one_optional(
+        &conn,
+        stmt,
+        params![user_id, person_id, DeckKind::Person.to_string()],
+    )?;
 
     if let Some(ref mut p) = person {
-        p.points = points_db::all_points_during_life_conn(conn, user_id, person_id)?;
-        p.notes = notes_db::notes_for_deck_conn(conn, person_id)?;
-        p.arrivals = notes_db::arrivals_for_deck_conn(conn, person_id)?;
+        p.points = points_db::all_points_during_life(conn, user_id, person_id)?;
+        p.notes = notes_db::notes_for_deck(conn, person_id)?;
+        p.arrivals = notes_db::arrivals_for_deck(conn, person_id)?;
+        decks::hit(&conn, person_id)?;
     }
-
-    decks::hit_conn(&conn, person_id)?;
 
     Ok(person)
 }
 
-pub(crate) async fn get(sqlite_pool: &SqlitePool, user_id: Key, person_id: Key) -> crate::Result<Option<Person>> {
+pub(crate) async fn get(
+    sqlite_pool: &SqlitePool,
+    user_id: Key,
+    person_id: Key,
+) -> crate::Result<Option<Person>> {
     db(sqlite_pool, move |conn| get_conn(conn, user_id, person_id))
         .await
         .map_err(Into::into)
@@ -438,11 +416,11 @@ fn edit_conn(
     conn: &mut rusqlite::Connection,
     user_id: Key,
     person: ProtoSlimDeck,
-    person_id: Key
+    person_id: Key,
 ) -> Result<Person, DbError> {
     let tx = conn.transaction()?;
 
-    let deck = decks::deckbase_edit_conn(
+    let deck = decks::deckbase_edit(
         &tx,
         user_id,
         person_id,
@@ -458,9 +436,9 @@ fn edit_conn(
 
     let mut person: Person = deck.into();
 
-    person.points = points_db::all_points_during_life_conn(conn, user_id, person.id)?;
-    person.notes = notes_db::notes_for_deck_conn(conn, person_id)?;
-    person.arrivals = notes_db::arrivals_for_deck_conn(conn, person_id)?;
+    person.points = points_db::all_points_during_life(conn, user_id, person.id)?;
+    person.notes = notes_db::notes_for_deck(conn, person_id)?;
+    person.arrivals = notes_db::arrivals_for_deck(conn, person_id)?;
 
     Ok(person)
 }
@@ -471,24 +449,27 @@ pub(crate) async fn edit(
     person: ProtoSlimDeck,
     person_id: Key,
 ) -> crate::Result<Person> {
-    db(sqlite_pool, move |conn| edit_conn(conn, user_id, person, person_id))
-        .await
-        .map_err(Into::into)
+    db(sqlite_pool, move |conn| {
+        edit_conn(conn, user_id, person, person_id)
+    })
+    .await
+    .map_err(Into::into)
 }
 
-fn delete_conn(
-    conn: &rusqlite::Connection,
-    user_id: Key,
-    person_id: Key
-) -> Result<(), DbError> {
-
-    decks::delete_conn(&conn, user_id, person_id)?;
+fn delete_conn(conn: &rusqlite::Connection, user_id: Key, person_id: Key) -> Result<(), DbError> {
+    decks::delete(&conn, user_id, person_id)?;
 
     Ok(())
 }
 
-pub(crate) async fn delete(sqlite_pool: &SqlitePool, user_id: Key, person_id: Key) -> crate::Result<()> {
-    db(sqlite_pool, move |conn| delete_conn(conn, user_id, person_id))
-        .await
-        .map_err(Into::into)
+pub(crate) async fn delete(
+    sqlite_pool: &SqlitePool,
+    user_id: Key,
+    person_id: Key,
+) -> crate::Result<()> {
+    db(sqlite_pool, move |conn| {
+        delete_conn(conn, user_id, person_id)
+    })
+    .await
+    .map_err(Into::into)
 }

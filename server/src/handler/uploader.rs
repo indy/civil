@@ -19,8 +19,8 @@ use crate::error::Error;
 use crate::session;
 use crate::ServerConfig;
 
-use crate::db::SqlitePool;
 use crate::db::uploader as db;
+use crate::db::SqlitePool;
 
 use std::ffi::OsStr;
 use std::path::Path as StdPath;

@@ -85,7 +85,8 @@ pub async fn edit_references(
     let diff = diff.into_inner();
     let user_id = session::user_id(&session)?;
 
-    let all_decks_for_note = db_refs::update_references(&sqlite_pool, diff, user_id, params.id).await?;
+    let all_decks_for_note =
+        db_refs::update_references(&sqlite_pool, diff, user_id, params.id).await?;
 
     Ok(HttpResponse::Ok().json(all_decks_for_note))
 }

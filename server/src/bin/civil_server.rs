@@ -21,9 +21,9 @@ use actix_web::cookie::{self, Key, SameSite};
 use actix_web::middleware::{self, ErrorHandlers};
 use actix_web::{http, web, App, HttpServer};
 use civil_server::{self, server_api, ServerConfig};
+use rusqlite::Connection;
 use std::env;
 use tracing::{error, info};
-use rusqlite::{Connection};
 
 const SIGNING_KEY_SIZE: usize = 64;
 
@@ -34,7 +34,7 @@ fn configure(conn: &Connection) -> rusqlite::Result<()> {
         "PRAGMA journal_mode=WAL;
          PRAGMA synchronous=NORMAL;
          PRAGMA foreign_keys=ON;
-         PRAGMA busy_timeout=5000;"
+         PRAGMA busy_timeout=5000;",
     )
 }
 

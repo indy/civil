@@ -15,42 +15,69 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
-
 use actix_web::{HttpResponse, ResponseError};
 use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum Error {
-    #[error(transparent)] Actix(#[from] actix_web::Error),
-    #[error(transparent)] Argon2(#[from] argon2::Error),
-    #[error("authenticating failed")] Authenticating,
-    #[error(transparent)] ChatGPTError(#[from] chatgpt::err::Error),
-    #[error(transparent)] CivilShared(#[from] civil_shared::Error),
-    #[error("external server error")] ExternalServerError,
-    #[error(transparent)] IO(#[from] std::io::Error),
-    #[error("invalid kind")] InvalidKind,
-    #[error("invalid resource")] InvalidResource,
-    #[error("missing id")] MissingId,
-    #[error("not found")] NotFound,
-    #[error("other error")] Other,
-    #[error(transparent)] ParseInt(#[from] std::num::ParseIntError),
-    #[error("radix conversion error")] RadixConversion,
-    #[error("registration error")] Registration,
-    #[error(transparent)] ThreadpoolBlocking(#[from] actix_threadpool::BlockingError<std::io::Error>),
-    #[error(transparent)] ActixWebBlocking(#[from] actix_web::error::BlockingError),
-    #[error("too many found")] TooManyFound,
-    #[error(transparent)] Utf8(#[from] std::str::Utf8Error),
-    #[error(transparent)] Var(#[from] std::env::VarError),
-    #[error("int conversion to enum")] IntConversionToEnum,
-    #[error(transparent)] SessionGetError(#[from] actix_session::SessionGetError),
-    #[error(transparent)] SessionInsertError(#[from] actix_session::SessionInsertError),
-    #[error("string conversion to enum")] StringConversionToEnum,
-    #[error(transparent)] Sqlite(#[from] rusqlite::Error),
-    #[error(transparent)] SqliteMigration(#[from] rusqlite_migration::Error),
-    #[error(transparent)] SqlitePool(#[from] r2d2::Error),
-    #[error("sqlite string conversion error")] SqliteStringConversion,
-    #[error(transparent)] Db(#[from] crate::db::DbError),
+    #[error(transparent)]
+    Actix(#[from] actix_web::Error),
+    #[error(transparent)]
+    Argon2(#[from] argon2::Error),
+    #[error("authenticating failed")]
+    Authenticating,
+    #[error(transparent)]
+    ChatGPTError(#[from] chatgpt::err::Error),
+    #[error(transparent)]
+    CivilShared(#[from] civil_shared::Error),
+    #[error("external server error")]
+    ExternalServerError,
+    #[error(transparent)]
+    IO(#[from] std::io::Error),
+    #[error("invalid kind")]
+    InvalidKind,
+    #[error("invalid resource")]
+    InvalidResource,
+    #[error("missing id")]
+    MissingId,
+    #[error("not found")]
+    NotFound,
+    #[error("other error")]
+    Other,
+    #[error(transparent)]
+    ParseInt(#[from] std::num::ParseIntError),
+    #[error("radix conversion error")]
+    RadixConversion,
+    #[error("registration error")]
+    Registration,
+    #[error(transparent)]
+    ThreadpoolBlocking(#[from] actix_threadpool::BlockingError<std::io::Error>),
+    #[error(transparent)]
+    ActixWebBlocking(#[from] actix_web::error::BlockingError),
+    #[error("too many found")]
+    TooManyFound,
+    #[error(transparent)]
+    Utf8(#[from] std::str::Utf8Error),
+    #[error(transparent)]
+    Var(#[from] std::env::VarError),
+    #[error("int conversion to enum")]
+    IntConversionToEnum,
+    #[error(transparent)]
+    SessionGetError(#[from] actix_session::SessionGetError),
+    #[error(transparent)]
+    SessionInsertError(#[from] actix_session::SessionInsertError),
+    #[error("string conversion to enum")]
+    StringConversionToEnum,
+    #[error(transparent)]
+    Sqlite(#[from] rusqlite::Error),
+    #[error(transparent)]
+    SqliteMigration(#[from] rusqlite_migration::Error),
+    #[error(transparent)]
+    SqlitePool(#[from] r2d2::Error),
+    #[error("sqlite string conversion error")]
+    SqliteStringConversion,
+    #[error(transparent)]
+    Db(#[from] crate::db::DbError),
 }
 
 impl ResponseError for Error {

@@ -15,9 +15,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::db::decks::deckbase_get_or_create_conn;
-use crate::db::{SqlitePool, DbError, db};
+use crate::db::decks::deckbase_get_or_create;
 use crate::db::sqlite::{self, FromRow};
+use crate::db::{db, DbError, SqlitePool};
 use crate::interop::decks::Ref;
 use crate::interop::decks::{DeckKind, SlimDeck};
 use crate::interop::font::Font;
@@ -29,24 +29,7 @@ use rusqlite::{params, Connection, Row};
 use tracing::info;
 
 impl FromRow for Ref {
-    fn from_row(row: &Row) -> crate::Result<Ref> {
-        Ok(Ref {
-            note_id: row.get(0)?,
-            ref_kind: row.get(1)?,
-            annotation: row.get(2)?,
-
-            id: row.get(3)?,
-            title: row.get(4)?,
-            deck_kind: row.get(5)?,
-            created_at: row.get(6)?,
-            graph_terminator: row.get(7)?,
-            insignia: row.get(8)?,
-            font: row.get(9)?,
-            impact: row.get(10)?,
-        })
-    }
-
-    fn from_row_conn(row: &Row) -> Result<Ref, DbError> {
+    fn from_row(row: &Row) -> rusqlite::Result<Ref> {
         Ok(Ref {
             note_id: row.get(0)?,
             ref_kind: row.get(1)?,
@@ -77,7 +60,7 @@ fn update_references_conn(
     for removed in &diff.references_removed {
         // this deck has been removed from the note by the user
         info!("deleting {}, {}", &note_id, &removed.id);
-        sqlite::zero_conn(&tx, stmt_refs_removed, params![&note_id, &removed.id])?;
+        sqlite::zero(&tx, stmt_refs_removed, params![&note_id, &removed.id])?;
     }
 
     let stmt_refs_changed = "UPDATE refs
@@ -89,7 +72,7 @@ fn update_references_conn(
             note_id, changed.id
         );
 
-        sqlite::zero_conn(
+        sqlite::zero(
             &tx,
             stmt_refs_changed,
             params![
@@ -108,7 +91,7 @@ fn update_references_conn(
             "creating new edge to pre-existing deck {}, {}",
             &note_id, &added.id
         );
-        sqlite::zero_conn(
+        sqlite::zero(
             &tx,
             stmt_refs_added,
             params![
@@ -124,7 +107,7 @@ fn update_references_conn(
     //
     for created in &diff.references_created {
         info!("create new idea: {} and a new edge", created.title);
-        let (deck, _created) = deckbase_get_or_create_conn(
+        let (deck, _created) = deckbase_get_or_create(
             &tx,
             user_id,
             DeckKind::Idea,
@@ -134,7 +117,7 @@ fn update_references_conn(
             Font::Serif,
             1,
         )?;
-        sqlite::zero_conn(
+        sqlite::zero(
             &tx,
             stmt_refs_added,
             params![
@@ -154,7 +137,7 @@ fn update_references_conn(
                           d.graph_terminator, d.insignia, d.font, d.impact
          FROM refs r, decks d
          WHERE r.note_id = ?1 AND d.id = r.deck_id";
-    let refs: Vec<Ref> = sqlite::many_conn(&tx, stmt_all_decks, params![&note_id])?;
+    let refs: Vec<Ref> = sqlite::many(&tx, stmt_all_decks, params![&note_id])?;
 
     let recents = decks_recently_referenced_conn(&tx, user_id)?;
 
@@ -169,22 +152,28 @@ pub(crate) async fn update_references(
     user_id: Key,
     note_id: Key,
 ) -> crate::Result<ReferencesApplied> {
-    db(sqlite_pool, move |conn| update_references_conn(conn, diff, user_id, note_id))
-        .await
-        .map_err(Into::into)
+    db(sqlite_pool, move |conn| {
+        update_references_conn(conn, diff, user_id, note_id)
+    })
+    .await
+    .map_err(Into::into)
 }
 
 pub(crate) async fn get_decks_recently_referenced(
     sqlite_pool: &SqlitePool,
     user_id: Key,
 ) -> crate::Result<Vec<SlimDeck>> {
-    db(sqlite_pool, move |conn| decks_recently_referenced_conn(conn, user_id))
-        .await
-        .map_err(Into::into)
+    db(sqlite_pool, move |conn| {
+        decks_recently_referenced_conn(conn, user_id)
+    })
+    .await
+    .map_err(Into::into)
 }
 
-
-fn decks_recently_referenced_conn(conn: &Connection, user_id: Key) -> Result<Vec<SlimDeck>, DbError> {
+fn decks_recently_referenced_conn(
+    conn: &Connection,
+    user_id: Key,
+) -> Result<Vec<SlimDeck>, DbError> {
     let stmt_recent_refs = "
          SELECT DISTINCT deck_id, title, kind, created_at, graph_terminator, insignia, font, impact
          FROM (
@@ -195,5 +184,5 @@ fn decks_recently_referenced_conn(conn: &Connection, user_id: Key) -> Result<Vec
               LIMIT 100) -- without this limit query returns incorrect results
          LIMIT 8";
 
-    sqlite::many_conn(conn, stmt_recent_refs, params![&user_id])
+    sqlite::many(conn, stmt_recent_refs, params![&user_id])
 }

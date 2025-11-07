@@ -15,9 +15,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::db::decks::get_slimdeck;
-use crate::db::{SqlitePool, DbError, db};
 use crate::db::sqlite::{self, FromRow};
+use crate::db::{db, DbError, SqlitePool};
 use crate::interop::decks::{DeckKind, RefKind, SlimDeck};
 use crate::interop::font::Font;
 use crate::interop::graph::{ConnectivityData, Direction, Edge};
@@ -55,22 +54,7 @@ impl FromSql for Direction {
 }
 
 impl FromRow for Connectivity {
-    fn from_row(row: &Row) -> crate::Result<Connectivity> {
-        Ok(Connectivity {
-            direction: row.get(0)?,
-            ref_kind: row.get(1)?,
-            deck_id: row.get(2)?,
-            title: row.get(3)?,
-            deck_kind: row.get(4)?,
-            created_at: row.get(5)?,
-            graph_terminator: row.get(6)?,
-            insignia: row.get(7)?,
-            font: row.get(8)?,
-            impact: row.get(9)?,
-        })
-    }
-
-    fn from_row_conn(row: &Row) -> Result<Connectivity, DbError> {
+    fn from_row(row: &Row) -> rusqlite::Result<Connectivity> {
         Ok(Connectivity {
             direction: row.get(0)?,
             ref_kind: row.get(1)?,
@@ -149,7 +133,10 @@ fn get_conn(
     user_id: Key,
     deck_id: Key,
 ) -> Result<ConnectivityData, DbError> {
-    let source_deck = get_slimdeck(&conn, user_id, deck_id)?;
+    let stmt = "SELECT id, name, kind, created_at, graph_terminator, insignia, font, impact
+                FROM decks
+                WHERE user_id = ?1 AND id = ?2";
+    let source_deck: SlimDeck = sqlite::one(conn, stmt, params![&user_id, &deck_id])?;
 
     let mut decks_map: HashMap<Key, SlimDeck> = HashMap::new();
     let mut edges_map: HashMap<(Key, Key, Direction), Edge> = HashMap::new();
@@ -183,7 +170,11 @@ fn get_conn(
     })
 }
 
-pub(crate) async fn get(sqlite_pool: &SqlitePool, user_id: Key, deck_id: Key) -> crate::Result<ConnectivityData> {
+pub(crate) async fn get(
+    sqlite_pool: &SqlitePool,
+    user_id: Key,
+    deck_id: Key,
+) -> crate::Result<ConnectivityData> {
     db(sqlite_pool, move |conn| get_conn(conn, user_id, deck_id))
         .await
         .map_err(Into::into)
@@ -192,7 +183,7 @@ pub(crate) async fn get(sqlite_pool: &SqlitePool, user_id: Key, deck_id: Key) ->
 fn neighbours(conn: &Connection, user_id: Key, deck_id: Key) -> Result<Vec<Connectivity>, DbError> {
     // 'incoming query' union 'outgoing query'
     //
-    sqlite::many_conn(
+    sqlite::many(
         conn,
         "SELECT 0, r.kind, d.id, d.name, d.kind, d.created_at, d.graph_terminator, d.insignia, d.font, d.impact
          FROM refs r, notes n, decks d

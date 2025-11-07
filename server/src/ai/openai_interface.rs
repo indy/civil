@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::error::Error;
+use crate::db::DbError;
 use crate::interop::Key;
 
 use std::fmt;
@@ -44,15 +44,15 @@ impl fmt::Display for Role {
 }
 
 impl FromStr for Role {
-    type Err = Error;
+    type Err = DbError;
 
-    fn from_str(input: &str) -> crate::Result<Role> {
+    fn from_str(input: &str) -> Result<Role, DbError> {
         match input {
             "system" => Ok(Role::System),
             "assistant" => Ok(Role::Assistant),
             "user" => Ok(Role::User),
             "function" => Ok(Role::Function),
-            _ => Err(Error::StringConversionToEnum),
+            _ => Err(DbError::StringConversionToEnum),
         }
     }
 }

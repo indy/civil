@@ -18,7 +18,7 @@
 use rusqlite::{params, Connection};
 use tracing::info;
 
-use crate::db::sqlite;
+use crate::db::{sqlite, DbError};
 use crate::interop::decks::DeckKind;
 use crate::interop::Key;
 
@@ -30,31 +30,31 @@ pub(crate) fn get_num_decks(
     let stmt = "SELECT count(*) as count FROM decks WHERE kind='$deck_kind' AND user_id = ?1";
     let stmt = stmt.replace("$deck_kind", &deck_kind.to_string());
 
-    sqlite::one(conn, &stmt, params![&user_id])
+    sqlite::one(conn, &stmt, params![&user_id]).map_err(Into::into)
 }
 
 pub(crate) fn get_num_refs(conn: &Connection, user_id: Key) -> crate::Result<i32> {
     let stmt = "SELECT count(*) AS count
                 FROM refs r LEFT JOIN decks d ON d.id = r.deck_id
                 WHERE d.user_id = ?1";
-    sqlite::one(conn, stmt, params![&user_id])
+    sqlite::one(conn, stmt, params![&user_id]).map_err(Into::into)
 }
 
 pub(crate) fn get_num_cards(conn: &Connection, user_id: Key) -> crate::Result<i32> {
     let stmt = "SELECT count(*) AS count FROM cards WHERE user_id = ?1";
-    sqlite::one(conn, stmt, params![&user_id])
+    sqlite::one(conn, stmt, params![&user_id]).map_err(Into::into)
 }
 
 pub(crate) fn get_num_card_ratings(conn: &Connection, user_id: Key) -> crate::Result<i32> {
     let stmt = "SELECT count(*) AS count
                 FROM card_ratings cr LEFT JOIN cards c ON c.id = cr.card_id
                 WHERE c.user_id = ?1";
-    sqlite::one(conn, stmt, params![&user_id])
+    sqlite::one(conn, stmt, params![&user_id]).map_err(Into::into)
 }
 
 pub(crate) fn get_num_images(conn: &Connection, user_id: Key) -> crate::Result<i32> {
     let stmt = "SELECT count(*) AS count FROM images WHERE user_id = ?1";
-    sqlite::one(conn, stmt, params![&user_id])
+    sqlite::one(conn, stmt, params![&user_id]).map_err(Into::into)
 }
 
 pub(crate) fn get_num_notes_in_decks(
@@ -67,7 +67,7 @@ pub(crate) fn get_num_notes_in_decks(
                 WHERE d.kind='$deck_kind' AND n.user_id = ?1";
     let stmt = stmt.replace("$deck_kind", &deck_kind.to_string());
 
-    sqlite::one(conn, &stmt, params![&user_id])
+    sqlite::one(conn, &stmt, params![&user_id]).map_err(Into::into)
 }
 
 pub(crate) fn get_num_points_in_decks(
@@ -80,7 +80,7 @@ pub(crate) fn get_num_points_in_decks(
                 WHERE d.kind='$deck_kind' AND d.user_id = ?1";
     let stmt = stmt.replace("$deck_kind", &deck_kind.to_string());
 
-    sqlite::one(conn, &stmt, params![&user_id])
+    sqlite::one(conn, &stmt, params![&user_id]).map_err(Into::into)
 }
 
 pub(crate) fn get_num_refs_between(
@@ -98,7 +98,7 @@ pub(crate) fn get_num_refs_between(
     let stmt = stmt.replace("$deck_kind_from", &deck_from.to_string());
     let stmt = stmt.replace("$deck_kind_to", &deck_to.to_string());
 
-    sqlite::one(conn, &stmt, params![&user_id])
+    sqlite::one(conn, &stmt, params![&user_id]).map_err(Into::into)
 }
 
 pub fn generate_stats(conn: &Connection, user_id: Key) -> crate::Result<()> {
@@ -121,7 +121,8 @@ pub fn generate_stats(conn: &Connection, user_id: Key) -> crate::Result<()> {
             &num_card_ratings,
             &num_images
         ],
-    )?;
+    )
+    .map_err(|e: DbError| crate::Error::from(e))?;
 
     let deck_kinds = [
         DeckKind::Article,
@@ -170,6 +171,7 @@ fn write_num_decks(
         stmt,
         params![&stats_id, &deck_kind.to_string(), &value],
     )
+    .map_err(Into::into)
 }
 
 fn write_num_notes(
@@ -184,6 +186,7 @@ fn write_num_notes(
         stmt,
         params![&stats_id, &deck_kind.to_string(), &value],
     )
+    .map_err(Into::into)
 }
 
 fn write_num_points(
@@ -198,6 +201,7 @@ fn write_num_points(
         stmt,
         params![&stats_id, &deck_kind.to_string(), &value],
     )
+    .map_err(Into::into)
 }
 
 fn write_num_refs(
@@ -218,4 +222,5 @@ fn write_num_refs(
             &value
         ],
     )
+    .map_err(Into::into)
 }

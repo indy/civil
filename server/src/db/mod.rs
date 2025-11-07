@@ -38,8 +38,6 @@ pub mod users;
 pub mod sqlite;
 pub mod sqlite_migrations;
 
-
-
 use r2d2::Pool;
 use r2d2_sqlite::SqliteConnectionManager;
 pub(crate) type SqlitePool = Pool<SqliteConnectionManager>;
@@ -52,8 +50,12 @@ pub enum DbError {
     Sqlite(#[from] rusqlite::Error),
     #[error(transparent)]
     Join(#[from] tokio::task::JoinError),
-    #[error("Not Found")] NotFound,
-    #[error("Too Many Found")] TooManyFound,
+    #[error("Not Found")]
+    NotFound,
+    #[error("Too Many Found")]
+    TooManyFound,
+    #[error("String Conversion To Enum")]
+    StringConversionToEnum,
 }
 
 // Blocking helper: only DbError crosses the thread boundary.
@@ -64,10 +66,10 @@ where
 {
     let pool2 = pool.clone();
     tokio::task::spawn_blocking(move || {
-        let mut conn = pool2.get()?;   // r2d2::Error -> DbError via `?`
-        f(&mut conn)                   // returns Result<T, DbError>
+        let mut conn = pool2.get()?; // r2d2::Error -> DbError via `?`
+        f(&mut conn) // returns Result<T, DbError>
     })
-    .await?                        // JoinError -> DbError via `From`
+    .await? // JoinError -> DbError via `From`
 }
 
 fn sanitize_for_sqlite_match(s: String) -> Result<String, DbError> {

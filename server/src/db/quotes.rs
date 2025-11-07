@@ -15,21 +15,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::db::notes as notes_db;
-use crate::db::decks::DECKBASE_QUERY;
 use crate::db::decks;
-use crate::db::{SqlitePool, DbError, db};
+use crate::db::decks::DECKBASE_QUERY;
+use crate::db::notes as notes_db;
 use crate::db::sqlite::{self, FromRow};
+use crate::db::{db, DbError, SqlitePool};
 use crate::interop::decks::DeckKind;
 use crate::interop::notes::NoteKind;
 use crate::interop::quotes::{ProtoQuote, Quote};
 use crate::interop::Key;
 
-use rusqlite::{params, OptionalExtension, Row};
+use rusqlite::{params, Row};
 
 #[allow(unused_imports)]
 use tracing::{error, info};
-
 
 impl From<decks::DeckBase> for Quote {
     fn from(deck: decks::DeckBase) -> Quote {
@@ -50,40 +49,8 @@ impl From<decks::DeckBase> for Quote {
     }
 }
 
-fn from_rusqlite_row(row: &Row) -> rusqlite::Result<Quote> {
-    Ok(Quote {
-        id: row.get(0)?,
-        title: row.get(1)?,
-        deck_kind: row.get(2)?,
-        created_at: row.get(3)?,
-        graph_terminator: row.get(4)?,
-        insignia: row.get(5)?,
-        font: row.get(6)?,
-        impact: row.get(7)?,
-
-        notes: vec![],
-        arrivals: vec![],
-    })
-}
-
 impl FromRow for Quote {
-    fn from_row(row: &Row) -> crate::Result<Quote> {
-        Ok(Quote {
-            id: row.get(0)?,
-            title: row.get(1)?,
-            deck_kind: row.get(2)?,
-            created_at: row.get(3)?,
-            graph_terminator: row.get(4)?,
-            insignia: row.get(5)?,
-            font: row.get(6)?,
-            impact: row.get(7)?,
-
-            notes: vec![],
-            arrivals: vec![],
-        })
-    }
-
-    fn from_row_conn(row: &Row) -> Result<Quote, DbError> {
+    fn from_row(row: &Row) -> rusqlite::Result<Quote> {
         Ok(Quote {
             id: row.get(0)?,
             title: row.get(1)?,
@@ -107,7 +74,7 @@ fn get_or_create_conn(
 ) -> Result<Quote, DbError> {
     let tx = conn.transaction()?;
 
-    let (deck, _origin) = decks::deckbase_get_or_create_conn(
+    let (deck, _origin) = decks::deckbase_get_or_create(
         &tx,
         user_id,
         DeckKind::Quote,
@@ -125,7 +92,7 @@ fn get_or_create_conn(
     let content = format!(":quote({}::{})", text, attribution);
 
     let kind = i32::from(NoteKind::Note);
-    sqlite::zero_conn(
+    sqlite::zero(
         &tx,
         "INSERT INTO notes(user_id, deck_id, kind, content)
                   VALUES (?1, ?2, ?3, ?4)",
@@ -136,8 +103,8 @@ fn get_or_create_conn(
 
     let mut quote: Quote = deck.into();
 
-    quote.notes = notes_db::notes_for_deck_conn(conn, quote.id)?;
-    quote.arrivals = notes_db::arrivals_for_deck_conn(conn, quote.id)?;
+    quote.notes = notes_db::notes_for_deck(conn, quote.id)?;
+    quote.arrivals = notes_db::arrivals_for_deck(conn, quote.id)?;
 
     Ok(quote)
 }
@@ -147,28 +114,27 @@ pub(crate) async fn get_or_create(
     user_id: Key,
     quote: ProtoQuote,
 ) -> crate::Result<Quote> {
-    db(sqlite_pool, move |conn| get_or_create_conn(conn, user_id, quote))
-        .await
-        .map_err(Into::into)
+    db(sqlite_pool, move |conn| {
+        get_or_create_conn(conn, user_id, quote)
+    })
+    .await
+    .map_err(Into::into)
 }
 
-fn random_conn(
-    conn: &rusqlite::Connection,
-    user_id: Key,
-) -> Result<Option<Quote>, DbError> {
-    let mut quote = conn.prepare_cached("SELECT id, name, kind, created_at, graph_terminator, insignia, font, impact
+fn random_conn(conn: &rusqlite::Connection, user_id: Key) -> Result<Option<Quote>, DbError> {
+    let stmt = "SELECT id, name, kind, created_at, graph_terminator, insignia, font, impact
          FROM decks
-         WHERE user_id = ?1 and kind = 'quote'
+         WHERE user_id = ?1 and kind = ?2
          ORDER BY random()
-         LIMIT 1")?
-        .query_row(params![user_id], |row| from_rusqlite_row(row))
-        .optional()?;
+         LIMIT 1";
+
+    let mut quote: Option<Quote> =
+        sqlite::one_optional(&conn, stmt, params![user_id, DeckKind::Quote.to_string()])?;
 
     if let Some(ref mut i) = quote {
-        i.notes = notes_db::notes_for_deck_conn(conn, i.id)?;
-        i.arrivals = notes_db::arrivals_for_deck_conn(conn, i.id)?;
-        // nocheckin it makes sense for all the other hit_conn calls to be in the Some block
-        decks::hit_conn(&conn, i.id)?;
+        i.notes = notes_db::notes_for_deck(conn, i.id)?;
+        i.arrivals = notes_db::arrivals_for_deck(conn, i.id)?;
+        decks::hit(&conn, i.id)?;
     }
 
     Ok(quote)
@@ -183,23 +149,28 @@ pub(crate) async fn random(sqlite_pool: &SqlitePool, user_id: Key) -> crate::Res
 fn get_conn(
     conn: &rusqlite::Connection,
     user_id: Key,
-    quote_id: Key
+    quote_id: Key,
 ) -> Result<Option<Quote>, DbError> {
-
-    let mut quote = conn.prepare_cached(DECKBASE_QUERY)?
-        .query_row(params![user_id, quote_id, DeckKind::Quote.to_string()], |row| from_rusqlite_row(row))
-        .optional()?;
+    let mut quote: Option<Quote> = sqlite::one_optional(
+        &conn,
+        DECKBASE_QUERY,
+        params![user_id, quote_id, DeckKind::Quote.to_string()],
+    )?;
 
     if let Some(ref mut i) = quote {
-        i.notes = notes_db::notes_for_deck_conn(conn, quote_id)?;
-        i.arrivals = notes_db::arrivals_for_deck_conn(conn, quote_id)?;
-        decks::hit_conn(&conn, quote_id)?;
+        i.notes = notes_db::notes_for_deck(conn, quote_id)?;
+        i.arrivals = notes_db::arrivals_for_deck(conn, quote_id)?;
+        decks::hit(&conn, quote_id)?;
     }
 
     Ok(quote)
 }
 
-pub(crate) async fn get(sqlite_pool: &SqlitePool, user_id: Key, quote_id: Key) -> crate::Result<Option<Quote>> {
+pub(crate) async fn get(
+    sqlite_pool: &SqlitePool,
+    user_id: Key,
+    quote_id: Key,
+) -> crate::Result<Option<Quote>> {
     db(sqlite_pool, move |conn| get_conn(conn, user_id, quote_id))
         .await
         .map_err(Into::into)
@@ -208,38 +179,42 @@ pub(crate) async fn get(sqlite_pool: &SqlitePool, user_id: Key, quote_id: Key) -
 fn next_conn(
     conn: &rusqlite::Connection,
     user_id: Key,
-    quote_id: Key
+    quote_id: Key,
 ) -> Result<Option<Quote>, DbError> {
-
-    let mut quote = conn.prepare_cached("SELECT id, name, kind, created_at, graph_terminator, insignia, font, impact
+    let stmt = "SELECT id, name, kind, created_at, graph_terminator, insignia, font, impact
          FROM decks
-         WHERE user_id = ?1 and id > ?2 and kind = 'quote'
+         WHERE user_id = ?1 and id > ?2 and kind = ?3
          ORDER BY id
-         LIMIT 1")?
-        .query_row(params![user_id, quote_id], |row| from_rusqlite_row(row))
-        .optional()?;
-
+         LIMIT 1";
+    let mut quote: Option<Quote> = sqlite::one_optional(
+        &conn,
+        stmt,
+        params![user_id, quote_id, DeckKind::Quote.to_string()],
+    )?;
 
     if let None = quote {
-        quote = conn.prepare_cached("SELECT id, name, kind, created_at, graph_terminator, insignia, font, impact
+        let stmt = "SELECT id, name, kind, created_at, graph_terminator, insignia, font, impact
                  FROM decks
-                 WHERE user_id = ?1 and kind = 'quote'
+                 WHERE user_id = ?1 and kind = ?2
                  ORDER BY id
-                 LIMIT 1")?
-        .query_row(params![user_id], |row| from_rusqlite_row(row))
-        .optional()?;
+                 LIMIT 1";
+        quote = sqlite::one_optional(&conn, stmt, params![user_id, DeckKind::Quote.to_string()])?;
     }
 
     if let Some(ref mut i) = quote {
-        i.notes = notes_db::notes_for_deck_conn(conn, quote_id)?;
-        i.arrivals = notes_db::arrivals_for_deck_conn(conn, quote_id)?;
-        decks::hit_conn(&conn, i.id)?;
+        i.notes = notes_db::notes_for_deck(conn, quote_id)?;
+        i.arrivals = notes_db::arrivals_for_deck(conn, quote_id)?;
+        decks::hit(&conn, i.id)?;
     }
 
     Ok(quote)
 }
 
-pub(crate) async fn next(sqlite_pool: &SqlitePool, user_id: Key, quote_id: Key) -> crate::Result<Option<Quote>> {
+pub(crate) async fn next(
+    sqlite_pool: &SqlitePool,
+    user_id: Key,
+    quote_id: Key,
+) -> crate::Result<Option<Quote>> {
     db(sqlite_pool, move |conn| next_conn(conn, user_id, quote_id))
         .await
         .map_err(Into::into)
@@ -248,38 +223,42 @@ pub(crate) async fn next(sqlite_pool: &SqlitePool, user_id: Key, quote_id: Key) 
 fn prev_conn(
     conn: &rusqlite::Connection,
     user_id: Key,
-    quote_id: Key
+    quote_id: Key,
 ) -> Result<Option<Quote>, DbError> {
-
-    let mut quote = conn.prepare_cached("SELECT id, name, kind, created_at, graph_terminator, insignia, font, impact
+    let stmt = "SELECT id, name, kind, created_at, graph_terminator, insignia, font, impact
          FROM decks
-         WHERE user_id = ?1 and id < ?2 and kind = 'quote'
+         WHERE user_id = ?1 and id < ?2 and kind = ?3
          ORDER BY id desc
-         LIMIT 1")?
-        .query_row(params![user_id, quote_id], |row| from_rusqlite_row(row))
-        .optional()?;
-
+         LIMIT 1";
+    let mut quote: Option<Quote> = sqlite::one_optional(
+        &conn,
+        stmt,
+        params![user_id, quote_id, DeckKind::Quote.to_string()],
+    )?;
 
     if let None = quote {
-        quote = conn.prepare_cached("SELECT id, name, kind, created_at, graph_terminator, insignia, font, impact
+        let stmt = "SELECT id, name, kind, created_at, graph_terminator, insignia, font, impact
                  FROM decks
-                 WHERE user_id = ?1 and kind = 'quote'
+                 WHERE user_id = ?1 and kind = ?2
                  ORDER BY id desc
-                 LIMIT 1")?
-        .query_row(params![user_id], |row| from_rusqlite_row(row))
-        .optional()?;
+                 LIMIT 1";
+        quote = sqlite::one_optional(&conn, stmt, params![user_id, DeckKind::Quote.to_string()])?;
     }
 
     if let Some(ref mut i) = quote {
-        i.notes = notes_db::notes_for_deck_conn(conn, quote_id)?;
-        i.arrivals = notes_db::arrivals_for_deck_conn(conn, quote_id)?;
-        decks::hit_conn(&conn, i.id)?;
+        i.notes = notes_db::notes_for_deck(conn, quote_id)?;
+        i.arrivals = notes_db::arrivals_for_deck(conn, quote_id)?;
+        decks::hit(&conn, i.id)?;
     }
 
     Ok(quote)
 }
 
-pub(crate) async fn prev(sqlite_pool: &SqlitePool, user_id: Key, quote_id: Key) -> crate::Result<Option<Quote>> {
+pub(crate) async fn prev(
+    sqlite_pool: &SqlitePool,
+    user_id: Key,
+    quote_id: Key,
+) -> crate::Result<Option<Quote>> {
     db(sqlite_pool, move |conn| prev_conn(conn, user_id, quote_id))
         .await
         .map_err(Into::into)
@@ -289,11 +268,11 @@ fn edit_conn(
     conn: &mut rusqlite::Connection,
     user_id: Key,
     quote: ProtoQuote,
-    quote_id: Key
+    quote_id: Key,
 ) -> Result<Quote, DbError> {
     let tx = conn.transaction()?;
 
-    let deck = decks::deckbase_edit_conn(
+    let deck = decks::deckbase_edit(
         &tx,
         user_id,
         quote_id,
@@ -309,8 +288,8 @@ fn edit_conn(
 
     let mut quote: Quote = deck.into();
 
-    quote.notes = notes_db::notes_for_deck_conn(conn, quote_id)?;
-    quote.arrivals = notes_db::arrivals_for_deck_conn(conn, quote_id)?;
+    quote.notes = notes_db::notes_for_deck(conn, quote_id)?;
+    quote.arrivals = notes_db::arrivals_for_deck(conn, quote_id)?;
 
     Ok(quote)
 }
@@ -321,25 +300,27 @@ pub(crate) async fn edit(
     quote: ProtoQuote,
     quote_id: Key,
 ) -> crate::Result<Quote> {
-    db(sqlite_pool, move |conn| edit_conn(conn, user_id, quote, quote_id))
-        .await
-        .map_err(Into::into)
+    db(sqlite_pool, move |conn| {
+        edit_conn(conn, user_id, quote, quote_id)
+    })
+    .await
+    .map_err(Into::into)
 }
 
-
-fn delete_conn(
-    conn: &rusqlite::Connection,
-    user_id: Key,
-    quote_id: Key
-) -> Result<(), DbError> {
-
-    decks::delete_conn(&conn, user_id, quote_id)?;
+fn delete_conn(conn: &rusqlite::Connection, user_id: Key, quote_id: Key) -> Result<(), DbError> {
+    decks::delete(&conn, user_id, quote_id)?;
 
     Ok(())
 }
 
-pub(crate) async fn delete(sqlite_pool: &SqlitePool, user_id: Key, quote_id: Key) -> crate::Result<()> {
-    db(sqlite_pool, move |conn| delete_conn(conn, user_id, quote_id))
-        .await
-        .map_err(Into::into)
+pub(crate) async fn delete(
+    sqlite_pool: &SqlitePool,
+    user_id: Key,
+    quote_id: Key,
+) -> crate::Result<()> {
+    db(sqlite_pool, move |conn| {
+        delete_conn(conn, user_id, quote_id)
+    })
+    .await
+    .map_err(Into::into)
 }

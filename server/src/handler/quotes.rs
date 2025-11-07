@@ -58,7 +58,6 @@ pub async fn random(
         None => return Err(crate::Error::NotFound),
     };
 
-
     Ok(HttpResponse::Ok().json(quote))
 }
 

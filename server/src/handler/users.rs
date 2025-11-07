@@ -15,8 +15,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::db::SqlitePool;
 use crate::db::users as db;
+use crate::db::SqlitePool;
 use crate::error::Error;
 use crate::interop::users as interop;
 use crate::interop::Key;

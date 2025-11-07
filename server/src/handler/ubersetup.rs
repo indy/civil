@@ -53,10 +53,12 @@ pub async fn setup(
     let user_id = session::user_id(&session)?;
 
     let directory = user_id;
-    let recently_used_decks = db_references::get_decks_recently_referenced(&sqlite_pool, user_id).await?;
+    let recently_used_decks =
+        db_references::get_decks_recently_referenced(&sqlite_pool, user_id).await?;
     let recent_images = db_uploader::get_recent(&sqlite_pool, user_id, 0).await?;
     let upcoming_review =
-        db_memorise::get_cards_upcoming_review(&sqlite_pool, user_id, Utc::now().naive_utc()).await?;
+        db_memorise::get_cards_upcoming_review(&sqlite_pool, user_id, Utc::now().naive_utc())
+            .await?;
     let bookmarks = db_bookmarks::get_bookmarks(&sqlite_pool, user_id).await?;
 
     let uber = UberStruct {

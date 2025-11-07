@@ -17,21 +17,15 @@
 
 use std::cmp;
 
-use crate::db::{SqlitePool, DbError, db};
 use crate::db::sqlite::{self, FromRow};
+use crate::db::{db, DbError, SqlitePool};
 use crate::interop::uploader::UserUploadedImage;
 use crate::interop::Key;
 
 use rusqlite::{params, Row};
 
 impl FromRow for UserUploadedImage {
-    fn from_row(row: &Row) -> crate::Result<UserUploadedImage> {
-        Ok(UserUploadedImage {
-            filename: row.get(0)?,
-        })
-    }
-
-    fn from_row_conn(row: &Row) -> Result<UserUploadedImage, DbError> {
+    fn from_row(row: &Row) -> rusqlite::Result<UserUploadedImage> {
         Ok(UserUploadedImage {
             filename: row.get(0)?,
         })
@@ -46,7 +40,7 @@ fn get_recent_conn(
     let limit = cmp::max(at_least, 15);
 
     // the ORDER BY used created_at but this might not work as expected when multiple images are uploaded at once
-    sqlite::many_conn(
+    sqlite::many(
         &conn,
         "SELECT filename
          FROM images
@@ -62,13 +56,15 @@ pub(crate) async fn get_recent(
     user_id: Key,
     at_least: u8,
 ) -> crate::Result<Vec<UserUploadedImage>> {
-    db(sqlite_pool, move |conn| get_recent_conn(conn, user_id, at_least))
-        .await
-        .map_err(Into::into)
+    db(sqlite_pool, move |conn| {
+        get_recent_conn(conn, user_id, at_least)
+    })
+    .await
+    .map_err(Into::into)
 }
 
 fn get_image_count_conn(conn: &rusqlite::Connection, user_id: Key) -> Result<i32, DbError> {
-    sqlite::one_conn(
+    sqlite::one(
         &conn,
         "SELECT image_count
          FROM users
@@ -77,22 +73,18 @@ fn get_image_count_conn(conn: &rusqlite::Connection, user_id: Key) -> Result<i32
     )
 }
 
-pub(crate) async fn get_image_count(
-    sqlite_pool: &SqlitePool,
-    user_id: Key,
-) -> crate::Result<i32> {
+pub(crate) async fn get_image_count(sqlite_pool: &SqlitePool, user_id: Key) -> crate::Result<i32> {
     db(sqlite_pool, move |conn| get_image_count_conn(conn, user_id))
         .await
         .map_err(Into::into)
 }
-
 
 fn set_image_count_conn(
     conn: &rusqlite::Connection,
     user_id: Key,
     new_count: i32,
 ) -> Result<(), DbError> {
-    sqlite::zero_conn(
+    sqlite::zero(
         &conn,
         "UPDATE users
          SET image_count = ?2
@@ -104,11 +96,13 @@ fn set_image_count_conn(
 pub(crate) async fn set_image_count(
     sqlite_pool: &SqlitePool,
     user_id: Key,
-    new_count: i32
+    new_count: i32,
 ) -> crate::Result<()> {
-    db(sqlite_pool, move |conn| set_image_count_conn(conn, user_id, new_count))
-        .await
-        .map_err(Into::into)
+    db(sqlite_pool, move |conn| {
+        set_image_count_conn(conn, user_id, new_count)
+    })
+    .await
+    .map_err(Into::into)
 }
 
 fn add_image_entry_conn(
@@ -116,7 +110,7 @@ fn add_image_entry_conn(
     user_id: Key,
     filename: String,
 ) -> Result<(), DbError> {
-    sqlite::zero_conn(
+    sqlite::zero(
         &conn,
         "INSERT INTO images(user_id, filename)
          VALUES (?1, ?2)",
@@ -127,9 +121,11 @@ fn add_image_entry_conn(
 pub(crate) async fn add_image_entry(
     sqlite_pool: &SqlitePool,
     user_id: Key,
-    filename: String
+    filename: String,
 ) -> crate::Result<()> {
-    db(sqlite_pool, move |conn| add_image_entry_conn(conn, user_id, filename))
-        .await
-        .map_err(Into::into)
+    db(sqlite_pool, move |conn| {
+        add_image_entry_conn(conn, user_id, filename)
+    })
+    .await
+    .map_err(Into::into)
 }

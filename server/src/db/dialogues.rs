@@ -17,20 +17,20 @@
 
 use std::str::FromStr;
 
-use crate::db::notes as notes_db;
 use crate::ai::openai_interface;
 use crate::db::decks;
+use crate::db::notes as notes_db;
 use crate::db::notes as db_notes;
-use crate::db::{SqlitePool, DbError, db};
 use crate::db::sqlite::{self, FromRow};
+use crate::db::{db, DbError, SqlitePool};
 use crate::interop::decks::{DeckKind, SlimDeck};
 use crate::interop::dialogues as interop; // nocheckin remove this?
-use crate::interop::dialogues::{ProtoDialogue, Dialogue};
+use crate::interop::dialogues::{Dialogue, ProtoDialogue};
 use crate::interop::font::Font;
 use crate::interop::notes::NoteKind;
 use crate::interop::Key;
 
-use rusqlite::{params, OptionalExtension, Row};
+use rusqlite::{params, Row};
 #[allow(unused_imports)]
 use tracing::{error, info};
 
@@ -66,73 +66,8 @@ impl TryFrom<(decks::DeckBase, DialogueExtra)> for interop::Dialogue {
     }
 }
 
-/*
-impl TryFrom<(decks::DeckBase, DialogueExtra)> for interop::Dialogue {
-    type Error = crate::error::Error;
-    fn try_from(a: (decks::DeckBase, DialogueExtra)) -> crate::Result<interop::Dialogue> {
-        let (deck, extra) = a;
-
-        Ok(interop::Dialogue {
-            id: deck.id,
-            title: deck.title,
-            deck_kind: deck.deck_kind,
-            created_at: deck.created_at,
-            graph_terminator: deck.graph_terminator,
-
-            insignia: deck.insignia,
-            font: deck.font,
-            impact: deck.impact,
-
-            notes: vec![],
-            arrivals: vec![],
-
-            ai_kind: extra.ai_kind,
-            messages: vec![],
-        })
-    }
-}
- */
-
-fn from_rusqlite_row(row: &Row) -> rusqlite::Result<Dialogue> {
-    Ok(interop::Dialogue {
-        id: row.get(0)?,
-        title: row.get(1)?,
-        deck_kind: row.get(2)?,
-        created_at: row.get(3)?,
-        graph_terminator: row.get(4)?,
-        insignia: row.get(5)?,
-        font: row.get(6)?,
-        impact: row.get(7)?,
-
-        notes: vec![],
-        arrivals: vec![],
-
-        ai_kind: row.get(8)?,
-        messages: vec![],
-    })
-}
-
 impl FromRow for interop::Dialogue {
-    fn from_row(row: &Row) -> crate::Result<interop::Dialogue> {
-        Ok(interop::Dialogue {
-            id: row.get(0)?,
-            title: row.get(1)?,
-            deck_kind: row.get(2)?,
-            created_at: row.get(3)?,
-            graph_terminator: row.get(4)?,
-            insignia: row.get(5)?,
-            font: row.get(6)?,
-            impact: row.get(7)?,
-
-            notes: vec![],
-            arrivals: vec![],
-
-            ai_kind: row.get(8)?,
-            messages: vec![],
-        })
-    }
-
-    fn from_row_conn(row: &Row) -> Result<interop::Dialogue, DbError> {
+    fn from_row(row: &Row) -> rusqlite::Result<interop::Dialogue> {
         Ok(interop::Dialogue {
             id: row.get(0)?,
             title: row.get(1)?,
@@ -155,57 +90,47 @@ impl FromRow for interop::Dialogue {
 // nocheckin what is this?, why is a ChatMessage implementing FromRow
 
 impl FromRow for openai_interface::ChatMessage {
-    fn from_row(row: &Row) -> crate::Result<openai_interface::ChatMessage> {
+    fn from_row(row: &Row) -> rusqlite::Result<openai_interface::ChatMessage> {
         let r: String = row.get(1)?;
-        let role = openai_interface::Role::from_str(&r)?;
-
-        Ok(openai_interface::ChatMessage {
-            note_id: row.get(0)?,
-            role,
-            content: row.get(2)?,
-        })
-    }
-
-    fn from_row_conn(row: &Row) -> Result<openai_interface::ChatMessage, DbError> {
-        let _r: String = row.get(1)?;
-        // nocheckin: hardcoding in Role::System since I don't want DbError to have to handle the OpenAI error codes
-        // let role = openai_interface::Role::from_str(&r)?;
-        let role = openai_interface::Role::System;
-
-        Ok(openai_interface::ChatMessage {
-            note_id: row.get(0)?,
-            role,
-            content: row.get(2)?,
-        })
+        match openai_interface::Role::from_str(&r) {
+            Ok(role) => Ok(openai_interface::ChatMessage {
+                note_id: row.get(0)?,
+                role,
+                content: row.get(2)?,
+            }),
+            Err(_) => Err(rusqlite::Error::FromSqlConversionFailure(
+                1, // column index
+                rusqlite::types::Type::Text,
+                Box::new(std::io::Error::new(
+                    std::io::ErrorKind::InvalidData,
+                    format!("invalid role: {}", r),
+                )),
+            )),
+        }
     }
 }
 
 impl FromRow for interop::AiKind {
-    fn from_row(row: &Row) -> crate::Result<interop::AiKind> {
-        let k = row.get(0)?;
-        Ok(k)
-    }
-    fn from_row_conn(row: &Row) -> Result<interop::AiKind, DbError> {
+    fn from_row(row: &Row) -> rusqlite::Result<interop::AiKind> {
         let k = row.get(0)?;
         Ok(k)
     }
 }
 
-fn listings_conn(
-    conn: &rusqlite::Connection,
-    user_id: Key,
-) -> Result<Vec<SlimDeck>, DbError> {
+fn listings_conn(conn: &rusqlite::Connection, user_id: Key) -> Result<Vec<SlimDeck>, DbError> {
     // TODO: sort this by the event date in event_extras
     let stmt = "SELECT id, name, kind, created_at, graph_terminator, insignia, font, impact
                 FROM decks
                 WHERE user_id = ?1 AND kind = 'dialogue'
                 ORDER BY created_at DESC";
 
-    sqlite::many_conn(&conn, stmt, params![&user_id])
+    sqlite::many(&conn, stmt, params![&user_id])
 }
 
-
-pub(crate) async fn listings(sqlite_pool: &SqlitePool, user_id: Key) -> crate::Result<Vec<SlimDeck>> {
+pub(crate) async fn listings(
+    sqlite_pool: &SqlitePool,
+    user_id: Key,
+) -> crate::Result<Vec<SlimDeck>> {
     db(sqlite_pool, move |conn| listings_conn(conn, user_id))
         .await
         .map_err(Into::into)
@@ -214,33 +139,41 @@ pub(crate) async fn listings(sqlite_pool: &SqlitePool, user_id: Key) -> crate::R
 fn get_conn(
     conn: &rusqlite::Connection,
     user_id: Key,
-    dialogue_id: Key
+    dialogue_id: Key,
 ) -> Result<Option<Dialogue>, DbError> {
-    // nocheckin should this also have a check that deck kind is dialogue?
-    let mut dialogue = conn.prepare_cached("SELECT decks.id, decks.name, decks.kind, decks.created_at,
+    let stmt = "SELECT decks.id, decks.name, decks.kind, decks.created_at,
                        decks.graph_terminator, decks.insignia, decks.font, decks.impact,
                        dialogue_extras.ai_kind
                 FROM decks LEFT JOIN dialogue_extras ON dialogue_extras.deck_id = decks.id
-                WHERE decks.user_id = ?1 AND decks.id = ?2 AND decks.kind = 'dialogue'")?
-        .query_row(params![user_id, dialogue_id], |row| from_rusqlite_row(row))
-        .optional()?;
+                WHERE decks.user_id = ?1 AND decks.id = ?2 AND decks.kind = ?3";
+
+    let mut dialogue: Option<Dialogue> = sqlite::one_optional(
+        &conn,
+        stmt,
+        params![user_id, dialogue_id, DeckKind::Dialogue.to_string()],
+    )?;
 
     if let Some(ref mut i) = dialogue {
-        i.notes = notes_db::notes_for_deck_conn(conn, dialogue_id)?;
-        i.arrivals = notes_db::arrivals_for_deck_conn(conn, dialogue_id)?;
+        i.notes = notes_db::notes_for_deck(conn, dialogue_id)?;
+        i.arrivals = notes_db::arrivals_for_deck(conn, dialogue_id)?;
         i.messages = get_original_chat_messages(&conn, user_id, dialogue_id)?;
-        decks::hit_conn(&conn, dialogue_id)?;
+        decks::hit(&conn, dialogue_id)?;
     }
 
     Ok(dialogue)
 }
 
-pub(crate) async fn get(sqlite_pool: &SqlitePool, user_id: Key, dialogue_id: Key) -> crate::Result<Option<Dialogue>> {
-    db(sqlite_pool, move |conn| get_conn(conn, user_id, dialogue_id))
-        .await
-        .map_err(Into::into)
+pub(crate) async fn get(
+    sqlite_pool: &SqlitePool,
+    user_id: Key,
+    dialogue_id: Key,
+) -> crate::Result<Option<Dialogue>> {
+    db(sqlite_pool, move |conn| {
+        get_conn(conn, user_id, dialogue_id)
+    })
+    .await
+    .map_err(Into::into)
 }
-
 
 fn get_original_chat_messages(
     conn: &rusqlite::Connection,
@@ -254,17 +187,11 @@ fn get_original_chat_messages(
                 WHERE decks.user_id = ?1 AND decks.id = ?2
                 ORDER BY msg.note_id";
 
-    sqlite::many_conn(conn, stmt, params![&user_id, &dialogue_id])
+    sqlite::many(conn, stmt, params![&user_id, &dialogue_id])
 }
 
 impl FromRow for DialogueExtra {
-    fn from_row(row: &Row) -> crate::Result<DialogueExtra> {
-        Ok(DialogueExtra {
-            ai_kind: row.get(1)?,
-        })
-    }
-
-    fn from_row_conn(row: &Row) -> Result<DialogueExtra, DbError> {
+    fn from_row(row: &Row) -> rusqlite::Result<DialogueExtra> {
         Ok(DialogueExtra {
             ai_kind: row.get(1)?,
         })
@@ -275,11 +202,11 @@ fn edit_conn(
     conn: &mut rusqlite::Connection,
     user_id: Key,
     dialogue: ProtoDialogue,
-    dialogue_id: Key
+    dialogue_id: Key,
 ) -> Result<Dialogue, DbError> {
     let tx = conn.transaction()?;
 
-    let edited_deck = decks::deckbase_edit_conn(
+    let edited_deck = decks::deckbase_edit(
         &tx,
         user_id,
         dialogue_id,
@@ -295,15 +222,15 @@ fn edit_conn(
                            FROM dialogue_extras
                            WHERE deck_id = ?1";
 
-    let dialogue_extras: DialogueExtra = sqlite::one_conn(&tx, sql_query, params![&dialogue_id])?;
+    let dialogue_extras: DialogueExtra = sqlite::one(&tx, sql_query, params![&dialogue_id])?;
 
     let mut dialogue: interop::Dialogue = (edited_deck, dialogue_extras).try_into()?;
     dialogue.messages = get_original_chat_messages(&tx, user_id, dialogue_id)?;
 
     tx.commit()?;
 
-    dialogue.notes = notes_db::notes_for_deck_conn(conn, dialogue_id)?;
-    dialogue.arrivals = notes_db::arrivals_for_deck_conn(conn, dialogue_id)?;
+    dialogue.notes = notes_db::notes_for_deck(conn, dialogue_id)?;
+    dialogue.arrivals = notes_db::arrivals_for_deck(conn, dialogue_id)?;
 
     Ok(dialogue)
 }
@@ -314,9 +241,11 @@ pub(crate) async fn edit(
     dialogue: ProtoDialogue,
     dialogue_id: Key,
 ) -> crate::Result<Dialogue> {
-    db(sqlite_pool, move |conn| edit_conn(conn, user_id, dialogue, dialogue_id))
-        .await
-        .map_err(Into::into)
+    db(sqlite_pool, move |conn| {
+        edit_conn(conn, user_id, dialogue, dialogue_id)
+    })
+    .await
+    .map_err(Into::into)
 }
 
 fn create_conn(
@@ -326,7 +255,7 @@ fn create_conn(
 ) -> Result<Dialogue, DbError> {
     let tx = conn.transaction()?;
 
-    let deck = decks::deckbase_create_conn(
+    let deck = decks::deckbase_create(
         &tx,
         user_id,
         DeckKind::Dialogue,
@@ -337,7 +266,7 @@ fn create_conn(
         0,
     )?;
 
-    let dialogue_extras: DialogueExtra = sqlite::one_conn(
+    let dialogue_extras: DialogueExtra = sqlite::one(
         &tx,
         "INSERT INTO dialogue_extras(deck_id, ai_kind)
          VALUES (?1, ?2)
@@ -373,8 +302,8 @@ fn create_conn(
 
     let mut dialogue: Dialogue = (deck, dialogue_extras).try_into()?;
 
-    dialogue.notes = notes_db::notes_for_deck_conn(conn, dialogue.id)?;
-    dialogue.arrivals = notes_db::arrivals_for_deck_conn(conn, dialogue.id)?;
+    dialogue.notes = notes_db::notes_for_deck(conn, dialogue.id)?;
+    dialogue.arrivals = notes_db::arrivals_for_deck(conn, dialogue.id)?;
 
     Ok(dialogue)
 }
@@ -384,27 +313,29 @@ pub(crate) async fn create(
     user_id: Key,
     dialogue: ProtoDialogue,
 ) -> crate::Result<Dialogue> {
-    db(sqlite_pool, move |conn| create_conn(conn, user_id, dialogue))
-        .await
-        .map_err(Into::into)
+    db(sqlite_pool, move |conn| {
+        create_conn(conn, user_id, dialogue)
+    })
+    .await
+    .map_err(Into::into)
 }
 
-
-fn delete_conn(
-    conn: &rusqlite::Connection,
-    user_id: Key,
-    dialogue_id: Key
-) -> Result<(), DbError> {
-
-    decks::delete_conn(&conn, user_id, dialogue_id)?;
+fn delete_conn(conn: &rusqlite::Connection, user_id: Key, dialogue_id: Key) -> Result<(), DbError> {
+    decks::delete(&conn, user_id, dialogue_id)?;
 
     Ok(())
 }
 
-pub(crate) async fn delete(sqlite_pool: &SqlitePool, user_id: Key, dialogue_id: Key) -> crate::Result<()> {
-    db(sqlite_pool, move |conn| delete_conn(conn, user_id, dialogue_id))
-        .await
-        .map_err(Into::into)
+pub(crate) async fn delete(
+    sqlite_pool: &SqlitePool,
+    user_id: Key,
+    dialogue_id: Key,
+) -> crate::Result<()> {
+    db(sqlite_pool, move |conn| {
+        delete_conn(conn, user_id, dialogue_id)
+    })
+    .await
+    .map_err(Into::into)
 }
 
 fn add_chat_message_conn(
@@ -413,7 +344,6 @@ fn add_chat_message_conn(
     deck_id: Key,
     chat_message: openai_interface::AppendChatMessage,
 ) -> Result<Key, DbError> {
-
     let tx = conn.transaction()?;
 
     let id = create_chat_message_conn(&tx, user_id, deck_id, chat_message)?;
@@ -423,12 +353,18 @@ fn add_chat_message_conn(
     Ok(id)
 }
 
-pub(crate) async fn add_chat_message(sqlite_pool: &SqlitePool, user_id: Key, deck_id: Key, chat_message: openai_interface::AppendChatMessage) -> crate::Result<Key> {
-    db(sqlite_pool, move |conn| add_chat_message_conn(conn, user_id, deck_id, chat_message))
-        .await
-        .map_err(Into::into)
+pub(crate) async fn add_chat_message(
+    sqlite_pool: &SqlitePool,
+    user_id: Key,
+    deck_id: Key,
+    chat_message: openai_interface::AppendChatMessage,
+) -> crate::Result<Key> {
+    db(sqlite_pool, move |conn| {
+        add_chat_message_conn(conn, user_id, deck_id, chat_message)
+    })
+    .await
+    .map_err(Into::into)
 }
-
 
 fn create_chat_message_conn(
     conn: &rusqlite::Connection,
@@ -445,7 +381,7 @@ fn create_chat_message_conn(
         openai_interface::Role::Function => Font::AI,
     };
 
-    let new_note = db_notes::create_common_conn(
+    let new_note = db_notes::create_common(
         conn,
         user_id,
         deck_id,
@@ -459,7 +395,7 @@ fn create_chat_message_conn(
 
     // save the original text in dialogue_messages, this is used when reconstructing the original message
     //
-    sqlite::zero_conn(
+    sqlite::zero(
         conn,
         "INSERT INTO dialogue_messages(role, content, note_id)
              VALUES (?1, ?2, ?3)",
@@ -487,16 +423,22 @@ fn get_chat_history_conn(
                 ORDER BY dm.id";
 
     let messages: Vec<openai_interface::ChatMessage> =
-        sqlite::many_conn(&conn, stmt, params![&user_id, &deck_id])?;
+        sqlite::many(&conn, stmt, params![&user_id, &deck_id])?;
 
     let stmt = "SELECT ai_kind FROM dialogue_extras WHERE deck_id = ?1";
-    let ai_kind = sqlite::one_conn(&conn, stmt, params![&deck_id])?;
+    let ai_kind = sqlite::one(&conn, stmt, params![&deck_id])?;
 
     Ok((ai_kind, messages))
 }
 
-pub(crate) async fn get_chat_history(sqlite_pool: &SqlitePool, user_id: Key, deck_id: Key) -> crate::Result<(interop::AiKind, Vec<openai_interface::ChatMessage>)> {
-    db(sqlite_pool, move |conn| get_chat_history_conn(conn, user_id, deck_id))
-        .await
-        .map_err(Into::into)
+pub(crate) async fn get_chat_history(
+    sqlite_pool: &SqlitePool,
+    user_id: Key,
+    deck_id: Key,
+) -> crate::Result<(interop::AiKind, Vec<openai_interface::ChatMessage>)> {
+    db(sqlite_pool, move |conn| {
+        get_chat_history_conn(conn, user_id, deck_id)
+    })
+    .await
+    .map_err(Into::into)
 }
