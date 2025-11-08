@@ -85,25 +85,3 @@ impl ResponseError for Error {
         }
     }
 }
-
-pub(crate) fn display_local_backtrace() {
-    tracing::error!("backtrace:");
-
-    let mut depth = 0;
-
-    backtrace::trace(|frame| {
-        backtrace::resolve_frame(frame, |symbol| {
-            if let Some(name) = symbol.name() {
-                if name.to_string().starts_with("civil_server") {
-                    // ignore the first entry on the stack since that's the call to display_local_backtrace
-                    if depth > 0 {
-                        tracing::error!("{}", name);
-                    }
-                    depth += 1;
-                }
-            }
-        });
-
-        true // keep going to the next frame
-    });
-}

@@ -85,7 +85,7 @@ pub(crate) async fn get_or_create(
 }
 
 // note that the order is different compared to ideas, concepts etc
-fn listings_conn(conn: &rusqlite::Connection, user_id: Key) -> Result<Vec<Timeline>, DbError> {
+fn all_conn(conn: &rusqlite::Connection, user_id: Key) -> Result<Vec<Timeline>, DbError> {
     let stmt = "SELECT id, name, created_at, graph_terminator, insignia, font, impact
                 FROM decks
                 WHERE user_id = ?1 AND kind = 'timeline'
@@ -94,11 +94,11 @@ fn listings_conn(conn: &rusqlite::Connection, user_id: Key) -> Result<Vec<Timeli
     sqlite::many(&conn, stmt, params![&user_id])
 }
 
-pub(crate) async fn listings(
+pub(crate) async fn all(
     sqlite_pool: &SqlitePool,
     user_id: Key,
 ) -> crate::Result<Vec<Timeline>> {
-    db(sqlite_pool, move |conn| listings_conn(conn, user_id)).await
+    db(sqlite_pool, move |conn| all_conn(conn, user_id)).await
 }
 
 fn get_conn(

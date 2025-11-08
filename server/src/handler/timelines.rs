@@ -40,8 +40,7 @@ pub async fn get_all(
     sqlite_pool: Data<SqlitePool>,
     AuthUser(user_id): AuthUser,
 ) -> crate::Result<impl Responder> {
-    // nocheckin: why is this db::listings when the ideas equivalent is db::all?
-    let timelines = db::listings(&sqlite_pool, user_id).await?;
+    let timelines = db::all(&sqlite_pool, user_id).await?;
 
     Ok(Json(timelines))
 }

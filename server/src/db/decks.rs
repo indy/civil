@@ -254,10 +254,11 @@ pub(crate) fn deckbase_get_or_create(
     impact: i32,
 ) -> Result<(DeckBase, DeckBaseOrigin), DbError> {
     let existing_deck_res = deckbase_get_by_name(tx, user_id, kind, name);
+
     match existing_deck_res {
         Ok(deck) => Ok((deck, DeckBaseOrigin::PreExisting)),
         Err(e) => match e {
-            DbError::NotFound => {
+            DbError::Sqlite(rusqlite::Error::QueryReturnedNoRows) => {
                 let deck = deckbase_create(
                     tx,
                     user_id,

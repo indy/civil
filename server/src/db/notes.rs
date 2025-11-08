@@ -657,7 +657,7 @@ pub fn get_all_notes_in_db(sqlite_pool: &SqlitePool) -> crate::Result<Vec<Note>>
                        n.font
                 FROM   notes n
                 ORDER BY n.id";
-    sqlite::many(&conn, stmt, &[]).map_err(Into::into)
+    sqlite::many(&conn, stmt, []).map_err(Into::into)
 }
 
 fn get_prev_note_id(conn: &rusqlite::Connection, id: Key) -> Result<Option<Key>, DbError> {

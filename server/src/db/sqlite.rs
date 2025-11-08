@@ -20,17 +20,13 @@ use crate::interop::Key;
 use crate::db::DbError;
 
 #[allow(unused_imports)]
-use crate::error::{display_local_backtrace, Error};
+use crate::error::Error;
 #[allow(unused_imports)]
-use rusqlite::{Connection, OptionalExtension, Row, ToSql};
+use rusqlite::{Connection, OptionalExtension, Row, ToSql, Params};
 #[allow(unused_imports)]
 use tracing::error;
 
-pub(crate) trait FromRow {
-    fn from_row(row: &Row) -> rusqlite::Result<Self>
-    where
-        Self: Sized;
-}
+pub(crate) trait FromRow: Sized { fn from_row(row: &Row) -> rusqlite::Result<Self>;}
 
 impl FromRow for i32 {
     fn from_row(row: &Row) -> rusqlite::Result<i32> {
@@ -73,86 +69,31 @@ pub(crate) fn zero(conn: &Connection, sql: &str, params: &[&dyn ToSql]) -> Resul
     }
 }
 
-pub(crate) fn one<T: FromRow>(
-    conn: &Connection,
-    sql: &str,
-    params: &[&dyn ToSql],
+pub(crate) fn one<T: FromRow, P: Params + Clone>(
+    conn: &Connection, sql: &str, params: P
 ) -> Result<T, DbError> {
-    let mut stmt = conn.prepare_cached(sql).map_err(|e| {
-        error!("{}", sql);
-        error!("{:?}", e);
-        DbError::Sqlite(e)
-    })?;
-
-    stmt.query_row(params, |row| T::from_row(row))
-        .map_err(|e| match e {
-            rusqlite::Error::QueryReturnedNoRows => DbError::NotFound,
-            other => {
-                error!("query_row error in query: {}", sql);
-                error!("{:?}", &other);
-                DbError::Sqlite(other)
-            }
-        })
+    conn.prepare_cached(sql)
+        .and_then(|mut s| s.query_one(params, T::from_row))
+        .map_err(DbError::from)
 }
 
-pub(crate) fn one_optional<T: FromRow>(
-    conn: &Connection,
-    sql: &str,
-    params: &[&dyn ToSql],
+pub(crate) fn one_optional<T: FromRow, P: Params + Clone>(
+    conn: &Connection, sql: &str, params: P
 ) -> Result<Option<T>, DbError> {
-    let mut stmt = conn.prepare_cached(sql).map_err(|e| {
-        error!("{}", sql);
-        error!("{:?}", e);
-        DbError::Sqlite(e)
-    })?;
-
-    match stmt.query_row(params, |row| T::from_row(row)) {
-        Ok(value) => Ok(Some(value)),
-        Err(rusqlite::Error::QueryReturnedNoRows) => Ok(None),
-        Err(e) => {
-            error!("query_row error in query: {}", sql);
-            error!("{:?}", &e);
-            Err(DbError::Sqlite(e))
-        }
-    }
+    conn.prepare_cached(sql)
+        .and_then(|mut s| s.query_one(params, T::from_row).optional())
+        .map_err(DbError::from)
 }
 
-pub(crate) fn many<T: FromRow>(
-    conn: &Connection,
-    sql: &str,
-    params: &[&dyn ToSql],
+pub(crate) fn many<T: FromRow, P: Params + Clone>(
+    conn: &Connection, sql: &str, params: P
 ) -> Result<Vec<T>, DbError> {
-    let mut stmt = match conn.prepare_cached(sql) {
-        Ok(st) => st,
-        Err(e) => {
-            error!("{}", &sql);
-            error!("{:?}", e);
-            return Err(DbError::Sqlite(e));
-        }
-    };
-
-    let mut rows = stmt.query(params)?;
-    let mut res_vec = Vec::new();
-
-    while let Some(row) = match rows.next() {
-        Ok(r) => r,
-        Err(e) => {
-            error!("row.next error in query: {}", sql);
-            display_local_backtrace();
-            return Err(DbError::Sqlite(e));
-        }
-    } {
-        let res: T = match FromRow::from_row(row) {
-            Ok(r) => r,
-            Err(e) => {
-                error!("from_row error in query: {}", sql);
-                error!("{:?}", &e);
-                return Err(DbError::Sqlite(e));
-            }
-        };
-
-        res_vec.push(res);
+    let mut stmt = conn.prepare_cached(sql).map_err(DbError::from)?;
+    let mut rows = stmt.query(params).map_err(DbError::from)?;
+    let mut v = Vec::new();
+    while let Some(row) = rows.next().map_err(DbError::from)? {
+        v.push(T::from_row(row).map_err(DbError::from)?);
     }
 
-    Ok(res_vec)
+    Ok(v)
 }

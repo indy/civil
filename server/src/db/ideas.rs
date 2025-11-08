@@ -26,9 +26,6 @@ use crate::interop::ideas::Idea;
 use crate::interop::Key;
 use rusqlite::{params, Row};
 
-#[allow(unused_imports)]
-use tracing::info;
-
 impl FromRow for Idea {
     fn from_row(row: &Row) -> rusqlite::Result<Idea> {
         Ok(Idea {

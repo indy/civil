@@ -39,8 +39,7 @@ pub async fn get_all(
     sqlite_pool: Data<SqlitePool>,
     AuthUser(user_id): AuthUser,
 ) -> crate::Result<impl Responder> {
-    // nocheckin why isn't this called db::all like in ideas?
-    let events = db::listings(&sqlite_pool, user_id).await?;
+    let events = db::all(&sqlite_pool, user_id).await?;
 
     Ok(Json(events))
 }

@@ -181,8 +181,8 @@ pub(crate) async fn get_or_create(
     .await
 }
 
-fn listings_conn(conn: &rusqlite::Connection, user_id: Key) -> Result<Vec<SlimDeck>, DbError> {
-    // TODO: sort this by the event date in event_extras
+fn all_conn(conn: &rusqlite::Connection, user_id: Key) -> Result<Vec<SlimDeck>, DbError> {
+    // todo: sort this by the event date in event_extras
     let stmt = "SELECT id, name, kind, created_at, graph_terminator, insignia, font, impact
                 FROM decks
                 WHERE user_id = ?1 AND kind = 'event'
@@ -191,11 +191,11 @@ fn listings_conn(conn: &rusqlite::Connection, user_id: Key) -> Result<Vec<SlimDe
     sqlite::many(&conn, stmt, params![&user_id])
 }
 
-pub(crate) async fn listings(
+pub(crate) async fn all(
     sqlite_pool: &SqlitePool,
     user_id: Key,
 ) -> crate::Result<Vec<SlimDeck>> {
-    db(sqlite_pool, move |conn| listings_conn(conn, user_id)).await
+    db(sqlite_pool, move |conn| all_conn(conn, user_id)).await
 }
 
 fn get_conn(

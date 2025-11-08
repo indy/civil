@@ -180,7 +180,7 @@ pub fn get_all_user_ids(sqlite_pool: &SqlitePool) -> crate::Result<Vec<UserId>> 
         &conn,
         "SELECT id
          FROM users",
-        &[],
+        [],
     )
     .map_err(Into::into)
 }

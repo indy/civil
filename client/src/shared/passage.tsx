@@ -106,7 +106,7 @@ export function createMultiplePassages(ns: Notes): Array<Passage> {
 
     // may need a final stage here where passages are fused together
     //
-    // TODO
+    // todo
 
     return res;
 }

@@ -53,8 +53,6 @@ pub enum DbError {
     Sqlite(#[from] rusqlite::Error),
     #[error(transparent)]
     Join(#[from] tokio::task::JoinError),
-    #[error("Not Found")]
-    NotFound,
     #[error("Too Many Found")]
     TooManyFound,
     #[error("String Conversion To Enum")]

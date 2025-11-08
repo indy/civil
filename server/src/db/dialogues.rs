@@ -24,7 +24,7 @@ use crate::db::notes as db_notes;
 use crate::db::sqlite::{self, FromRow};
 use crate::db::{db, DbError, SqlitePool};
 use crate::interop::decks::{DeckKind, SlimDeck};
-use crate::interop::dialogues as interop; // nocheckin remove this?
+use crate::interop::dialogues as interop;
 use crate::interop::dialogues::{Dialogue, ProtoDialogue};
 use crate::interop::font::Font;
 use crate::interop::notes::NoteKind;
@@ -87,7 +87,7 @@ impl FromRow for interop::Dialogue {
     }
 }
 
-// nocheckin what is this?, why is a ChatMessage implementing FromRow
+// todo: what is this?, why is a ChatMessage implementing FromRow
 
 impl FromRow for openai_interface::ChatMessage {
     fn from_row(row: &Row) -> rusqlite::Result<openai_interface::ChatMessage> {
@@ -118,7 +118,6 @@ impl FromRow for interop::AiKind {
 }
 
 fn listings_conn(conn: &rusqlite::Connection, user_id: Key) -> Result<Vec<SlimDeck>, DbError> {
-    // TODO: sort this by the event date in event_extras
     let stmt = "SELECT id, name, kind, created_at, graph_terminator, insignia, font, impact
                 FROM decks
                 WHERE user_id = ?1 AND kind = 'dialogue'

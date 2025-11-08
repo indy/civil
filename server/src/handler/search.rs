@@ -30,7 +30,6 @@ pub async fn search_at_deck_level(
     AuthUser(user_id): AuthUser,
     Query(query): Query<SearchQuery>,
 ) -> crate::Result<impl Responder> {
-    // nocheckin: sort out this q q2 stuff
     let q: String = query.q;
     let q2 = q.clone();
     let deck_level_results = db::search_at_deck_level(&sqlite_pool, user_id, q).await?;
@@ -51,7 +50,6 @@ pub async fn search_names_at_deck_level(
     AuthUser(user_id): AuthUser,
     Query(query): Query<SearchQuery>,
 ) -> crate::Result<impl Responder> {
-    // nocheckin: sort out this q q2 stuff
     let q: String = query.q;
     let q2 = q.clone();
     let results = db::search_names_at_deck_level(&sqlite_pool, user_id, q).await?;
