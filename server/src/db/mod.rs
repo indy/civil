@@ -42,6 +42,9 @@ use r2d2::Pool;
 use r2d2_sqlite::SqliteConnectionManager;
 pub(crate) type SqlitePool = Pool<SqliteConnectionManager>;
 
+// the reason for a separate error type for db stuff is that the crate level Error isn't Send + 'static,
+// so we can't pass it through the blocking closure.
+
 #[derive(thiserror::Error, Debug)]
 pub enum DbError {
     #[error(transparent)]
@@ -59,17 +62,21 @@ pub enum DbError {
 }
 
 // Blocking helper: only DbError crosses the thread boundary.
-pub async fn db<T, F>(pool: &SqlitePool, f: F) -> Result<T, DbError>
+pub async fn db<T, F>(pool: &SqlitePool, f: F) -> crate::Result<T>
 where
     F: FnOnce(&mut rusqlite::Connection) -> Result<T, DbError> + Send + 'static,
     T: Send + 'static,
 {
-    let pool2 = pool.clone();
-    tokio::task::spawn_blocking(move || {
-        let mut conn = pool2.get()?; // r2d2::Error -> DbError via `?`
-        f(&mut conn) // returns Result<T, DbError>
-    })
-    .await? // JoinError -> DbError via `From`
+    let pool = pool.clone();
+
+    Ok(
+        tokio::task::spawn_blocking(move || {
+            let mut conn = pool.get()?; // r2d2::Error -> DbError via `From`
+            f(&mut conn)                // Result<T, DbError>
+        })
+        .await? // JoinError -> Error via `From`  -- this is a DBError
+        ?, // DbError  -> Error via `From`   -- this converts the DBError into crate::Result
+    )
 }
 
 fn sanitize_for_sqlite_match(s: String) -> Result<String, DbError> {

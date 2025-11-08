@@ -141,7 +141,6 @@ pub(crate) async fn search_at_all_levels(
         search_at_all_levels_conn(conn, user_id, query)
     })
     .await
-    .map_err(Into::into)
 }
 
 fn search_quotes_conn(
@@ -171,7 +170,6 @@ pub(crate) async fn search_quotes(
         search_quotes_conn(conn, user_id, query)
     })
     .await
-    .map_err(Into::into)
 }
 
 fn search_quotes_at_note_level(
@@ -218,7 +216,6 @@ pub(crate) async fn search_at_deck_level(
         search_at_deck_level_conn(conn, user_id, query)
     })
     .await
-    .map_err(Into::into)
 }
 
 fn search_names_at_deck_level_conn(
@@ -262,7 +259,6 @@ pub(crate) async fn search_names_at_deck_level(
         search_names_at_deck_level_conn(conn, user_id, query)
     })
     .await
-    .map_err(Into::into)
 }
 
 fn additional_search_at_deck_level_conn(
@@ -329,7 +325,6 @@ pub(crate) async fn additional_search_at_deck_level(
         additional_search_at_deck_level_conn(conn, user_id, deck_id)
     })
     .await
-    .map_err(Into::into)
 }
 
 fn in_searchdecks(search_deck: &SearchDeck, search_decks: &[SearchDeck]) -> bool {

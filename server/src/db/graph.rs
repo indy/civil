@@ -175,9 +175,7 @@ pub(crate) async fn get(
     user_id: Key,
     deck_id: Key,
 ) -> crate::Result<ConnectivityData> {
-    db(sqlite_pool, move |conn| get_conn(conn, user_id, deck_id))
-        .await
-        .map_err(Into::into)
+    db(sqlite_pool, move |conn| get_conn(conn, user_id, deck_id)).await
 }
 
 fn neighbours(conn: &Connection, user_id: Key, deck_id: Key) -> Result<Vec<Connectivity>, DbError> {

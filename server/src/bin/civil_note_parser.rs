@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use civil_server::{interop::Key};
+use civil_server::interop::Key;
 use std::cmp;
 
 // use civil_server::{db::notes::edit_note, interop::notes::NoteKind, interop::Key, note_parser_api};
@@ -28,78 +28,78 @@ use tracing::info;
 #[actix_web::main]
 async fn main() -> civil_server::Result<()> {
     /*
-    civil_server::init_dotenv();
-    civil_server::init_tracing();
+        civil_server::init_dotenv();
+        civil_server::init_tracing();
 
-    // let text = "|:# hello “foo”|.";
-    // let res = convert_syntax_nside(&text);
+        // let text = "|:# hello “foo”|.";
+        // let res = convert_syntax_nside(&text);
 
-    // info!("inp: '{}'", &text);
-    // info!("out: '{}'", &res);
+        // info!("inp: '{}'", &text);
+        // info!("out: '{}'", &res);
 
-    let sqlite_db = civil_server::env_var_string("SQLITE_DB")?;
-    civil_server::db::sqlite_migrations::migration_check(&sqlite_db)?;
+        let sqlite_db = civil_server::env_var_string("SQLITE_DB")?;
+        civil_server::db::sqlite_migrations::migration_check(&sqlite_db)?;
 
-    let sqlite_manager = SqliteConnectionManager::file(&sqlite_db);
-    let sqlite_pool = r2d2::Pool::new(sqlite_manager)?;
+        let sqlite_manager = SqliteConnectionManager::file(&sqlite_db);
+        let sqlite_pool = r2d2::Pool::new(sqlite_manager)?;
 
-    info!("started parsing all note markup");
-    let notes = note_parser_api::get_all_notes_in_db(&sqlite_pool)?;
+        info!("started parsing all note markup");
+        let notes = note_parser_api::get_all_notes_in_db(&sqlite_pool)?;
 
-    let mut num_elements: usize = 0;
-    let mut c: usize = 0;
+        let mut num_elements: usize = 0;
+        let mut c: usize = 0;
 
-    for mut note in notes {
-        if note.kind != NoteKind::NoteDeckMeta {
-            let original_content = String::from(&note.content);
+        for mut note in notes {
+            if note.kind != NoteKind::NoteDeckMeta {
+                let original_content = String::from(&note.content);
 
-            // note.content = convert_syntax_highlight(note.id, &note.content);
-            // note.content = convert_syntax_bold(note.id, &note.content);
-            // // note.content = convert_syntax_underline(note.id, &note.content); // don't use this, too many false positives
+                // note.content = convert_syntax_highlight(note.id, &note.content);
+                // note.content = convert_syntax_bold(note.id, &note.content);
+                // // note.content = convert_syntax_underline(note.id, &note.content); // don't use this, too many false positives
 
-            // // note: these are _really_ slow
-            // note.content = convert_syntax_h1(note.id, &note.content);
-            // note.content = convert_syntax_h2(note.id, &note.content);
-            // note.content = convert_syntax_h3(note.id, &note.content);
-            // note.content = convert_syntax_h4(note.id, &note.content);
-            // note.content = convert_syntax_h5(note.id, &note.content);
-            // note.content = convert_syntax_h6(note.id, &note.content);
-            // note.content = convert_syntax_h7(note.id, &note.content);
-            // note.content = convert_syntax_h8(note.id, &note.content);
-            // note.content = convert_syntax_h9(note.id, &note.content);
+                // // note: these are _really_ slow
+                // note.content = convert_syntax_h1(note.id, &note.content);
+                // note.content = convert_syntax_h2(note.id, &note.content);
+                // note.content = convert_syntax_h3(note.id, &note.content);
+                // note.content = convert_syntax_h4(note.id, &note.content);
+                // note.content = convert_syntax_h5(note.id, &note.content);
+                // note.content = convert_syntax_h6(note.id, &note.content);
+                // note.content = convert_syntax_h7(note.id, &note.content);
+                // note.content = convert_syntax_h8(note.id, &note.content);
+                // note.content = convert_syntax_h9(note.id, &note.content);
 
-            note.content = convert_syntax_pipe(&note.content);
+                note.content = convert_syntax_pipe(&note.content);
 
-            if original_content != note.content {
-                // print!("\n\n{}\n\n", original_content);
-                // print!("{}\n\n", &note.content);
+                if original_content != note.content {
+                    // print!("\n\n{}\n\n", original_content);
+                    // print!("{}\n\n", &note.content);
 
-                // let mut input=String::new();
-                // stdin().read_line(&mut input).expect("Did not enter a correct string");
+                    // let mut input=String::new();
+                    // stdin().read_line(&mut input).expect("Did not enter a correct string");
 
-                //if input.starts_with("y") {
-                //info!("saving {}", note.id);
-                edit_note(&sqlite_pool, Key(1), &note, note.id)?;
-                // } else {
-                //     println!("note.id: {}, skip this one", note.id);
-                // }
-            }
+                    //if input.starts_with("y") {
+                    //info!("saving {}", note.id);
+                    edit_note(&sqlite_pool, Key(1), &note, note.id)?;
+                    // } else {
+                    //     println!("note.id: {}, skip this one", note.id);
+                    // }
+                }
 
-            let note_id = note.id.0 as usize;
-            let res = civil_shared::markup_as_struct(&note.content, note_id)?;
-            num_elements += res.len();
-            c += 1;
+                let note_id = note.id.0 as usize;
+                let res = civil_shared::markup_as_struct(&note.content, note_id)?;
+                num_elements += res.len();
+                c += 1;
 
-            if c % 1000 == 0 {
-                info!("count: {}", c);
+                if c % 1000 == 0 {
+                    info!("count: {}", c);
+                }
             }
         }
-    }
-    info!(
-        "finished parsing all note markup {}, count: {}",
-        num_elements, c
-    );
-*/
+        info!(
+            "finished parsing all note markup {}, count: {}",
+            num_elements, c
+        );
+    */
     Ok(())
 }
 

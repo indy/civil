@@ -117,7 +117,6 @@ pub(crate) async fn recently_visited_any(
         recently_visited_any_conn(conn, user_id, num)
     })
     .await
-    .map_err(Into::into)
 }
 
 pub fn recently_visited_conn(
@@ -146,7 +145,6 @@ pub(crate) async fn recently_visited(
         recently_visited_conn(conn, user_id, deck_kind, num)
     })
     .await
-    .map_err(Into::into)
 }
 
 fn num_decks_for_deck_kind(
@@ -197,7 +195,6 @@ pub(crate) async fn pagination(
         pagination_conn(conn, user_id, deck_kind, offset, num_items)
     })
     .await
-    .map_err(Into::into)
 }
 
 fn pagination_events_chronologically_conn(
@@ -239,7 +236,6 @@ pub(crate) async fn pagination_events_chronologically(
         pagination_events_chronologically_conn(conn, user_id, deck_kind, offset, num_items)
     })
     .await
-    .map_err(Into::into)
 }
 
 // note: may execute multiple sql write statements so should be in a transaction
@@ -293,9 +289,7 @@ pub(crate) async fn get_hits(
     sqlite_pool: &SqlitePool,
     deck_id: Key,
 ) -> crate::Result<Vec<interop::Hit>> {
-    db(sqlite_pool, move |conn| get_hits_conn(conn, deck_id))
-        .await
-        .map_err(Into::into)
+    db(sqlite_pool, move |conn| get_hits_conn(conn, deck_id)).await
 }
 
 fn deckbase_get_by_name(
@@ -434,7 +428,6 @@ pub(crate) async fn insignia_filter(
         insignia_filter_conn(conn, user_id, deck_kind, insignia, offset, num_items)
     })
     .await
-    .map_err(Into::into)
 }
 
 fn insignia_filter_any_conn(
@@ -476,7 +469,6 @@ pub(crate) async fn insignia_filter_any(
         insignia_filter_any_conn(conn, user_id, insignia, offset, num_items)
     })
     .await
-    .map_err(Into::into)
 }
 
 fn recent_conn(
@@ -506,7 +498,6 @@ pub(crate) async fn recent(
         recent_conn(conn, user_id, deck_kind)
     })
     .await
-    .map_err(Into::into)
 }
 
 // delete anything that's represented as a deck (article, person, idea, timeline, quote, dialogue)
@@ -526,9 +517,7 @@ pub(crate) async fn delete(
     user_id: Key,
     deck_id: Key,
 ) -> crate::Result<()> {
-    db(sqlite_pool, move |conn| delete_conn(conn, user_id, deck_id))
-        .await
-        .map_err(Into::into)
+    db(sqlite_pool, move |conn| delete_conn(conn, user_id, deck_id)).await
 }
 
 fn get_font_of_deck(conn: &Connection, deck_id: Key) -> Result<Font, DbError> {

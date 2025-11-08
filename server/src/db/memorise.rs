@@ -220,7 +220,6 @@ pub(crate) async fn create_card(
         create_card_conn(conn, card, user_id)
     })
     .await
-    .map_err(Into::into)
 }
 
 fn get_card_full_fat_conn(
@@ -248,7 +247,6 @@ pub(crate) async fn get_card_full_fat(
         get_card_full_fat_conn(conn, user_id, card_id)
     })
     .await
-    .map_err(Into::into)
 }
 
 fn card_rated_conn(
@@ -291,9 +289,7 @@ pub(crate) async fn card_rated(
     card: FlashCard,
     rating: i16,
 ) -> crate::Result<()> {
-    db(sqlite_pool, move |conn| card_rated_conn(conn, card, rating))
-        .await
-        .map_err(Into::into)
+    db(sqlite_pool, move |conn| card_rated_conn(conn, card, rating)).await
 }
 
 fn edit_flashcard_conn(
@@ -322,7 +318,6 @@ pub(crate) async fn edit_flashcard(
         edit_flashcard_conn(conn, user_id, flashcard, flashcard_id)
     })
     .await
-    .map_err(Into::into)
 }
 
 fn delete_flashcard_conn(
@@ -358,7 +353,6 @@ pub(crate) async fn delete_flashcard(
         delete_flashcard_conn(conn, user_id, flashcard_id)
     })
     .await
-    .map_err(Into::into)
 }
 
 fn get_cards_conn(
@@ -385,9 +379,7 @@ pub(crate) async fn get_cards(
     user_id: Key,
     due: chrono::NaiveDateTime,
 ) -> crate::Result<Vec<Card>> {
-    db(sqlite_pool, move |conn| get_cards_conn(conn, user_id, due))
-        .await
-        .map_err(Into::into)
+    db(sqlite_pool, move |conn| get_cards_conn(conn, user_id, due)).await
 }
 
 fn get_practice_card_conn(conn: &rusqlite::Connection, user_id: Key) -> Result<Card, DbError> {
@@ -414,7 +406,6 @@ pub(crate) async fn get_practice_card(
         get_practice_card_conn(conn, user_id)
     })
     .await
-    .map_err(Into::into)
 }
 
 fn get_cards_upcoming_review_conn(
@@ -471,5 +462,4 @@ pub(crate) async fn get_cards_upcoming_review(
         get_cards_upcoming_review_conn(conn, user_id, due)
     })
     .await
-    .map_err(Into::into)
 }

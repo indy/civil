@@ -89,9 +89,7 @@ pub(crate) async fn login(
     sqlite_pool: &SqlitePool,
     login_credentials: LoginCredentials,
 ) -> crate::Result<(Key, String, User)> {
-    db(sqlite_pool, move |conn| login_conn(conn, login_credentials))
-        .await
-        .map_err(|e: DbError| e.into())
+    db(sqlite_pool, move |conn| login_conn(conn, login_credentials)).await
 }
 
 fn create_conn(
@@ -126,7 +124,6 @@ pub(crate) async fn create(
         create_conn(conn, registration, hash)
     })
     .await
-    .map_err(|e: DbError| e.into())
 }
 
 fn get_conn(conn: &rusqlite::Connection, user_id: Key) -> Result<Option<User>, DbError> {
@@ -139,9 +136,7 @@ fn get_conn(conn: &rusqlite::Connection, user_id: Key) -> Result<Option<User>, D
 }
 
 pub(crate) async fn get(sqlite_pool: &SqlitePool, user_id: Key) -> crate::Result<Option<User>> {
-    db(sqlite_pool, move |conn| get_conn(conn, user_id))
-        .await
-        .map_err(|e: DbError| e.into())
+    db(sqlite_pool, move |conn| get_conn(conn, user_id)).await
 }
 
 fn edit_ui_config_conn(
@@ -171,7 +166,6 @@ pub(crate) async fn edit_ui_config(
         edit_ui_config_conn(conn, user_id, ui_config_json)
     })
     .await
-    .map_err(|e: DbError| e.into())
 }
 
 impl FromRow for UserId {

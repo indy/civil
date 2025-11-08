@@ -98,9 +98,7 @@ fn all_conn(conn: &rusqlite::Connection, user_id: Key) -> Result<Vec<Article>, D
 }
 
 pub(crate) async fn all(sqlite_pool: &SqlitePool, user_id: Key) -> crate::Result<Vec<Article>> {
-    db(sqlite_pool, move |conn| all_conn(conn, user_id))
-        .await
-        .map_err(Into::into)
+    db(sqlite_pool, move |conn| all_conn(conn, user_id)).await
 }
 
 fn recent_conn(
@@ -141,7 +139,6 @@ pub(crate) async fn recent(
         recent_conn(conn, user_id, offset, num_items)
     })
     .await
-    .map_err(Into::into)
 }
 
 fn rated_conn(
@@ -183,7 +180,6 @@ pub(crate) async fn rated(
         rated_conn(conn, user_id, offset, num_items)
     })
     .await
-    .map_err(Into::into)
 }
 
 fn orphans_conn(
@@ -235,7 +231,6 @@ pub(crate) async fn orphans(
         orphans_conn(conn, user_id, offset, num_items)
     })
     .await
-    .map_err(Into::into)
 }
 
 fn get_conn(
@@ -272,9 +267,7 @@ pub(crate) async fn get(
     user_id: Key,
     article_id: Key,
 ) -> crate::Result<Option<Article>> {
-    db(sqlite_pool, move |conn| get_conn(conn, user_id, article_id))
-        .await
-        .map_err(Into::into)
+    db(sqlite_pool, move |conn| get_conn(conn, user_id, article_id)).await
 }
 
 pub(crate) async fn delete(
@@ -391,7 +384,6 @@ pub(crate) async fn edit(
         edit_conn(conn, user_id, article, article_id)
     })
     .await
-    .map_err(Into::into)
 }
 
 fn get_or_create_conn(
@@ -459,5 +451,4 @@ pub(crate) async fn get_or_create(
         get_or_create_conn(conn, user_id, title)
     })
     .await
-    .map_err(Into::into)
 }

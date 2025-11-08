@@ -84,7 +84,6 @@ pub(crate) async fn get_or_create(
         get_or_create_conn(conn, user_id, title)
     })
     .await
-    .map_err(Into::into)
 }
 
 fn recent_conn(
@@ -120,7 +119,6 @@ pub(crate) async fn recent(
         recent_conn(conn, user_id, offset, num_items)
     })
     .await
-    .map_err(Into::into)
 }
 
 fn orphans_conn(
@@ -172,7 +170,6 @@ pub(crate) async fn orphans(
         orphans_conn(conn, user_id, offset, num_items)
     })
     .await
-    .map_err(Into::into)
 }
 
 fn unnoted_conn(
@@ -214,7 +211,6 @@ pub(crate) async fn unnoted(
         unnoted_conn(conn, user_id, offset, num_items)
     })
     .await
-    .map_err(Into::into)
 }
 
 fn all_conn(conn: &rusqlite::Connection, user_id: Key) -> Result<Vec<Idea>, DbError> {
@@ -227,9 +223,7 @@ fn all_conn(conn: &rusqlite::Connection, user_id: Key) -> Result<Vec<Idea>, DbEr
 }
 
 pub(crate) async fn all(sqlite_pool: &SqlitePool, user_id: Key) -> crate::Result<Vec<Idea>> {
-    db(sqlite_pool, move |conn| all_conn(conn, user_id))
-        .await
-        .map_err(Into::into)
+    db(sqlite_pool, move |conn| all_conn(conn, user_id)).await
 }
 
 fn convert_conn(
@@ -272,7 +266,6 @@ pub(crate) async fn convert(
         convert_conn(conn, user_id, idea_id)
     })
     .await
-    .map_err(Into::into)
 }
 
 fn get_conn(
@@ -300,9 +293,7 @@ pub(crate) async fn get(
     user_id: Key,
     idea_id: Key,
 ) -> crate::Result<Option<Idea>> {
-    db(sqlite_pool, move |conn| get_conn(conn, user_id, idea_id))
-        .await
-        .map_err(Into::into)
+    db(sqlite_pool, move |conn| get_conn(conn, user_id, idea_id)).await
 }
 
 fn edit_conn(
@@ -345,7 +336,6 @@ pub(crate) async fn edit(
         edit_conn(conn, user_id, idea, idea_id)
     })
     .await
-    .map_err(Into::into)
 }
 
 pub(crate) async fn delete(

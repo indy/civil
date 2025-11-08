@@ -118,7 +118,6 @@ pub(crate) async fn get_or_create(
         get_or_create_conn(conn, user_id, quote)
     })
     .await
-    .map_err(Into::into)
 }
 
 fn random_conn(conn: &rusqlite::Connection, user_id: Key) -> Result<Option<Quote>, DbError> {
@@ -141,9 +140,7 @@ fn random_conn(conn: &rusqlite::Connection, user_id: Key) -> Result<Option<Quote
 }
 
 pub(crate) async fn random(sqlite_pool: &SqlitePool, user_id: Key) -> crate::Result<Option<Quote>> {
-    db(sqlite_pool, move |conn| random_conn(conn, user_id))
-        .await
-        .map_err(Into::into)
+    db(sqlite_pool, move |conn| random_conn(conn, user_id)).await
 }
 
 fn get_conn(
@@ -171,9 +168,7 @@ pub(crate) async fn get(
     user_id: Key,
     quote_id: Key,
 ) -> crate::Result<Option<Quote>> {
-    db(sqlite_pool, move |conn| get_conn(conn, user_id, quote_id))
-        .await
-        .map_err(Into::into)
+    db(sqlite_pool, move |conn| get_conn(conn, user_id, quote_id)).await
 }
 
 fn next_conn(
@@ -215,9 +210,7 @@ pub(crate) async fn next(
     user_id: Key,
     quote_id: Key,
 ) -> crate::Result<Option<Quote>> {
-    db(sqlite_pool, move |conn| next_conn(conn, user_id, quote_id))
-        .await
-        .map_err(Into::into)
+    db(sqlite_pool, move |conn| next_conn(conn, user_id, quote_id)).await
 }
 
 fn prev_conn(
@@ -259,9 +252,7 @@ pub(crate) async fn prev(
     user_id: Key,
     quote_id: Key,
 ) -> crate::Result<Option<Quote>> {
-    db(sqlite_pool, move |conn| prev_conn(conn, user_id, quote_id))
-        .await
-        .map_err(Into::into)
+    db(sqlite_pool, move |conn| prev_conn(conn, user_id, quote_id)).await
 }
 
 fn edit_conn(
@@ -304,7 +295,6 @@ pub(crate) async fn edit(
         edit_conn(conn, user_id, quote, quote_id)
     })
     .await
-    .map_err(Into::into)
 }
 
 pub(crate) async fn delete(

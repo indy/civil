@@ -53,7 +53,6 @@ pub(crate) async fn create_bookmark(
         create_bookmark_conn(conn, user_id, deck_id)
     })
     .await
-    .map_err(Into::into)
 }
 
 fn create_multiple_bookmarks_conn(
@@ -82,7 +81,6 @@ pub(crate) async fn create_multiple_bookmarks(
         create_multiple_bookmarks_conn(conn, user_id, deck_ids)
     })
     .await
-    .map_err(Into::into)
 }
 
 fn get_bookmarks_conn(
@@ -99,9 +97,7 @@ pub(crate) async fn get_bookmarks(
     sqlite_pool: &SqlitePool,
     user_id: Key,
 ) -> crate::Result<Vec<interop::Bookmark>> {
-    db(sqlite_pool, move |conn| get_bookmarks_conn(conn, user_id))
-        .await
-        .map_err(Into::into)
+    db(sqlite_pool, move |conn| get_bookmarks_conn(conn, user_id)).await
 }
 
 fn delete_bookmark_conn(
@@ -122,5 +118,4 @@ pub(crate) async fn delete_bookmark(
         delete_bookmark_conn(conn, user_id, bookmark_id)
     })
     .await
-    .map_err(Into::into)
 }

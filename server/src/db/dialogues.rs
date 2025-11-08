@@ -131,9 +131,7 @@ pub(crate) async fn listings(
     sqlite_pool: &SqlitePool,
     user_id: Key,
 ) -> crate::Result<Vec<SlimDeck>> {
-    db(sqlite_pool, move |conn| listings_conn(conn, user_id))
-        .await
-        .map_err(Into::into)
+    db(sqlite_pool, move |conn| listings_conn(conn, user_id)).await
 }
 
 fn get_conn(
@@ -172,7 +170,6 @@ pub(crate) async fn get(
         get_conn(conn, user_id, dialogue_id)
     })
     .await
-    .map_err(Into::into)
 }
 
 fn get_original_chat_messages(
@@ -245,7 +242,6 @@ pub(crate) async fn edit(
         edit_conn(conn, user_id, dialogue, dialogue_id)
     })
     .await
-    .map_err(Into::into)
 }
 
 fn create_conn(
@@ -317,7 +313,6 @@ pub(crate) async fn create(
         create_conn(conn, user_id, dialogue)
     })
     .await
-    .map_err(Into::into)
 }
 
 pub(crate) async fn delete(
@@ -353,7 +348,6 @@ pub(crate) async fn add_chat_message(
         add_chat_message_conn(conn, user_id, deck_id, chat_message)
     })
     .await
-    .map_err(Into::into)
 }
 
 fn create_chat_message_conn(
@@ -430,5 +424,4 @@ pub(crate) async fn get_chat_history(
         get_chat_history_conn(conn, user_id, deck_id)
     })
     .await
-    .map_err(Into::into)
 }

@@ -179,7 +179,6 @@ pub(crate) async fn get_or_create(
         get_or_create_conn(conn, user_id, title)
     })
     .await
-    .map_err(Into::into)
 }
 
 fn listings_conn(conn: &rusqlite::Connection, user_id: Key) -> Result<Vec<SlimDeck>, DbError> {
@@ -196,9 +195,7 @@ pub(crate) async fn listings(
     sqlite_pool: &SqlitePool,
     user_id: Key,
 ) -> crate::Result<Vec<SlimDeck>> {
-    db(sqlite_pool, move |conn| listings_conn(conn, user_id))
-        .await
-        .map_err(Into::into)
+    db(sqlite_pool, move |conn| listings_conn(conn, user_id)).await
 }
 
 fn get_conn(
@@ -235,9 +232,7 @@ pub(crate) async fn get(
     user_id: Key,
     event_id: Key,
 ) -> crate::Result<Option<Event>> {
-    db(sqlite_pool, move |conn| get_conn(conn, user_id, event_id))
-        .await
-        .map_err(Into::into)
+    db(sqlite_pool, move |conn| get_conn(conn, user_id, event_id)).await
 }
 
 fn edit_conn(
@@ -307,7 +302,6 @@ pub(crate) async fn edit(
         edit_conn(conn, user_id, event, event_id)
     })
     .await
-    .map_err(Into::into)
 }
 
 pub(crate) async fn delete(

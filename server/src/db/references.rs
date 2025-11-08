@@ -156,7 +156,6 @@ pub(crate) async fn update_references(
         update_references_conn(conn, diff, user_id, note_id)
     })
     .await
-    .map_err(Into::into)
 }
 
 pub(crate) async fn get_decks_recently_referenced(
@@ -167,7 +166,6 @@ pub(crate) async fn get_decks_recently_referenced(
         decks_recently_referenced_conn(conn, user_id)
     })
     .await
-    .map_err(Into::into)
 }
 
 fn decks_recently_referenced_conn(

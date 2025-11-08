@@ -82,7 +82,6 @@ pub(crate) async fn get_or_create(
         get_or_create_conn(conn, user_id, title)
     })
     .await
-    .map_err(Into::into)
 }
 
 // note that the order is different compared to ideas, concepts etc
@@ -99,9 +98,7 @@ pub(crate) async fn listings(
     sqlite_pool: &SqlitePool,
     user_id: Key,
 ) -> crate::Result<Vec<Timeline>> {
-    db(sqlite_pool, move |conn| listings_conn(conn, user_id))
-        .await
-        .map_err(Into::into)
+    db(sqlite_pool, move |conn| listings_conn(conn, user_id)).await
 }
 
 fn get_conn(
@@ -135,7 +132,6 @@ pub(crate) async fn get(
         get_conn(conn, user_id, timeline_id)
     })
     .await
-    .map_err(Into::into)
 }
 
 fn edit_conn(
@@ -177,7 +173,6 @@ pub(crate) async fn edit(
         edit_conn(conn, user_id, timeline, timeline_id)
     })
     .await
-    .map_err(Into::into)
 }
 
 pub(crate) async fn delete(

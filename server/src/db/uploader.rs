@@ -60,7 +60,6 @@ pub(crate) async fn get_recent(
         get_recent_conn(conn, user_id, at_least)
     })
     .await
-    .map_err(Into::into)
 }
 
 fn get_image_count_conn(conn: &rusqlite::Connection, user_id: Key) -> Result<i32, DbError> {
@@ -74,9 +73,7 @@ fn get_image_count_conn(conn: &rusqlite::Connection, user_id: Key) -> Result<i32
 }
 
 pub(crate) async fn get_image_count(sqlite_pool: &SqlitePool, user_id: Key) -> crate::Result<i32> {
-    db(sqlite_pool, move |conn| get_image_count_conn(conn, user_id))
-        .await
-        .map_err(Into::into)
+    db(sqlite_pool, move |conn| get_image_count_conn(conn, user_id)).await
 }
 
 fn set_image_count_conn(
@@ -102,7 +99,6 @@ pub(crate) async fn set_image_count(
         set_image_count_conn(conn, user_id, new_count)
     })
     .await
-    .map_err(Into::into)
 }
 
 fn add_image_entry_conn(
@@ -127,5 +123,4 @@ pub(crate) async fn add_image_entry(
         add_image_entry_conn(conn, user_id, filename)
     })
     .await
-    .map_err(Into::into)
 }

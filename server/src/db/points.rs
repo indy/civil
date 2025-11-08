@@ -166,7 +166,6 @@ pub(crate) async fn all_points_within_interval(
         all_points_within_interval_conn(conn, user_id, lower, upper)
     })
     .await
-    .map_err(Into::into)
 }
 
 pub(crate) fn all_points_during_life(
@@ -262,7 +261,5 @@ pub(crate) async fn create(
     point: ProtoPoint,
     deck_id: Key,
 ) -> crate::Result<()> {
-    db(sqlite_pool, move |conn| create_conn(conn, point, deck_id))
-        .await
-        .map_err(Into::into)
+    db(sqlite_pool, move |conn| create_conn(conn, point, deck_id)).await
 }

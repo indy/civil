@@ -389,7 +389,6 @@ pub(crate) async fn delete_note_properly(
         delete_note_properly_conn(conn, user_id, note_id)
     })
     .await
-    .map_err(Into::into)
 }
 
 pub(crate) fn create_common(
@@ -507,7 +506,6 @@ pub(crate) async fn create_notes(
         create_notes_conn(conn, user_id, note)
     })
     .await
-    .map_err(Into::into)
 }
 
 fn update_prev_note_id(conn: &Connection, note_id: Key, prev_note_id: Key) -> Result<(), DbError> {
@@ -551,7 +549,6 @@ pub(crate) async fn preview(
         preview_conn(conn, user_id, deck_id)
     })
     .await
-    .map_err(Into::into)
 }
 
 fn add_auto_summary_conn(
@@ -585,7 +582,6 @@ pub(crate) async fn add_auto_summary(
         add_auto_summary_conn(conn, user_id, deck_id, prev_id, summary)
     })
     .await
-    .map_err(Into::into)
 }
 
 // isg todo: this won't get the note's refs, so maybe use two queries: one to edit another to return the full note
@@ -649,7 +645,6 @@ pub async fn edit_note(
         edit_note_conn(conn, user_id, note, note_id)
     })
     .await
-    .map_err(Into::into)
 }
 
 pub fn get_all_notes_in_db(sqlite_pool: &SqlitePool) -> crate::Result<Vec<Note>> {

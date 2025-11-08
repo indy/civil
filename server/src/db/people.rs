@@ -86,7 +86,6 @@ pub(crate) async fn get_or_create(
         get_or_create_conn(conn, user_id, title)
     })
     .await
-    .map_err(Into::into)
 }
 
 fn all_conn(conn: &rusqlite::Connection, user_id: Key) -> Result<Vec<Person>, DbError> {
@@ -125,9 +124,7 @@ fn all_conn(conn: &rusqlite::Connection, user_id: Key) -> Result<Vec<Person>, Db
 }
 
 pub(crate) async fn all(sqlite_pool: &SqlitePool, user_id: Key) -> crate::Result<Vec<Person>> {
-    db(sqlite_pool, move |conn| all_conn(conn, user_id))
-        .await
-        .map_err(Into::into)
+    db(sqlite_pool, move |conn| all_conn(conn, user_id)).await
 }
 
 fn uncategorised_conn(
@@ -171,7 +168,6 @@ pub(crate) async fn uncategorised(
         uncategorised_conn(conn, user_id, offset, num_items)
     })
     .await
-    .map_err(Into::into)
 }
 
 fn ancient_conn(
@@ -223,7 +219,6 @@ pub(crate) async fn ancient(
         ancient_conn(conn, user_id, offset, num_items)
     })
     .await
-    .map_err(Into::into)
 }
 
 fn medieval_conn(
@@ -273,7 +268,6 @@ pub(crate) async fn medieval(
         medieval_conn(conn, user_id, offset, num_items)
     })
     .await
-    .map_err(Into::into)
 }
 
 fn modern_conn(
@@ -324,7 +318,6 @@ pub(crate) async fn modern(
         modern_conn(conn, user_id, offset, num_items)
     })
     .await
-    .map_err(Into::into)
 }
 
 fn contemporary_conn(
@@ -374,7 +367,6 @@ pub(crate) async fn contemporary(
         contemporary_conn(conn, user_id, offset, num_items)
     })
     .await
-    .map_err(Into::into)
 }
 
 fn get_conn(
@@ -407,9 +399,7 @@ pub(crate) async fn get(
     user_id: Key,
     person_id: Key,
 ) -> crate::Result<Option<Person>> {
-    db(sqlite_pool, move |conn| get_conn(conn, user_id, person_id))
-        .await
-        .map_err(Into::into)
+    db(sqlite_pool, move |conn| get_conn(conn, user_id, person_id)).await
 }
 
 fn edit_conn(
@@ -453,7 +443,6 @@ pub(crate) async fn edit(
         edit_conn(conn, user_id, person, person_id)
     })
     .await
-    .map_err(Into::into)
 }
 
 pub(crate) async fn delete(
