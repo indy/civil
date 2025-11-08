@@ -531,8 +531,6 @@ pub(crate) async fn delete(
         .map_err(Into::into)
 }
 
-
-
 fn get_font_of_deck(conn: &Connection, deck_id: Key) -> Result<Font, DbError> {
     sqlite::one(
         conn,

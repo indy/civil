@@ -571,7 +571,6 @@ dependencies = [
  "chatgpt_rs",
  "chrono",
  "civil-shared",
- "derive_more 2.0.1",
  "dotenv",
  "futures",
  "r2d2",
