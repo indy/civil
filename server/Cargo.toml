@@ -6,11 +6,11 @@ license = "AGPL-3.0-or-later"
 edition = "2021"
 
 [dependencies]
-tokio = { version = "1.47.1", features = ["macros", "rt-multi-thread"] }
+tokio = { version = "1.48.0", features = ["macros", "rt-multi-thread"] }
 
-actix-files = "0.6.6"
+actix-files = "0.6.8"
 actix-multipart = "0.7.2"
-actix-session = { version = "0.10.1", features = ["cookie-session"] }
+actix-session = { version = "0.11.0", features = ["cookie-session"] }
 actix-web = "4.11.0"
 
 backtrace = "0.3"
