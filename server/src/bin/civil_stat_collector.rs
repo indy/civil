@@ -19,7 +19,7 @@ use civil_server::stat_api;
 
 use r2d2_sqlite::SqliteConnectionManager;
 
-#[actix_rt::main]
+#[actix_web::main]
 async fn main() -> civil_server::Result<()> {
     civil_server::init_dotenv();
     civil_server::init_tracing();

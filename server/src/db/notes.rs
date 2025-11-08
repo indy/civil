@@ -638,7 +638,8 @@ fn edit_note_conn(
     }
 }
 
-pub(crate) async fn edit_note(
+// this is public because it's used by the civil note parser
+pub async fn edit_note(
     sqlite_pool: &SqlitePool,
     user_id: Key,
     note: Note,

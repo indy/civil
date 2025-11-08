@@ -50,9 +50,7 @@ pub enum Error {
     #[error("registration error")]
     Registration,
     #[error(transparent)]
-    ThreadpoolBlocking(#[from] actix_threadpool::BlockingError<std::io::Error>),
-    #[error(transparent)]
-    ActixWebBlocking(#[from] actix_web::error::BlockingError),
+    Join(#[from] tokio::task::JoinError),
     #[error("too many found")]
     TooManyFound,
     #[error(transparent)]

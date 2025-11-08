@@ -15,16 +15,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use civil_server::{db::notes::edit_note, interop::notes::NoteKind, interop::Key, note_parser_api};
+use civil_server::{interop::Key};
 use std::cmp;
 
-use r2d2_sqlite::SqliteConnectionManager;
+// use civil_server::{db::notes::edit_note, interop::notes::NoteKind, interop::Key, note_parser_api};
+// use r2d2_sqlite::SqliteConnectionManager;
+
 use tracing::info;
 
 // use std::io::{stdin, stdout, Write};
 
-#[actix_rt::main]
+#[actix_web::main]
 async fn main() -> civil_server::Result<()> {
+    /*
     civil_server::init_dotenv();
     civil_server::init_tracing();
 
@@ -96,11 +99,11 @@ async fn main() -> civil_server::Result<()> {
         "finished parsing all note markup {}, count: {}",
         num_elements, c
     );
-
+*/
     Ok(())
 }
 
-fn convert_syntax_pipe(content: &str) -> String {
+fn _convert_syntax_pipe(content: &str) -> String {
     let mut res: String = String::from("");
     let mut inside: bool = false;
 

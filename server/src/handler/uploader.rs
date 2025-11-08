@@ -28,7 +28,7 @@ use std::path::Path as StdPath;
 use actix_multipart::Multipart;
 use actix_web::web::Data;
 use actix_web::web::Path;
-use actix_web::{web, HttpResponse};
+use actix_web::HttpResponse;
 use futures::{StreamExt, TryStreamExt};
 use std::io::Write;
 
@@ -90,7 +90,7 @@ pub async fn create(
         upload_image_count += 1;
 
         // todo: unwrap was added after the File::create - is this right?
-        let mut f = web::block(|| std::fs::File::create(filepath).unwrap())
+        let mut f = tokio::task::spawn_blocking(|| std::fs::File::create(filepath).unwrap())
             .await
             .unwrap();
 
@@ -100,7 +100,7 @@ pub async fn create(
             // filesystem operations are blocking, we have to use threadpool
 
             // todo: the await?.unwrap() code looks wrong
-            f = web::block(move || f.write_all(&data).map(|_| f))
+            f = tokio::task::spawn_blocking(move || f.write_all(&data).map(|_| f))
                 .await?
                 .unwrap();
         }
