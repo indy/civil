@@ -3,7 +3,7 @@ name = "civil-server"
 version = "1.0.0"
 authors = ["Inderjit Gill <email@indy.io>"]
 license = "AGPL-3.0-or-later"
-edition = "2021"
+edition = "2024"
 
 [dependencies]
 tokio = { version = "1.48.0", features = ["macros", "rt-multi-thread"] }
