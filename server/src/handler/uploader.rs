@@ -19,32 +19,28 @@ use crate::db::uploader as db;
 use crate::db::SqlitePool;
 use crate::error::Error;
 use crate::handler::AuthUser;
+use crate::interop::AtLeastParam;
 use crate::ServerConfig;
 use actix_multipart::Multipart;
-use actix_web::web::{Data, Path};
-use actix_web::HttpResponse;
+use actix_web::web::{Data, Json, Path};
+use actix_web::Responder;
 use futures::{StreamExt, TryStreamExt};
 use std::ffi::OsStr;
 use std::io::Write;
 use std::path::Path as StdPath;
 
-use crate::interop::AtLeastParam;
-
-#[allow(unused_imports)]
-use tracing::info;
-
-pub async fn get_directory(AuthUser(user_id): AuthUser) -> crate::Result<HttpResponse> {
-    Ok(HttpResponse::Ok().json(user_id))
+pub async fn get_directory(AuthUser(user_id): AuthUser) -> crate::Result<impl Responder> {
+    Ok(Json(user_id))
 }
 
 pub async fn get(
     sqlite_pool: Data<SqlitePool>,
     params: Path<AtLeastParam>,
     AuthUser(user_id): AuthUser,
-) -> crate::Result<HttpResponse> {
+) -> crate::Result<impl Responder> {
     let recent = db::get_recent(&sqlite_pool, user_id, params.at_least).await?;
 
-    Ok(HttpResponse::Ok().json(recent))
+    Ok(Json(recent))
 }
 
 pub async fn create(
@@ -52,7 +48,7 @@ pub async fn create(
     server_config: Data<ServerConfig>,
     sqlite_pool: Data<SqlitePool>,
     AuthUser(user_id): AuthUser,
-) -> crate::Result<HttpResponse> {
+) -> crate::Result<impl Responder> {
     let user_directory = format!("{}/{}", server_config.user_content_path, user_id);
     std::fs::DirBuilder::new()
         .recursive(true)
@@ -100,7 +96,7 @@ pub async fn create(
     }
     db::set_image_count(&sqlite_pool, user_id, user_total_image_count).await?;
 
-    Ok(HttpResponse::Ok().json(upload_image_count))
+    Ok(Json(upload_image_count))
 }
 
 fn get_extension(filename: &str) -> Option<&str> {

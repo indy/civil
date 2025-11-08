@@ -23,63 +23,46 @@ use crate::interop::notes as interop;
 use crate::interop::references as interop_refs;
 use crate::interop::IdParam;
 use actix_web::web::{Data, Json, Path};
-use actix_web::HttpResponse;
-
-#[allow(unused_imports)]
-use tracing::info;
+use actix_web::Responder;
 
 pub async fn create_notes(
-    note: Json<interop::ProtoNote>,
+    Json(note): Json<interop::ProtoNote>,
     sqlite_pool: Data<SqlitePool>,
     AuthUser(user_id): AuthUser,
-) -> crate::Result<HttpResponse> {
-    let note = note.into_inner();
-    info!("create_notes {:?}", &note);
-
+) -> crate::Result<impl Responder> {
     let notes = db::create_notes(&sqlite_pool, user_id, note).await?;
 
-    // anything that alters the structure of a deck's notes should return _all_ the notes associated with that deck
-    Ok(HttpResponse::Ok().json(notes))
+    Ok(Json(notes))
 }
 
 pub async fn edit_note(
-    note: Json<interop::Note>,
+    Json(note): Json<interop::Note>,
     sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,
     AuthUser(user_id): AuthUser,
-) -> crate::Result<HttpResponse> {
-    info!("edit_note");
-
-    let note = note.into_inner();
+) -> crate::Result<impl Responder> {
     let note = db::edit_note(&sqlite_pool, user_id, note, params.id).await?;
 
-    Ok(HttpResponse::Ok().json(note))
+    Ok(Json(note))
 }
 
 pub async fn delete_note(
     sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,
     AuthUser(user_id): AuthUser,
-) -> crate::Result<HttpResponse> {
-    info!("delete_note {}", params.id);
-
+) -> crate::Result<impl Responder> {
     let notes = db::delete_note_properly(&sqlite_pool, user_id, params.id).await?;
-    // anything that alters the structure of a deck's notes should return _all_ the notes associated with that deck
-    Ok(HttpResponse::Ok().json(notes))
+
+    Ok(Json(notes))
 }
 
 pub async fn edit_references(
-    diff: Json<interop_refs::ReferencesDiff>,
+    Json(diff): Json<interop_refs::ReferencesDiff>,
     sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,
     AuthUser(user_id): AuthUser,
-) -> crate::Result<HttpResponse> {
-    info!("update");
+) -> crate::Result<impl Responder> {
+    let decks_for_note = db_refs::update_references(&sqlite_pool, diff, user_id, params.id).await?;
 
-    let diff = diff.into_inner();
-
-    let all_decks_for_note =
-        db_refs::update_references(&sqlite_pool, diff, user_id, params.id).await?;
-
-    Ok(HttpResponse::Ok().json(all_decks_for_note))
+    Ok(Json(decks_for_note))
 }

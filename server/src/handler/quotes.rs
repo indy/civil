@@ -16,51 +16,41 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::db::quotes as db;
+use crate::db::SqlitePool;
 use crate::handler::{decks, AuthUser, PaginationQuery};
 use crate::interop::decks::DeckKind;
 use crate::interop::quotes as interop;
 use crate::interop::IdParam;
 use actix_web::web::{Data, Json, Path, Query};
-use actix_web::HttpResponse;
-
-use crate::db::SqlitePool;
-
-#[allow(unused_imports)]
-use tracing::info;
+use actix_web::Responder;
 
 pub async fn create(
-    proto_quote: Json<interop::ProtoQuote>,
+    Json(proto_quote): Json<interop::ProtoQuote>,
     sqlite_pool: Data<SqlitePool>,
     AuthUser(user_id): AuthUser,
-) -> crate::Result<HttpResponse> {
-    info!("create");
-
-    let proto_quote = proto_quote.into_inner();
-
+) -> crate::Result<impl Responder> {
     let quote = db::get_or_create(&sqlite_pool, user_id, proto_quote).await?;
 
-    Ok(HttpResponse::Ok().json(quote))
+    Ok(Json(quote))
 }
 
 pub async fn random(
     sqlite_pool: Data<SqlitePool>,
     AuthUser(user_id): AuthUser,
-) -> crate::Result<HttpResponse> {
-    info!("random");
-
-    let quote = match db::random(sqlite_pool.get_ref(), user_id).await? {
+) -> crate::Result<impl Responder> {
+    let quote = match db::random(&sqlite_pool, user_id).await? {
         Some(i) => i,
         None => return Err(crate::Error::NotFound),
     };
 
-    Ok(HttpResponse::Ok().json(quote))
+    Ok(Json(quote))
 }
 
 pub async fn pagination(
     sqlite_pool: Data<SqlitePool>,
     AuthUser(user_id): AuthUser,
     Query(query): Query<PaginationQuery>,
-) -> crate::Result<HttpResponse> {
+) -> crate::Result<impl Responder> {
     decks::pagination(sqlite_pool, query, user_id, DeckKind::Quote).await
 }
 
@@ -68,77 +58,58 @@ pub async fn get(
     sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,
     AuthUser(user_id): AuthUser,
-) -> crate::Result<HttpResponse> {
-    info!("get {:?}", params.id);
-
-    let quote_id = params.id;
-
-    let quote = match db::get(sqlite_pool.get_ref(), user_id, quote_id).await? {
+) -> crate::Result<impl Responder> {
+    let quote = match db::get(&sqlite_pool, user_id, params.id).await? {
         Some(i) => i,
         None => return Err(crate::Error::NotFound),
     };
 
-    Ok(HttpResponse::Ok().json(quote))
+    Ok(Json(quote))
 }
 
 pub async fn next(
     sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,
     AuthUser(user_id): AuthUser,
-) -> crate::Result<HttpResponse> {
-    info!("next {:?}", params.id);
-
-    let quote_id = params.id;
-
-    let quote = match db::next(sqlite_pool.get_ref(), user_id, quote_id).await? {
+) -> crate::Result<impl Responder> {
+    let quote = match db::next(&sqlite_pool, user_id, params.id).await? {
         Some(i) => i,
         None => return Err(crate::Error::NotFound),
     };
 
-    Ok(HttpResponse::Ok().json(quote))
+    Ok(Json(quote))
 }
 
 pub async fn prev(
     sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,
     AuthUser(user_id): AuthUser,
-) -> crate::Result<HttpResponse> {
-    info!("prev {:?}", params.id);
-
-    let quote_id = params.id;
-
-    let quote = match db::prev(sqlite_pool.get_ref(), user_id, quote_id).await? {
+) -> crate::Result<impl Responder> {
+    let quote = match db::prev(&sqlite_pool, user_id, params.id).await? {
         Some(i) => i,
         None => return Err(crate::Error::NotFound),
     };
 
-    Ok(HttpResponse::Ok().json(quote))
+    Ok(Json(quote))
 }
 
 pub async fn edit(
-    quote: Json<interop::ProtoQuote>,
+    Json(quote): Json<interop::ProtoQuote>,
     sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,
     AuthUser(user_id): AuthUser,
-) -> crate::Result<HttpResponse> {
-    info!("edit");
+) -> crate::Result<impl Responder> {
+    let quote = db::edit(&sqlite_pool, user_id, quote, params.id).await?;
 
-    let quote_id = params.id;
-    let quote = quote.into_inner();
-
-    let quote = db::edit(&sqlite_pool, user_id, quote, quote_id).await?;
-
-    Ok(HttpResponse::Ok().json(quote))
+    Ok(Json(quote))
 }
 
 pub async fn delete(
     sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,
     AuthUser(user_id): AuthUser,
-) -> crate::Result<HttpResponse> {
-    info!("delete");
-
+) -> crate::Result<impl Responder> {
     db::delete(&sqlite_pool, user_id, params.id).await?;
 
-    Ok(HttpResponse::Ok().json(true))
+    Ok(Json(true))
 }

@@ -15,23 +15,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::db::SqlitePool;
-use crate::handler::AuthUser;
-use actix_web::web::Data;
-use actix_web::HttpResponse;
-use chrono::Utc;
-
-#[allow(unused_imports)]
-use tracing::info;
-
 use crate::db::bookmarks as db_bookmarks;
 use crate::db::memorise as db_memorise;
 use crate::db::references as db_references;
 use crate::db::uploader as db_uploader;
+use crate::db::SqlitePool;
+use crate::handler::AuthUser;
 use crate::interop::bookmarks as interop_bookmarks;
 use crate::interop::decks::SlimDeck;
 use crate::interop::uploader as interop_uploader;
 use crate::interop::Key;
+use actix_web::web::{Data, Json};
+use actix_web::Responder;
+use chrono::Utc;
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -47,9 +43,7 @@ struct UberStruct {
 pub async fn setup(
     sqlite_pool: Data<SqlitePool>,
     AuthUser(user_id): AuthUser,
-) -> crate::Result<HttpResponse> {
-    info!("setup");
-
+) -> crate::Result<impl Responder> {
     let directory = user_id;
     let recently_used_decks =
         db_references::get_decks_recently_referenced(&sqlite_pool, user_id).await?;
@@ -68,5 +62,5 @@ pub async fn setup(
         bookmarks,
     };
 
-    Ok(HttpResponse::Ok().json(uber))
+    Ok(Json(uber))
 }

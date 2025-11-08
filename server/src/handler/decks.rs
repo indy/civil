@@ -25,7 +25,7 @@ use crate::interop::decks::{DeckKind, Pagination, SlimDeck, SlimResults};
 use crate::interop::dialogues::AiKind;
 use crate::interop::{IdParam, Key};
 use actix_web::web::{Data, Json, Path, Query};
-use actix_web::HttpResponse;
+use actix_web::Responder;
 use serde::Deserialize;
 
 #[allow(unused_imports)]
@@ -35,14 +35,10 @@ pub async fn hits(
     sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,
     AuthUser(_user_id): AuthUser,
-) -> crate::Result<HttpResponse> {
-    info!("hits {:?}", params.id);
+) -> crate::Result<impl Responder> {
+    let hits = db::get_hits(&sqlite_pool, params.id).await?;
 
-    let deck_id = params.id;
-
-    let hits = db::get_hits(&sqlite_pool, deck_id).await?;
-
-    Ok(HttpResponse::Ok().json(hits))
+    Ok(Json(hits))
 }
 
 #[derive(serde::Deserialize)]
@@ -58,9 +54,7 @@ pub async fn insignias(
     sqlite_pool: Data<SqlitePool>,
     AuthUser(user_id): AuthUser,
     Query(query): Query<InsigniasArgs>,
-) -> crate::Result<HttpResponse> {
-    info!("insignia_filter {:?}", query.insignia);
-
+) -> crate::Result<impl Responder> {
     let paginated: Pagination<SlimDeck> = if let Some(resource_string) = query.resource {
         let deck_kind = resource_string_to_deck_kind(&resource_string)?;
         db::insignia_filter(
@@ -83,7 +77,7 @@ pub async fn insignias(
         .await?
     };
 
-    Ok(HttpResponse::Ok().json(paginated))
+    Ok(Json(paginated))
 }
 
 #[derive(Deserialize)]
@@ -95,14 +89,12 @@ pub async fn recent(
     sqlite_pool: Data<SqlitePool>,
     AuthUser(user_id): AuthUser,
     Query(query): Query<RecentQuery>,
-) -> crate::Result<HttpResponse> {
-    info!("recent {}", &query.resource);
-
+) -> crate::Result<impl Responder> {
     let deck_kind = resource_string_to_deck_kind(&query.resource)?;
     let results = db::recent(&sqlite_pool, user_id, deck_kind).await?;
-
     let res = SlimResults { results };
-    Ok(HttpResponse::Ok().json(res))
+
+    Ok(Json(res))
 }
 
 #[derive(Deserialize)]
@@ -115,7 +107,7 @@ pub async fn recently_visited(
     sqlite_pool: Data<SqlitePool>,
     AuthUser(user_id): AuthUser,
     Query(query): Query<RecentKindNum>,
-) -> crate::Result<HttpResponse> {
+) -> crate::Result<impl Responder> {
     let results: Vec<SlimDeck> = if let Some(resource_string) = query.resource {
         let deck_kind = resource_string_to_deck_kind(&resource_string)?;
         db::recently_visited(&sqlite_pool, user_id, deck_kind, query.num).await?
@@ -124,7 +116,7 @@ pub async fn recently_visited(
     };
 
     let res = SlimResults { results };
-    Ok(HttpResponse::Ok().json(res))
+    Ok(Json(res))
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
@@ -135,18 +127,12 @@ pub struct SummarizeStruct {
 }
 
 pub async fn summarize(
-    summarize_struct: Json<SummarizeStruct>,
+    Json(summarize_struct): Json<SummarizeStruct>,
     sqlite_pool: Data<SqlitePool>,
     ai: Data<AI>,
     params: Path<IdParam>,
     AuthUser(user_id): AuthUser,
-) -> crate::Result<HttpResponse> {
-    info!("summarize {:?}", params.id);
-
-    let deck_id = params.id;
-
-    let summarize_struct = summarize_struct.into_inner();
-
+) -> crate::Result<impl Responder> {
     let mut messages: Vec<openai_interface::ChatMessage> = vec![];
 
     messages.push(openai_interface::ChatMessage {
@@ -179,13 +165,13 @@ pub async fn summarize(
                 let note = db_notes::add_auto_summary(
                     &sqlite_pool,
                     user_id,
-                    deck_id,
+                    params.id,
                     summarize_struct.prev_id,
                     summary.trim().to_string(),
                 )
                 .await?;
 
-                Ok(HttpResponse::Ok().json(note))
+                Ok(Json(note))
             }
         }
         Err(e) => {
@@ -201,7 +187,7 @@ pub async fn summarize(
     chatgpt_client: Data<chatgpt::prelude::ChatGPT>,
     params: Path<IdParam>,
     AuthUser(user_id): AuthUser,
-) -> crate::Result<HttpResponse> {
+) -> crate::Result<impl Responder> {
     info!("summarize {:?}", params.id);
 
     let user_id = session::user_id(&session)?;
@@ -216,7 +202,7 @@ pub async fn summarize(
 
     let response = openai_interface::chat(chatgpt_client, messages).await?;
 
-    Ok(HttpResponse::Ok().json(response))
+    Ok(Json(response))
 }
 
 fn simplify_contents(content: Vec<String>) -> crate::Result<String> {
@@ -290,14 +276,10 @@ pub async fn preview(
     sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,
     AuthUser(user_id): AuthUser,
-) -> crate::Result<HttpResponse> {
-    info!("preview {:?}", params.id);
+) -> crate::Result<impl Responder> {
+    let preview = db_notes::preview(&sqlite_pool, user_id, params.id).await?;
 
-    let deck_id = params.id;
-
-    let preview = db_notes::preview(&sqlite_pool, user_id, deck_id).await?;
-
-    Ok(HttpResponse::Ok().json(preview))
+    Ok(Json(preview))
 }
 
 pub(crate) async fn pagination(
@@ -305,9 +287,7 @@ pub(crate) async fn pagination(
     query: PaginationQuery,
     user_id: Key,
     deck_kind: DeckKind,
-) -> crate::Result<HttpResponse> {
-    info!("pagination");
-
+) -> crate::Result<impl Responder> {
     let pagination_results;
     if deck_kind == DeckKind::Event {
         // events are treated differently from other deck kinds
@@ -332,7 +312,7 @@ pub(crate) async fn pagination(
         .await?;
     }
 
-    Ok(HttpResponse::Ok().json(pagination_results))
+    Ok(Json(pagination_results))
 }
 
 fn resource_string_to_deck_kind(resource: &str) -> crate::Result<DeckKind> {

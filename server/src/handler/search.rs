@@ -20,11 +20,8 @@ use crate::db::SqlitePool;
 use crate::handler::{AuthUser, SearchQuery};
 use crate::interop::search::SearchResults;
 use crate::interop::IdParam;
-use actix_web::web::{Data, Path, Query};
-use actix_web::HttpResponse;
-
-#[allow(unused_imports)]
-use tracing::{info, warn};
+use actix_web::web::{Data, Json, Path, Query};
+use actix_web::Responder;
 
 // called by the realtime search at the top of the page
 //
@@ -32,9 +29,7 @@ pub async fn search_at_deck_level(
     sqlite_pool: Data<SqlitePool>,
     AuthUser(user_id): AuthUser,
     Query(query): Query<SearchQuery>,
-) -> crate::Result<HttpResponse> {
-    info!("search_at_deck_level '{}'", &query.q);
-
+) -> crate::Result<impl Responder> {
     // nocheckin: sort out this q q2 stuff
     let q: String = query.q;
     let q2 = q.clone();
@@ -46,7 +41,7 @@ pub async fn search_at_deck_level(
         note_level: vec![],
     };
 
-    Ok(HttpResponse::Ok().json(res))
+    Ok(Json(res))
 }
 
 // called by CivilSelect to refine Candidates
@@ -55,9 +50,7 @@ pub async fn search_names_at_deck_level(
     sqlite_pool: Data<SqlitePool>,
     AuthUser(user_id): AuthUser,
     Query(query): Query<SearchQuery>,
-) -> crate::Result<HttpResponse> {
-    info!("search_names_at_deck_level '{}'", &query.q);
-
+) -> crate::Result<impl Responder> {
     // nocheckin: sort out this q q2 stuff
     let q: String = query.q;
     let q2 = q.clone();
@@ -69,24 +62,20 @@ pub async fn search_names_at_deck_level(
         note_level: vec![],
     };
 
-    Ok(HttpResponse::Ok().json(res))
+    Ok(Json(res))
 }
 
 pub async fn additional_search_for_decks(
     sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,
     AuthUser(user_id): AuthUser,
-) -> crate::Result<HttpResponse> {
-    info!("additional_search_for_decks {:?}", params.id);
-
-    let deck_id = params.id;
-
+) -> crate::Result<impl Responder> {
     // search deck, article_extras etc tables for text similar to deck_id's title
     // ignore anything that explicitly links back to the deck
     //
-    let res = db::additional_search_at_deck_level(&sqlite_pool, user_id, deck_id).await?;
+    let res = db::additional_search_at_deck_level(&sqlite_pool, user_id, params.id).await?;
 
-    Ok(HttpResponse::Ok().json(res))
+    Ok(Json(res))
 }
 
 // called by the search page
@@ -95,22 +84,18 @@ pub async fn search_at_all_levels(
     sqlite_pool: Data<SqlitePool>,
     AuthUser(user_id): AuthUser,
     Query(query): Query<SearchQuery>,
-) -> crate::Result<HttpResponse> {
-    info!("search_at_all_levels '{}'", &query.q);
-
+) -> crate::Result<impl Responder> {
     let res = db::search_at_all_levels(&sqlite_pool, user_id, query.q).await?;
 
-    Ok(HttpResponse::Ok().json(res))
+    Ok(Json(res))
 }
 
 pub async fn search_quotes(
     sqlite_pool: Data<SqlitePool>,
     AuthUser(user_id): AuthUser,
     Query(query): Query<SearchQuery>,
-) -> crate::Result<HttpResponse> {
-    info!("search_quotes '{}'", &query.q);
-
+) -> crate::Result<impl Responder> {
     let res = db::search_quotes(&sqlite_pool, user_id, query.q).await?;
 
-    Ok(HttpResponse::Ok().json(res))
+    Ok(Json(res))
 }

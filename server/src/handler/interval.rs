@@ -19,11 +19,8 @@ use crate::db::points as db;
 use crate::db::SqlitePool;
 use crate::handler::AuthUser;
 use crate::interop::points as interop;
-use actix_web::web::{Data, Path};
-use actix_web::HttpResponse;
-
-#[allow(unused_imports)]
-use tracing::info;
+use actix_web::web::{Data, Json, Path};
+use actix_web::Responder;
 
 #[derive(serde::Deserialize)]
 pub struct YearRangeParam {
@@ -35,14 +32,12 @@ pub async fn get_points(
     sqlite_pool: Data<SqlitePool>,
     params: Path<YearRangeParam>,
     AuthUser(user_id): AuthUser,
-) -> crate::Result<HttpResponse> {
-    info!("get points {:?} {:?}", params.lower, params.upper);
-
+) -> crate::Result<impl Responder> {
     let lower = params.lower;
     let upper = params.upper;
     let points = db::all_points_within_interval(&sqlite_pool, user_id, lower, upper).await?;
 
-    Ok(HttpResponse::Ok().json(interop::PointsWithinYears {
+    Ok(Json(interop::PointsWithinYears {
         lower_year: lower,
         upper_year: upper,
         points,

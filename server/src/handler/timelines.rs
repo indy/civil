@@ -22,44 +22,35 @@ use crate::interop::decks::{DeckKind, ProtoDeck, ProtoSlimDeck};
 use crate::interop::points as points_interop;
 use crate::interop::IdParam;
 use actix_web::web::{Data, Json, Path, Query};
-use actix_web::HttpResponse;
-
-#[allow(unused_imports)]
-use tracing::info;
+use actix_web::Responder;
 
 use crate::db::SqlitePool;
 
 pub async fn create(
-    proto_deck: Json<ProtoDeck>,
+    Json(proto_deck): Json<ProtoDeck>,
     sqlite_pool: Data<SqlitePool>,
     AuthUser(user_id): AuthUser,
-) -> crate::Result<HttpResponse> {
-    info!("create");
-
-    let proto_deck = proto_deck.into_inner();
-
+) -> crate::Result<impl Responder> {
     let timeline = db::get_or_create(&sqlite_pool, user_id, proto_deck.title).await?;
 
-    Ok(HttpResponse::Ok().json(timeline))
+    Ok(Json(timeline))
 }
 
 pub async fn get_all(
     sqlite_pool: Data<SqlitePool>,
     AuthUser(user_id): AuthUser,
-) -> crate::Result<HttpResponse> {
-    info!("get_all");
-
+) -> crate::Result<impl Responder> {
     // nocheckin: why is this db::listings when the ideas equivalent is db::all?
     let timelines = db::listings(&sqlite_pool, user_id).await?;
 
-    Ok(HttpResponse::Ok().json(timelines))
+    Ok(Json(timelines))
 }
 
 pub async fn pagination(
     sqlite_pool: Data<SqlitePool>,
     AuthUser(user_id): AuthUser,
     Query(query): Query<PaginationQuery>,
-) -> crate::Result<HttpResponse> {
+) -> crate::Result<impl Responder> {
     decks::pagination(sqlite_pool, query, user_id, DeckKind::Timeline).await
 }
 
@@ -67,88 +58,67 @@ pub async fn get(
     sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,
     AuthUser(user_id): AuthUser,
-) -> crate::Result<HttpResponse> {
-    info!("get {:?}", params.id);
-
-    let timeline_id = params.id;
-
-    let timeline = match db::get(sqlite_pool.get_ref(), user_id, timeline_id).await? {
+) -> crate::Result<impl Responder> {
+    let timeline = match db::get(&sqlite_pool, user_id, params.id).await? {
         Some(i) => i,
         None => return Err(crate::Error::NotFound),
     };
 
-    Ok(HttpResponse::Ok().json(timeline))
+    Ok(Json(timeline))
 }
 
 pub async fn edit(
-    timeline: Json<ProtoSlimDeck>,
+    Json(timeline): Json<ProtoSlimDeck>,
     sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,
     AuthUser(user_id): AuthUser,
-) -> crate::Result<HttpResponse> {
-    info!("edit");
+) -> crate::Result<impl Responder> {
+    let timeline = db::edit(&sqlite_pool, user_id, timeline, params.id).await?;
 
-    let timeline_id = params.id;
-    let timeline = timeline.into_inner();
-
-    let timeline = db::edit(&sqlite_pool, user_id, timeline, timeline_id).await?;
-
-    Ok(HttpResponse::Ok().json(timeline))
+    Ok(Json(timeline))
 }
 
 pub async fn delete(
     sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,
     AuthUser(user_id): AuthUser,
-) -> crate::Result<HttpResponse> {
-    info!("delete");
-
+) -> crate::Result<impl Responder> {
     db::delete(&sqlite_pool, user_id, params.id).await?;
 
-    Ok(HttpResponse::Ok().json(true))
+    Ok(Json(true))
 }
 
 pub async fn add_point(
-    point: Json<points_interop::ProtoPoint>,
+    Json(point): Json<points_interop::ProtoPoint>,
     sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,
     AuthUser(user_id): AuthUser,
-) -> crate::Result<HttpResponse> {
-    info!("add_point");
+) -> crate::Result<impl Responder> {
+    points_db::create(&sqlite_pool, point, params.id).await?;
 
-    let timeline_id = params.id;
-    let point = point.into_inner();
-
-    points_db::create(&sqlite_pool, point, timeline_id).await?;
-
-    let timeline = match db::get(sqlite_pool.get_ref(), user_id, timeline_id).await? {
+    let timeline = match db::get(&sqlite_pool, user_id, params.id).await? {
         Some(i) => i,
         None => return Err(crate::Error::NotFound),
     };
 
-    Ok(HttpResponse::Ok().json(timeline))
+    Ok(Json(timeline))
 }
 
 pub async fn add_multipoints(
-    points: Json<Vec<points_interop::ProtoPoint>>,
+    Json(points): Json<Vec<points_interop::ProtoPoint>>,
     sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,
     AuthUser(user_id): AuthUser,
-) -> crate::Result<HttpResponse> {
-    info!("add_multipoints");
-
-    let timeline_id = params.id;
-    let points = points.into_inner();
-
+) -> crate::Result<impl Responder> {
     // todo: I think it's bad to do this, where every loop dispatches to the db thread
     for point in points {
-        points_db::create(&sqlite_pool, point, timeline_id).await?;
+        points_db::create(&sqlite_pool, point, params.id).await?;
     }
 
-    let timeline = match db::get(sqlite_pool.get_ref(), user_id, timeline_id).await? {
+    let timeline = match db::get(&sqlite_pool, user_id, params.id).await? {
         Some(i) => i,
         None => return Err(crate::Error::NotFound),
     };
 
-    Ok(HttpResponse::Ok().json(timeline))
+    Ok(Json(timeline))
 }

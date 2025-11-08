@@ -23,57 +23,42 @@ use crate::interop::decks::DeckKind;
 use crate::interop::dialogues as interop;
 use crate::interop::IdParam;
 use actix_web::web::{Data, Json, Path, Query};
-use actix_web::HttpResponse;
-
-#[allow(unused_imports)]
-use tracing::info;
+use actix_web::Responder;
 
 pub async fn chat(
-    dialogue: Json<interop::ProtoChat>,
+    Json(dialogue): Json<interop::ProtoChat>,
     ai: Data<AI>,
-    AuthUser(user_id): AuthUser,
-) -> crate::Result<HttpResponse> {
-    info!("chat");
-
-    info!("{}", user_id.0);
-
-    let dialogue = dialogue.into_inner();
-
+    AuthUser(_user_id): AuthUser,
+) -> crate::Result<impl Responder> {
     let response = ai.chat(dialogue.ai_kind, dialogue.messages).await?;
 
-    Ok(HttpResponse::Ok().json(response))
+    Ok(Json(response))
 }
 
 pub async fn create(
-    proto_dialogue: Json<interop::ProtoDialogue>,
+    Json(proto_dialogue): Json<interop::ProtoDialogue>,
     sqlite_pool: Data<SqlitePool>,
     AuthUser(user_id): AuthUser,
-) -> crate::Result<HttpResponse> {
-    info!("create dialogue");
-
-    let proto_dialogue = proto_dialogue.into_inner();
-
+) -> crate::Result<impl Responder> {
     let dialogue = db::create(&sqlite_pool, user_id, proto_dialogue).await?;
 
-    Ok(HttpResponse::Ok().json(dialogue))
+    Ok(Json(dialogue))
 }
 
 pub async fn get_all(
     sqlite_pool: Data<SqlitePool>,
     AuthUser(user_id): AuthUser,
-) -> crate::Result<HttpResponse> {
-    info!("get_all");
-
+) -> crate::Result<impl Responder> {
     let dialogues = db::listings(&sqlite_pool, user_id).await?;
 
-    Ok(HttpResponse::Ok().json(dialogues))
+    Ok(Json(dialogues))
 }
 
 pub async fn pagination(
     sqlite_pool: Data<SqlitePool>,
     AuthUser(user_id): AuthUser,
     Query(query): Query<PaginationQuery>,
-) -> crate::Result<HttpResponse> {
+) -> crate::Result<impl Responder> {
     decks::pagination(sqlite_pool, query, user_id, DeckKind::Dialogue).await
 }
 
@@ -83,17 +68,14 @@ pub async fn converse(
     ai: Data<AI>,
     params: Path<IdParam>,
     AuthUser(user_id): AuthUser,
-) -> crate::Result<HttpResponse> {
-    info!("converse {:?}", params.id);
-
-    let deck_id = params.id;
+) -> crate::Result<impl Responder> {
     let chat_message = chat_message.into_inner();
 
     // save the user's chat message
     let mut prev_note_id =
-        db::add_chat_message(&sqlite_pool, user_id, deck_id, chat_message).await?;
+        db::add_chat_message(&sqlite_pool, user_id, params.id, chat_message).await?;
 
-    let (ai_kind, history) = db::get_chat_history(&sqlite_pool, user_id, deck_id).await?;
+    let (ai_kind, history) = db::get_chat_history(&sqlite_pool, user_id, params.id).await?;
 
     let response = ai.chat(ai_kind, history).await?;
 
@@ -106,55 +88,44 @@ pub async fn converse(
             role: openai_interface::Role::from(message.role),
             content: message.content,
         };
-        prev_note_id = db::add_chat_message(&sqlite_pool, user_id, deck_id, acm).await?;
+        prev_note_id = db::add_chat_message(&sqlite_pool, user_id, params.id, acm).await?;
     }
 
-    let dialogue = db::get(&sqlite_pool, user_id, deck_id).await?;
+    let dialogue = db::get(&sqlite_pool, user_id, params.id).await?;
 
-    Ok(HttpResponse::Ok().json(dialogue))
+    Ok(Json(dialogue))
 }
 
 pub async fn get(
     sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,
     AuthUser(user_id): AuthUser,
-) -> crate::Result<HttpResponse> {
-    info!("get {:?}", params.id);
-
-    let dialogue_id = params.id;
-
-    let dialogue = match db::get(sqlite_pool.get_ref(), user_id, dialogue_id).await? {
+) -> crate::Result<impl Responder> {
+    let dialogue = match db::get(&sqlite_pool, user_id, params.id).await? {
         Some(i) => i,
         None => return Err(crate::Error::NotFound),
     };
 
-    Ok(HttpResponse::Ok().json(dialogue))
+    Ok(Json(dialogue))
 }
 
 pub async fn edit(
-    dialogue: Json<interop::ProtoDialogue>,
+    Json(dialogue): Json<interop::ProtoDialogue>,
     sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,
     AuthUser(user_id): AuthUser,
-) -> crate::Result<HttpResponse> {
-    info!("edit");
+) -> crate::Result<impl Responder> {
+    let dialogue = db::edit(&sqlite_pool, user_id, dialogue, params.id).await?;
 
-    let dialogue_id = params.id;
-    let dialogue = dialogue.into_inner();
-
-    let dialogue = db::edit(&sqlite_pool, user_id, dialogue, dialogue_id).await?;
-
-    Ok(HttpResponse::Ok().json(dialogue))
+    Ok(Json(dialogue))
 }
 
 pub async fn delete(
     sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,
     AuthUser(user_id): AuthUser,
-) -> crate::Result<HttpResponse> {
-    info!("delete");
-
+) -> crate::Result<impl Responder> {
     db::delete(&sqlite_pool, user_id, params.id).await?;
 
-    Ok(HttpResponse::Ok().json(true))
+    Ok(Json(true))
 }

@@ -21,40 +21,32 @@ use crate::handler::{decks, AuthUser, PaginationQuery};
 use crate::interop::decks::{DeckKind, ProtoDeck, ProtoSlimDeck};
 use crate::interop::IdParam;
 use actix_web::web::{Data, Json, Path, Query};
-use actix_web::HttpResponse;
-
-#[allow(unused_imports)]
-use tracing::info;
+use actix_web::Responder;
 
 pub async fn create(
-    proto_deck: Json<ProtoDeck>,
+    Json(proto): Json<ProtoDeck>,
     sqlite_pool: Data<SqlitePool>,
     AuthUser(user_id): AuthUser,
-) -> crate::Result<HttpResponse> {
-    info!("create");
+) -> crate::Result<impl Responder> {
+    let idea = db::get_or_create(&sqlite_pool, user_id, proto.title).await?;
 
-    let proto_deck = proto_deck.into_inner();
-    let idea = db::get_or_create(&sqlite_pool, user_id, proto_deck.title).await?;
-
-    Ok(HttpResponse::Ok().json(idea))
+    Ok(Json(idea))
 }
 
 pub async fn get_all(
     sqlite_pool: Data<SqlitePool>,
     AuthUser(user_id): AuthUser,
-) -> crate::Result<HttpResponse> {
-    info!("get_all");
-
+) -> crate::Result<impl Responder> {
     let ideas = db::all(&sqlite_pool, user_id).await?;
 
-    Ok(HttpResponse::Ok().json(ideas))
+    Ok(Json(ideas))
 }
 
 pub async fn pagination(
     sqlite_pool: Data<SqlitePool>,
     AuthUser(user_id): AuthUser,
     Query(query): Query<PaginationQuery>,
-) -> crate::Result<HttpResponse> {
+) -> crate::Result<impl Responder> {
     decks::pagination(sqlite_pool, query, user_id, DeckKind::Idea).await
 }
 
@@ -62,92 +54,76 @@ pub async fn recent(
     sqlite_pool: Data<SqlitePool>,
     AuthUser(user_id): AuthUser,
     Query(query): Query<PaginationQuery>,
-) -> crate::Result<HttpResponse> {
-    let paginated_recent = db::recent(&sqlite_pool, user_id, query.offset, query.num_items).await?;
+) -> crate::Result<impl Responder> {
+    let recent = db::recent(&sqlite_pool, user_id, query.offset, query.num_items).await?;
 
-    Ok(HttpResponse::Ok().json(paginated_recent))
+    Ok(Json(recent))
 }
 
 pub async fn orphans(
     sqlite_pool: Data<SqlitePool>,
     AuthUser(user_id): AuthUser,
     Query(query): Query<PaginationQuery>,
-) -> crate::Result<HttpResponse> {
-    let paginated_orphans =
-        db::orphans(&sqlite_pool, user_id, query.offset, query.num_items).await?;
+) -> crate::Result<impl Responder> {
+    let orphans = db::orphans(&sqlite_pool, user_id, query.offset, query.num_items).await?;
 
-    Ok(HttpResponse::Ok().json(paginated_orphans))
+    Ok(Json(orphans))
 }
 
 pub async fn unnoted(
     sqlite_pool: Data<SqlitePool>,
     AuthUser(user_id): AuthUser,
     Query(query): Query<PaginationQuery>,
-) -> crate::Result<HttpResponse> {
+) -> crate::Result<impl Responder> {
     let paginated_unnoted =
         db::unnoted(&sqlite_pool, user_id, query.offset, query.num_items).await?;
 
-    Ok(HttpResponse::Ok().json(paginated_unnoted))
+    Ok(Json(paginated_unnoted))
 }
 
 pub async fn convert(
     sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,
     AuthUser(user_id): AuthUser,
-) -> crate::Result<HttpResponse> {
-    info!("convert to concept");
-
-    let idea_id = params.id;
-
-    let concept = match db::convert(sqlite_pool.get_ref(), user_id, idea_id).await? {
+) -> crate::Result<impl Responder> {
+    let concept = match db::convert(&sqlite_pool, user_id, params.id).await? {
         Some(i) => i,
         None => return Err(crate::Error::NotFound),
     };
 
-    Ok(HttpResponse::Ok().json(concept))
+    Ok(Json(concept))
 }
 
 pub async fn get(
     sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,
     AuthUser(user_id): AuthUser,
-) -> crate::Result<HttpResponse> {
-    info!("get idea {:?}", params.id);
-
-    let idea_id = params.id;
-
-    let idea = match db::get(sqlite_pool.get_ref(), user_id, idea_id).await? {
+) -> crate::Result<impl Responder> {
+    let idea = match db::get(&sqlite_pool, user_id, params.id).await? {
         Some(i) => i,
         None => return Err(crate::Error::NotFound),
     };
 
-    Ok(HttpResponse::Ok().json(idea))
+    Ok(Json(idea))
 }
 
 pub async fn edit(
-    idea: Json<ProtoSlimDeck>,
+    Json(idea): Json<ProtoSlimDeck>,
     sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,
     AuthUser(user_id): AuthUser,
-) -> crate::Result<HttpResponse> {
-    info!("edit idea {:?}", params.id);
+) -> crate::Result<impl Responder> {
+    let idea = db::edit(&sqlite_pool, user_id, idea, params.id).await?;
 
-    let idea_id = params.id;
-    let idea = idea.into_inner();
-
-    let idea = db::edit(sqlite_pool.get_ref(), user_id, idea, idea_id).await?;
-
-    Ok(HttpResponse::Ok().json(idea))
+    Ok(Json(idea))
 }
 
 pub async fn delete(
     sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,
     AuthUser(user_id): AuthUser,
-) -> crate::Result<HttpResponse> {
-    info!("delete");
-
+) -> crate::Result<impl Responder> {
     db::delete(&sqlite_pool, user_id, params.id).await?;
 
-    Ok(HttpResponse::Ok().json(true))
+    Ok(Json(true))
 }

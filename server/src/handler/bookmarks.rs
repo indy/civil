@@ -20,61 +20,46 @@ use crate::db::SqlitePool;
 use crate::handler::AuthUser;
 use crate::interop::{IdParam, Key};
 use actix_web::web::{Data, Json, Path};
-use actix_web::HttpResponse;
-
-#[allow(unused_imports)]
-use tracing::info;
+use actix_web::Responder;
 
 pub async fn create_bookmark(
-    deck_id: Json<Key>,
+    Json(deck_id): Json<Key>,
     sqlite_pool: Data<SqlitePool>,
     AuthUser(user_id): AuthUser,
-) -> crate::Result<HttpResponse> {
-    let deck_id = deck_id.into_inner();
-    info!("create_bookmark {:?}", &deck_id);
-
+) -> crate::Result<impl Responder> {
     db::create_bookmark(&sqlite_pool, user_id, deck_id).await?;
-
-    // return all of the user's bookmarks
     let bookmarks = db::get_bookmarks(&sqlite_pool, user_id).await?;
-    Ok(HttpResponse::Ok().json(bookmarks))
+
+    Ok(Json(bookmarks))
 }
 
 pub async fn create_multiple_bookmarks(
-    deck_ids: Json<Vec<Key>>,
+    Json(deck_ids): Json<Vec<Key>>,
     sqlite_pool: Data<SqlitePool>,
     AuthUser(user_id): AuthUser,
-) -> crate::Result<HttpResponse> {
-    let deck_ids = deck_ids.into_inner();
-    info!("create_multiple_bookmarks");
-
+) -> crate::Result<impl Responder> {
     db::create_multiple_bookmarks(&sqlite_pool, user_id, deck_ids).await?;
-
-    // return all of the user's bookmarks
     let bookmarks = db::get_bookmarks(&sqlite_pool, user_id).await?;
-    Ok(HttpResponse::Ok().json(bookmarks))
+
+    Ok(Json(bookmarks))
 }
 
 pub async fn get_bookmarks(
     sqlite_pool: Data<SqlitePool>,
     AuthUser(user_id): AuthUser,
-) -> crate::Result<HttpResponse> {
-    info!("get_bookmarks");
-
+) -> crate::Result<impl Responder> {
     let bookmarks = db::get_bookmarks(&sqlite_pool, user_id).await?;
-    Ok(HttpResponse::Ok().json(bookmarks))
+
+    Ok(Json(bookmarks))
 }
 
 pub async fn delete_bookmark(
     sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,
     AuthUser(user_id): AuthUser,
-) -> crate::Result<HttpResponse> {
-    info!("delete_bookmark {}", params.id);
-
+) -> crate::Result<impl Responder> {
     db::delete_bookmark(&sqlite_pool, user_id, params.id).await?;
-
-    // return all of the user's bookmarks
     let bookmarks = db::get_bookmarks(&sqlite_pool, user_id).await?;
-    Ok(HttpResponse::Ok().json(bookmarks))
+
+    Ok(Json(bookmarks))
 }

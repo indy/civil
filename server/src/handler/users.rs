@@ -23,7 +23,7 @@ use crate::interop::Key;
 use crate::session;
 use crate::ServerConfig;
 use actix_web::web::{Data, Json};
-use actix_web::HttpResponse;
+use actix_web::{HttpResponse, Responder};
 use rand::{rng, RngCore};
 use std::env;
 
@@ -31,15 +31,11 @@ use std::env;
 use tracing::info;
 
 pub async fn login(
-    login: Json<interop::LoginCredentials>,
+    Json(login): Json<interop::LoginCredentials>,
     db_pool: Data<SqlitePool>,
     session: actix_session::Session,
-) -> crate::Result<HttpResponse> {
-    info!("login");
-    let login = login.into_inner();
-
+) -> crate::Result<impl Responder> {
     let pw: String = login.password.clone();
-
     let (id, password, mut user) = db::login(&db_pool, login).await?;
 
     // compare hashed password of matched_user with the given LoginCredentials
@@ -56,7 +52,7 @@ pub async fn login(
 
         info!("login accepted!!");
         // send response
-        Ok(HttpResponse::Ok().json(user))
+        Ok(Json(user))
     } else {
         info!("login denied");
         session.clear();
@@ -67,10 +63,10 @@ pub async fn login(
 pub async fn logout(
     _db_pool: Data<SqlitePool>,
     session: actix_session::Session,
-) -> crate::Result<HttpResponse> {
+) -> crate::Result<impl Responder> {
     session.purge();
     // todo: what to return when logging out???
-    Ok(HttpResponse::Ok().json(true))
+    Ok(Json(true))
 }
 
 fn verify_encoded(encoded: &str, pwd: &[u8]) -> crate::Result<bool> {
@@ -80,15 +76,11 @@ fn verify_encoded(encoded: &str, pwd: &[u8]) -> crate::Result<bool> {
 }
 
 pub async fn create_user(
-    registration: Json<interop::Registration>,
+    Json(registration): Json<interop::Registration>,
     server_config: Data<ServerConfig>,
     db_pool: Data<SqlitePool>,
     session: actix_session::Session,
-) -> crate::Result<HttpResponse> {
-    info!("create_user");
-
-    let registration = registration.into_inner();
-
+) -> crate::Result<impl Responder> {
     if server_config.registration_magic_word == registration.magic_word {
         let hash = hash_password(&registration.password)?;
 
@@ -104,12 +96,15 @@ pub async fn create_user(
         }
 
         // send response
-        Ok(HttpResponse::Ok().json(user))
+        Ok(Json(user))
     } else {
         Err(Error::Registration)
     }
 }
 
+// using HttpResponse here because we want to return an empty json object if there's no session
+// if the Json function was used then the compiler would complain that this function wasn't returning the same concrete type
+//
 pub async fn get_user(
     db_pool: Data<SqlitePool>,
     session: actix_session::Session,
@@ -130,26 +125,21 @@ pub async fn get_user(
         user.admin = Some(interop::Admin {
             db_name: env::var("SQLITE_DB")?,
         });
-    }
+    };
 
     Ok(HttpResponse::Ok().json(user))
 }
 
 pub async fn edit_ui_config(
-    edit_ui_config: Json<interop::EditUiConfig>,
+    Json(edit_ui_config): Json<interop::EditUiConfig>,
     db_pool: Data<SqlitePool>,
     session: actix_session::Session,
-) -> crate::Result<HttpResponse> {
-    info!("edit_ui_config");
-
+) -> crate::Result<impl Responder> {
     let user_id = session::user_id(&session)?;
-
-    let edit_ui_config = edit_ui_config.into_inner();
-
     db::edit_ui_config(&db_pool, user_id, edit_ui_config.json).await?;
 
     // send response
-    Ok(HttpResponse::Ok().json(true))
+    Ok(Json(true))
 }
 
 fn generate_random_salt() -> [u8; 16] {

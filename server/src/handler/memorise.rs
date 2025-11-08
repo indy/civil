@@ -21,75 +21,60 @@ use crate::handler::AuthUser;
 use crate::interop::memorise::{FlashCard, ProtoCard, ProtoRating};
 use crate::interop::IdParam;
 use actix_web::web::{Data, Json, Path};
-use actix_web::HttpResponse;
+use actix_web::Responder;
 use chrono::{Duration, Utc};
 
-#[allow(unused_imports)]
-use tracing::info;
-
 pub async fn create_card(
-    card: Json<ProtoCard>,
+    Json(card): Json<ProtoCard>,
     sqlite_pool: Data<SqlitePool>,
     AuthUser(user_id): AuthUser,
-) -> crate::Result<HttpResponse> {
-    info!("create card");
+) -> crate::Result<impl Responder> {
+    let card = db::create_card(&sqlite_pool, card, user_id).await?;
 
-    let card = card.into_inner();
-
-    let db_card = db::create_card(&sqlite_pool, card, user_id).await?;
-
-    Ok(HttpResponse::Ok().json(db_card))
+    Ok(Json(card))
 }
 
 pub async fn card_rated(
-    rating: Json<ProtoRating>,
+    Json(rating): Json<ProtoRating>,
     sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,
     AuthUser(user_id): AuthUser,
-) -> crate::Result<HttpResponse> {
-    info!("card_rated id:{:?}", params.id);
-
+) -> crate::Result<impl Responder> {
     // need to be in a session, even though we're not using the information
     // card_ratings are linked to a user via the card_id
-    let card_id = params.id;
-    let rating = rating.into_inner().rating;
+    let rating = rating.rating;
 
     if (0..=5).contains(&rating) {
-        let mut card = db::get_card_full_fat(&sqlite_pool, user_id, card_id).await?;
+        let mut card = db::get_card_full_fat(&sqlite_pool, user_id, params.id).await?;
         card = sqlite_update_easiness_factor(card, rating)?;
 
         db::card_rated(&sqlite_pool, card, rating).await?;
 
-        Ok(HttpResponse::Ok().json(true))
+        Ok(Json(true))
     } else {
-        Ok(HttpResponse::Ok().json(false))
+        Ok(Json(false))
     }
 }
 
 pub async fn edit(
-    flashcard: Json<FlashCard>,
+    Json(flashcard): Json<FlashCard>,
     sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,
     AuthUser(user_id): AuthUser,
-) -> crate::Result<HttpResponse> {
-    info!("edit_flashcard");
-
-    let flashcard = flashcard.into_inner();
+) -> crate::Result<impl Responder> {
     let flashcard = db::edit_flashcard(&sqlite_pool, user_id, flashcard, params.id).await?;
 
-    Ok(HttpResponse::Ok().json(flashcard))
+    Ok(Json(flashcard))
 }
 
 pub async fn delete(
     sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,
     AuthUser(user_id): AuthUser,
-) -> crate::Result<HttpResponse> {
-    info!("delete flashcard {}", params.id);
-
+) -> crate::Result<impl Responder> {
     db::delete_flashcard(&sqlite_pool, user_id, params.id).await?;
 
-    Ok(HttpResponse::Ok().json(true))
+    Ok(Json(true))
 }
 
 /*
@@ -150,17 +135,17 @@ fn sqlite_update_easiness_factor(mut card: FlashCard, rating: i16) -> crate::Res
 pub async fn get_cards(
     sqlite_pool: Data<SqlitePool>,
     AuthUser(user_id): AuthUser,
-) -> crate::Result<HttpResponse> {
+) -> crate::Result<impl Responder> {
     let db_cards = db::get_cards(&sqlite_pool, user_id, Utc::now().naive_utc()).await?;
 
-    Ok(HttpResponse::Ok().json(db_cards))
+    Ok(Json(db_cards))
 }
 
 pub async fn get_practice_card(
     sqlite_pool: Data<SqlitePool>,
     AuthUser(user_id): AuthUser,
-) -> crate::Result<HttpResponse> {
+) -> crate::Result<impl Responder> {
     let db_card = db::get_practice_card(&sqlite_pool, user_id).await?;
 
-    Ok(HttpResponse::Ok().json(db_card))
+    Ok(Json(db_card))
 }
