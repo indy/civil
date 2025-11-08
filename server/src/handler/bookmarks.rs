@@ -17,8 +17,8 @@
 
 use crate::db::bookmarks as db;
 use crate::db::SqlitePool;
+use crate::handler::AuthUser;
 use crate::interop::{IdParam, Key};
-use crate::session;
 use actix_web::web::{Data, Json, Path};
 use actix_web::HttpResponse;
 
@@ -28,12 +28,10 @@ use tracing::info;
 pub async fn create_bookmark(
     deck_id: Json<Key>,
     sqlite_pool: Data<SqlitePool>,
-    session: actix_session::Session,
+    AuthUser(user_id): AuthUser,
 ) -> crate::Result<HttpResponse> {
     let deck_id = deck_id.into_inner();
     info!("create_bookmark {:?}", &deck_id);
-
-    let user_id = session::user_id(&session)?;
 
     db::create_bookmark(&sqlite_pool, user_id, deck_id).await?;
 
@@ -45,12 +43,10 @@ pub async fn create_bookmark(
 pub async fn create_multiple_bookmarks(
     deck_ids: Json<Vec<Key>>,
     sqlite_pool: Data<SqlitePool>,
-    session: actix_session::Session,
+    AuthUser(user_id): AuthUser,
 ) -> crate::Result<HttpResponse> {
     let deck_ids = deck_ids.into_inner();
     info!("create_multiple_bookmarks");
-
-    let user_id = session::user_id(&session)?;
 
     db::create_multiple_bookmarks(&sqlite_pool, user_id, deck_ids).await?;
 
@@ -61,11 +57,9 @@ pub async fn create_multiple_bookmarks(
 
 pub async fn get_bookmarks(
     sqlite_pool: Data<SqlitePool>,
-    session: actix_session::Session,
+    AuthUser(user_id): AuthUser,
 ) -> crate::Result<HttpResponse> {
     info!("get_bookmarks");
-
-    let user_id = session::user_id(&session)?;
 
     let bookmarks = db::get_bookmarks(&sqlite_pool, user_id).await?;
     Ok(HttpResponse::Ok().json(bookmarks))
@@ -74,11 +68,9 @@ pub async fn get_bookmarks(
 pub async fn delete_bookmark(
     sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,
-    session: actix_session::Session,
+    AuthUser(user_id): AuthUser,
 ) -> crate::Result<HttpResponse> {
     info!("delete_bookmark {}", params.id);
-
-    let user_id = session::user_id(&session)?;
 
     db::delete_bookmark(&sqlite_pool, user_id, params.id).await?;
 

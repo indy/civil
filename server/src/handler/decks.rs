@@ -20,11 +20,10 @@ use crate::db::decks as db;
 use crate::db::notes as db_notes;
 use crate::db::SqlitePool;
 use crate::error::Error;
-use crate::handler::PaginationQuery;
+use crate::handler::{AuthUser, PaginationQuery};
 use crate::interop::decks::{DeckKind, Pagination, SlimDeck, SlimResults};
 use crate::interop::dialogues::AiKind;
 use crate::interop::{IdParam, Key};
-use crate::session;
 use actix_web::web::{Data, Json, Path, Query};
 use actix_web::HttpResponse;
 use serde::Deserialize;
@@ -35,11 +34,10 @@ use tracing::{info, warn};
 pub async fn hits(
     sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,
-    session: actix_session::Session,
+    AuthUser(_user_id): AuthUser,
 ) -> crate::Result<HttpResponse> {
     info!("hits {:?}", params.id);
 
-    let _user_id = session::user_id(&session)?;
     let deck_id = params.id;
 
     let hits = db::get_hits(&sqlite_pool, deck_id).await?;
@@ -58,12 +56,10 @@ pub struct InsigniasArgs {
 
 pub async fn insignias(
     sqlite_pool: Data<SqlitePool>,
-    session: actix_session::Session,
+    AuthUser(user_id): AuthUser,
     Query(query): Query<InsigniasArgs>,
 ) -> crate::Result<HttpResponse> {
     info!("insignia_filter {:?}", query.insignia);
-
-    let user_id = session::user_id(&session)?;
 
     let paginated: Pagination<SlimDeck> = if let Some(resource_string) = query.resource {
         let deck_kind = resource_string_to_deck_kind(&resource_string)?;
@@ -97,12 +93,10 @@ pub struct RecentQuery {
 
 pub async fn recent(
     sqlite_pool: Data<SqlitePool>,
-    session: actix_session::Session,
+    AuthUser(user_id): AuthUser,
     Query(query): Query<RecentQuery>,
 ) -> crate::Result<HttpResponse> {
     info!("recent {}", &query.resource);
-
-    let user_id = session::user_id(&session)?;
 
     let deck_kind = resource_string_to_deck_kind(&query.resource)?;
     let results = db::recent(&sqlite_pool, user_id, deck_kind).await?;
@@ -119,11 +113,9 @@ pub struct RecentKindNum {
 
 pub async fn recently_visited(
     sqlite_pool: Data<SqlitePool>,
-    session: actix_session::Session,
+    AuthUser(user_id): AuthUser,
     Query(query): Query<RecentKindNum>,
 ) -> crate::Result<HttpResponse> {
-    let user_id = session::user_id(&session)?;
-
     let results: Vec<SlimDeck> = if let Some(resource_string) = query.resource {
         let deck_kind = resource_string_to_deck_kind(&resource_string)?;
         db::recently_visited(&sqlite_pool, user_id, deck_kind, query.num).await?
@@ -147,11 +139,10 @@ pub async fn summarize(
     sqlite_pool: Data<SqlitePool>,
     ai: Data<AI>,
     params: Path<IdParam>,
-    session: actix_session::Session,
+    AuthUser(user_id): AuthUser,
 ) -> crate::Result<HttpResponse> {
     info!("summarize {:?}", params.id);
 
-    let user_id = session::user_id(&session)?;
     let deck_id = params.id;
 
     let summarize_struct = summarize_struct.into_inner();
@@ -209,7 +200,7 @@ pub async fn summarize(
     sqlite_pool: Data<SqlitePool>,
     chatgpt_client: Data<chatgpt::prelude::ChatGPT>,
     params: Path<IdParam>,
-    session: actix_session::Session,
+    AuthUser(user_id): AuthUser,
 ) -> crate::Result<HttpResponse> {
     info!("summarize {:?}", params.id);
 
@@ -298,11 +289,10 @@ fn find_next_note(prev_id: Key, notes: &Vec<Note>) -> Option<(Key, String)> {
 pub async fn preview(
     sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,
-    session: actix_session::Session,
+    AuthUser(user_id): AuthUser,
 ) -> crate::Result<HttpResponse> {
     info!("preview {:?}", params.id);
 
-    let user_id = session::user_id(&session)?;
     let deck_id = params.id;
 
     let preview = db_notes::preview(&sqlite_pool, user_id, deck_id).await?;

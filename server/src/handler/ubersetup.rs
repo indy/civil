@@ -16,7 +16,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::db::SqlitePool;
-use crate::session;
+use crate::handler::AuthUser;
 use actix_web::web::Data;
 use actix_web::HttpResponse;
 use chrono::Utc;
@@ -46,11 +46,9 @@ struct UberStruct {
 
 pub async fn setup(
     sqlite_pool: Data<SqlitePool>,
-    session: actix_session::Session,
+    AuthUser(user_id): AuthUser,
 ) -> crate::Result<HttpResponse> {
     info!("setup");
-
-    let user_id = session::user_id(&session)?;
 
     let directory = user_id;
     let recently_used_decks =

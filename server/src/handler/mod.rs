@@ -15,6 +15,26 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+use crate::{error::Error, interop::Key, session};
+use actix_session::SessionExt; // for req.get_session()
+use actix_web::{dev::Payload, FromRequest, HttpRequest};
+use std::future::{ready, Ready}; // ready() and Ready<>
+
+pub struct AuthUser(pub Key);
+
+impl FromRequest for AuthUser {
+    type Error = Error;
+    type Future = Ready<Result<Self, Self::Error>>;
+
+    fn from_request(req: &HttpRequest, _: &mut Payload) -> Self::Future {
+        let session = req.get_session();
+        match session::user_id(&session) {
+            Ok(id) => ready(Ok(AuthUser(id))),
+            Err(e) => ready(Err(e.into())),
+        }
+    }
+}
+
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SearchQuery {

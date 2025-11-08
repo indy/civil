@@ -17,9 +17,9 @@
 
 use crate::db::memorise as db;
 use crate::db::SqlitePool;
+use crate::handler::AuthUser;
 use crate::interop::memorise::{FlashCard, ProtoCard, ProtoRating};
 use crate::interop::IdParam;
-use crate::session;
 use actix_web::web::{Data, Json, Path};
 use actix_web::HttpResponse;
 use chrono::{Duration, Utc};
@@ -30,11 +30,10 @@ use tracing::info;
 pub async fn create_card(
     card: Json<ProtoCard>,
     sqlite_pool: Data<SqlitePool>,
-    session: actix_session::Session,
+    AuthUser(user_id): AuthUser,
 ) -> crate::Result<HttpResponse> {
     info!("create card");
 
-    let user_id = session::user_id(&session)?;
     let card = card.into_inner();
 
     let db_card = db::create_card(&sqlite_pool, card, user_id).await?;
@@ -46,13 +45,12 @@ pub async fn card_rated(
     rating: Json<ProtoRating>,
     sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,
-    session: actix_session::Session,
+    AuthUser(user_id): AuthUser,
 ) -> crate::Result<HttpResponse> {
     info!("card_rated id:{:?}", params.id);
 
     // need to be in a session, even though we're not using the information
     // card_ratings are linked to a user via the card_id
-    let user_id = session::user_id(&session)?;
     let card_id = params.id;
     let rating = rating.into_inner().rating;
 
@@ -72,13 +70,11 @@ pub async fn edit(
     flashcard: Json<FlashCard>,
     sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,
-    session: actix_session::Session,
+    AuthUser(user_id): AuthUser,
 ) -> crate::Result<HttpResponse> {
     info!("edit_flashcard");
 
     let flashcard = flashcard.into_inner();
-    let user_id = session::user_id(&session)?;
-
     let flashcard = db::edit_flashcard(&sqlite_pool, user_id, flashcard, params.id).await?;
 
     Ok(HttpResponse::Ok().json(flashcard))
@@ -87,11 +83,9 @@ pub async fn edit(
 pub async fn delete(
     sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,
-    session: actix_session::Session,
+    AuthUser(user_id): AuthUser,
 ) -> crate::Result<HttpResponse> {
     info!("delete flashcard {}", params.id);
-
-    let user_id = session::user_id(&session)?;
 
     db::delete_flashcard(&sqlite_pool, user_id, params.id).await?;
 
@@ -155,9 +149,8 @@ fn sqlite_update_easiness_factor(mut card: FlashCard, rating: i16) -> crate::Res
 
 pub async fn get_cards(
     sqlite_pool: Data<SqlitePool>,
-    session: actix_session::Session,
+    AuthUser(user_id): AuthUser,
 ) -> crate::Result<HttpResponse> {
-    let user_id = session::user_id(&session)?;
     let db_cards = db::get_cards(&sqlite_pool, user_id, Utc::now().naive_utc()).await?;
 
     Ok(HttpResponse::Ok().json(db_cards))
@@ -165,9 +158,8 @@ pub async fn get_cards(
 
 pub async fn get_practice_card(
     sqlite_pool: Data<SqlitePool>,
-    session: actix_session::Session,
+    AuthUser(user_id): AuthUser,
 ) -> crate::Result<HttpResponse> {
-    let user_id = session::user_id(&session)?;
     let db_card = db::get_practice_card(&sqlite_pool, user_id).await?;
 
     Ok(HttpResponse::Ok().json(db_card))

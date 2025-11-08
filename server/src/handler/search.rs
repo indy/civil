@@ -17,10 +17,9 @@
 
 use crate::db::search as db;
 use crate::db::SqlitePool;
-use crate::handler::SearchQuery;
+use crate::handler::{AuthUser, SearchQuery};
 use crate::interop::search::SearchResults;
 use crate::interop::IdParam;
-use crate::session;
 use actix_web::web::{Data, Path, Query};
 use actix_web::HttpResponse;
 
@@ -31,12 +30,10 @@ use tracing::{info, warn};
 //
 pub async fn search_at_deck_level(
     sqlite_pool: Data<SqlitePool>,
-    session: actix_session::Session,
+    AuthUser(user_id): AuthUser,
     Query(query): Query<SearchQuery>,
 ) -> crate::Result<HttpResponse> {
     info!("search_at_deck_level '{}'", &query.q);
-
-    let user_id = session::user_id(&session)?;
 
     // nocheckin: sort out this q q2 stuff
     let q: String = query.q;
@@ -56,12 +53,10 @@ pub async fn search_at_deck_level(
 //
 pub async fn search_names_at_deck_level(
     sqlite_pool: Data<SqlitePool>,
-    session: actix_session::Session,
+    AuthUser(user_id): AuthUser,
     Query(query): Query<SearchQuery>,
 ) -> crate::Result<HttpResponse> {
     info!("search_names_at_deck_level '{}'", &query.q);
-
-    let user_id = session::user_id(&session)?;
 
     // nocheckin: sort out this q q2 stuff
     let q: String = query.q;
@@ -80,11 +75,10 @@ pub async fn search_names_at_deck_level(
 pub async fn additional_search_for_decks(
     sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,
-    session: actix_session::Session,
+    AuthUser(user_id): AuthUser,
 ) -> crate::Result<HttpResponse> {
     info!("additional_search_for_decks {:?}", params.id);
 
-    let user_id = session::user_id(&session)?;
     let deck_id = params.id;
 
     // search deck, article_extras etc tables for text similar to deck_id's title
@@ -99,12 +93,10 @@ pub async fn additional_search_for_decks(
 //
 pub async fn search_at_all_levels(
     sqlite_pool: Data<SqlitePool>,
-    session: actix_session::Session,
+    AuthUser(user_id): AuthUser,
     Query(query): Query<SearchQuery>,
 ) -> crate::Result<HttpResponse> {
     info!("search_at_all_levels '{}'", &query.q);
-
-    let user_id = session::user_id(&session)?;
 
     let res = db::search_at_all_levels(&sqlite_pool, user_id, query.q).await?;
 
@@ -113,12 +105,10 @@ pub async fn search_at_all_levels(
 
 pub async fn search_quotes(
     sqlite_pool: Data<SqlitePool>,
-    session: actix_session::Session,
+    AuthUser(user_id): AuthUser,
     Query(query): Query<SearchQuery>,
 ) -> crate::Result<HttpResponse> {
     info!("search_quotes '{}'", &query.q);
-
-    let user_id = session::user_id(&session)?;
 
     let res = db::search_quotes(&sqlite_pool, user_id, query.q).await?;
 

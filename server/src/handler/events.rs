@@ -17,11 +17,10 @@
 
 use crate::db::events as db;
 use crate::handler::decks;
-use crate::handler::PaginationQuery;
+use crate::handler::{AuthUser, PaginationQuery};
 use crate::interop::decks::{DeckKind, ProtoDeck};
 use crate::interop::events as interop;
 use crate::interop::IdParam;
-use crate::session;
 use actix_web::web::{Data, Json, Path, Query};
 use actix_web::HttpResponse;
 
@@ -33,11 +32,10 @@ use crate::db::SqlitePool;
 pub async fn create(
     proto_deck: Json<ProtoDeck>,
     sqlite_pool: Data<SqlitePool>,
-    session: actix_session::Session,
+    AuthUser(user_id): AuthUser,
 ) -> crate::Result<HttpResponse> {
     info!("create");
 
-    let user_id = session::user_id(&session)?;
     let proto_deck = proto_deck.into_inner();
 
     let event = db::get_or_create(&sqlite_pool, user_id, proto_deck.title).await?;
@@ -47,11 +45,9 @@ pub async fn create(
 
 pub async fn get_all(
     sqlite_pool: Data<SqlitePool>,
-    session: actix_session::Session,
+    AuthUser(user_id): AuthUser,
 ) -> crate::Result<HttpResponse> {
     info!("get_all");
-
-    let user_id = session::user_id(&session)?;
 
     // nocheckin why isn't this called db::all like in ideas?
     let events = db::listings(&sqlite_pool, user_id).await?;
@@ -61,26 +57,19 @@ pub async fn get_all(
 
 pub async fn pagination(
     sqlite_pool: Data<SqlitePool>,
-    session: actix_session::Session,
+    AuthUser(user_id): AuthUser,
     Query(query): Query<PaginationQuery>,
 ) -> crate::Result<HttpResponse> {
-    decks::pagination(
-        sqlite_pool,
-        query,
-        session::user_id(&session)?,
-        DeckKind::Event,
-    )
-    .await
+    decks::pagination(sqlite_pool, query, user_id, DeckKind::Event).await
 }
 
 pub async fn get(
     sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,
-    session: actix_session::Session,
+    AuthUser(user_id): AuthUser,
 ) -> crate::Result<HttpResponse> {
     info!("get {:?}", params.id);
 
-    let user_id = session::user_id(&session)?;
     let event_id = params.id;
 
     let event = match db::get(sqlite_pool.get_ref(), user_id, event_id).await? {
@@ -95,11 +84,10 @@ pub async fn edit(
     event: Json<interop::ProtoEvent>,
     sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,
-    session: actix_session::Session,
+    AuthUser(user_id): AuthUser,
 ) -> crate::Result<HttpResponse> {
     info!("edit");
 
-    let user_id = session::user_id(&session)?;
     let event_id = params.id;
     let event = event.into_inner();
 
@@ -111,11 +99,9 @@ pub async fn edit(
 pub async fn delete(
     sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,
-    session: actix_session::Session,
+    AuthUser(user_id): AuthUser,
 ) -> crate::Result<HttpResponse> {
     info!("delete");
-
-    let user_id = session::user_id(&session)?;
 
     db::delete(&sqlite_pool, user_id, params.id).await?;
 

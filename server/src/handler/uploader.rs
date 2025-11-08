@@ -15,41 +15,33 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::error::Error;
-use crate::session;
-use crate::ServerConfig;
-
 use crate::db::uploader as db;
 use crate::db::SqlitePool;
-
-use std::ffi::OsStr;
-use std::path::Path as StdPath;
-
+use crate::error::Error;
+use crate::handler::AuthUser;
+use crate::ServerConfig;
 use actix_multipart::Multipart;
-use actix_web::web::Data;
-use actix_web::web::Path;
+use actix_web::web::{Data, Path};
 use actix_web::HttpResponse;
 use futures::{StreamExt, TryStreamExt};
+use std::ffi::OsStr;
 use std::io::Write;
+use std::path::Path as StdPath;
 
 use crate::interop::AtLeastParam;
 
 #[allow(unused_imports)]
 use tracing::info;
 
-pub async fn get_directory(session: actix_session::Session) -> crate::Result<HttpResponse> {
-    let user_id = session::user_id(&session)?;
-
+pub async fn get_directory(AuthUser(user_id): AuthUser) -> crate::Result<HttpResponse> {
     Ok(HttpResponse::Ok().json(user_id))
 }
 
 pub async fn get(
     sqlite_pool: Data<SqlitePool>,
     params: Path<AtLeastParam>,
-    session: actix_session::Session,
+    AuthUser(user_id): AuthUser,
 ) -> crate::Result<HttpResponse> {
-    let user_id = session::user_id(&session)?;
-
     let recent = db::get_recent(&sqlite_pool, user_id, params.at_least).await?;
 
     Ok(HttpResponse::Ok().json(recent))
@@ -59,10 +51,8 @@ pub async fn create(
     mut payload: Multipart,
     server_config: Data<ServerConfig>,
     sqlite_pool: Data<SqlitePool>,
-    session: actix_session::Session,
+    AuthUser(user_id): AuthUser,
 ) -> crate::Result<HttpResponse> {
-    let user_id = session::user_id(&session)?;
-
     let user_directory = format!("{}/{}", server_config.user_content_path, user_id);
     std::fs::DirBuilder::new()
         .recursive(true)

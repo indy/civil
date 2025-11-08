@@ -17,12 +17,10 @@
 
 use crate::db::points as points_db;
 use crate::db::timelines as db;
-use crate::handler::decks;
-use crate::handler::PaginationQuery;
+use crate::handler::{decks, AuthUser, PaginationQuery};
 use crate::interop::decks::{DeckKind, ProtoDeck, ProtoSlimDeck};
 use crate::interop::points as points_interop;
 use crate::interop::IdParam;
-use crate::session;
 use actix_web::web::{Data, Json, Path, Query};
 use actix_web::HttpResponse;
 
@@ -34,11 +32,10 @@ use crate::db::SqlitePool;
 pub async fn create(
     proto_deck: Json<ProtoDeck>,
     sqlite_pool: Data<SqlitePool>,
-    session: actix_session::Session,
+    AuthUser(user_id): AuthUser,
 ) -> crate::Result<HttpResponse> {
     info!("create");
 
-    let user_id = session::user_id(&session)?;
     let proto_deck = proto_deck.into_inner();
 
     let timeline = db::get_or_create(&sqlite_pool, user_id, proto_deck.title).await?;
@@ -48,11 +45,9 @@ pub async fn create(
 
 pub async fn get_all(
     sqlite_pool: Data<SqlitePool>,
-    session: actix_session::Session,
+    AuthUser(user_id): AuthUser,
 ) -> crate::Result<HttpResponse> {
     info!("get_all");
-
-    let user_id = session::user_id(&session)?;
 
     // nocheckin: why is this db::listings when the ideas equivalent is db::all?
     let timelines = db::listings(&sqlite_pool, user_id).await?;
@@ -62,26 +57,19 @@ pub async fn get_all(
 
 pub async fn pagination(
     sqlite_pool: Data<SqlitePool>,
-    session: actix_session::Session,
+    AuthUser(user_id): AuthUser,
     Query(query): Query<PaginationQuery>,
 ) -> crate::Result<HttpResponse> {
-    decks::pagination(
-        sqlite_pool,
-        query,
-        session::user_id(&session)?,
-        DeckKind::Timeline,
-    )
-    .await
+    decks::pagination(sqlite_pool, query, user_id, DeckKind::Timeline).await
 }
 
 pub async fn get(
     sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,
-    session: actix_session::Session,
+    AuthUser(user_id): AuthUser,
 ) -> crate::Result<HttpResponse> {
     info!("get {:?}", params.id);
 
-    let user_id = session::user_id(&session)?;
     let timeline_id = params.id;
 
     let timeline = match db::get(sqlite_pool.get_ref(), user_id, timeline_id).await? {
@@ -96,11 +84,10 @@ pub async fn edit(
     timeline: Json<ProtoSlimDeck>,
     sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,
-    session: actix_session::Session,
+    AuthUser(user_id): AuthUser,
 ) -> crate::Result<HttpResponse> {
     info!("edit");
 
-    let user_id = session::user_id(&session)?;
     let timeline_id = params.id;
     let timeline = timeline.into_inner();
 
@@ -112,11 +99,9 @@ pub async fn edit(
 pub async fn delete(
     sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,
-    session: actix_session::Session,
+    AuthUser(user_id): AuthUser,
 ) -> crate::Result<HttpResponse> {
     info!("delete");
-
-    let user_id = session::user_id(&session)?;
 
     db::delete(&sqlite_pool, user_id, params.id).await?;
 
@@ -127,13 +112,12 @@ pub async fn add_point(
     point: Json<points_interop::ProtoPoint>,
     sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,
-    session: actix_session::Session,
+    AuthUser(user_id): AuthUser,
 ) -> crate::Result<HttpResponse> {
     info!("add_point");
 
     let timeline_id = params.id;
     let point = point.into_inner();
-    let user_id = session::user_id(&session)?;
 
     points_db::create(&sqlite_pool, point, timeline_id).await?;
 
@@ -149,13 +133,12 @@ pub async fn add_multipoints(
     points: Json<Vec<points_interop::ProtoPoint>>,
     sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,
-    session: actix_session::Session,
+    AuthUser(user_id): AuthUser,
 ) -> crate::Result<HttpResponse> {
     info!("add_multipoints");
 
     let timeline_id = params.id;
     let points = points.into_inner();
-    let user_id = session::user_id(&session)?;
 
     // todo: I think it's bad to do this, where every loop dispatches to the db thread
     for point in points {

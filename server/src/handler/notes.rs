@@ -18,10 +18,10 @@
 use crate::db::notes as db;
 use crate::db::references as db_refs;
 use crate::db::SqlitePool;
+use crate::handler::AuthUser;
 use crate::interop::notes as interop;
 use crate::interop::references as interop_refs;
 use crate::interop::IdParam;
-use crate::session;
 use actix_web::web::{Data, Json, Path};
 use actix_web::HttpResponse;
 
@@ -31,12 +31,10 @@ use tracing::info;
 pub async fn create_notes(
     note: Json<interop::ProtoNote>,
     sqlite_pool: Data<SqlitePool>,
-    session: actix_session::Session,
+    AuthUser(user_id): AuthUser,
 ) -> crate::Result<HttpResponse> {
     let note = note.into_inner();
     info!("create_notes {:?}", &note);
-
-    let user_id = session::user_id(&session)?;
 
     let notes = db::create_notes(&sqlite_pool, user_id, note).await?;
 
@@ -48,13 +46,11 @@ pub async fn edit_note(
     note: Json<interop::Note>,
     sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,
-    session: actix_session::Session,
+    AuthUser(user_id): AuthUser,
 ) -> crate::Result<HttpResponse> {
     info!("edit_note");
 
     let note = note.into_inner();
-    let user_id = session::user_id(&session)?;
-
     let note = db::edit_note(&sqlite_pool, user_id, note, params.id).await?;
 
     Ok(HttpResponse::Ok().json(note))
@@ -63,11 +59,9 @@ pub async fn edit_note(
 pub async fn delete_note(
     sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,
-    session: actix_session::Session,
+    AuthUser(user_id): AuthUser,
 ) -> crate::Result<HttpResponse> {
     info!("delete_note {}", params.id);
-
-    let user_id = session::user_id(&session)?;
 
     let notes = db::delete_note_properly(&sqlite_pool, user_id, params.id).await?;
     // anything that alters the structure of a deck's notes should return _all_ the notes associated with that deck
@@ -78,12 +72,11 @@ pub async fn edit_references(
     diff: Json<interop_refs::ReferencesDiff>,
     sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,
-    session: actix_session::Session,
+    AuthUser(user_id): AuthUser,
 ) -> crate::Result<HttpResponse> {
     info!("update");
 
     let diff = diff.into_inner();
-    let user_id = session::user_id(&session)?;
 
     let all_decks_for_note =
         db_refs::update_references(&sqlite_pool, diff, user_id, params.id).await?;

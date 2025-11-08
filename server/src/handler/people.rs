@@ -18,12 +18,10 @@
 use crate::db::people as db;
 use crate::db::points as points_db;
 use crate::db::SqlitePool;
-use crate::handler::decks;
-use crate::handler::PaginationQuery;
+use crate::handler::{decks, AuthUser, PaginationQuery};
 use crate::interop::decks::{DeckKind, ProtoDeck, ProtoSlimDeck};
 use crate::interop::points as points_interop;
 use crate::interop::IdParam;
-use crate::session;
 use actix_web::web::{Data, Json, Path, Query};
 use actix_web::HttpResponse;
 
@@ -33,11 +31,10 @@ use tracing::info;
 pub async fn create(
     proto_deck: Json<ProtoDeck>,
     sqlite_pool: Data<SqlitePool>,
-    session: actix_session::Session,
+    AuthUser(user_id): AuthUser,
 ) -> crate::Result<HttpResponse> {
     info!("create");
 
-    let user_id = session::user_id(&session)?;
     let proto_deck = proto_deck.into_inner();
 
     let person = db::get_or_create(&sqlite_pool, user_id, proto_deck.title).await?;
@@ -47,11 +44,9 @@ pub async fn create(
 
 pub async fn get_all(
     sqlite_pool: Data<SqlitePool>,
-    session: actix_session::Session,
+    AuthUser(user_id): AuthUser,
 ) -> crate::Result<HttpResponse> {
     info!("get_all");
-
-    let user_id = session::user_id(&session)?;
 
     let people = db::all(&sqlite_pool, user_id).await?;
 
@@ -60,25 +55,17 @@ pub async fn get_all(
 
 pub async fn pagination(
     sqlite_pool: Data<SqlitePool>,
-    session: actix_session::Session,
+    AuthUser(user_id): AuthUser,
     Query(query): Query<PaginationQuery>,
 ) -> crate::Result<HttpResponse> {
-    decks::pagination(
-        sqlite_pool,
-        query,
-        session::user_id(&session)?,
-        DeckKind::Person,
-    )
-    .await
+    decks::pagination(sqlite_pool, query, user_id, DeckKind::Person).await
 }
 
 pub async fn uncategorised(
     sqlite_pool: Data<SqlitePool>,
-    session: actix_session::Session,
+    AuthUser(user_id): AuthUser,
     Query(query): Query<PaginationQuery>,
 ) -> crate::Result<HttpResponse> {
-    let user_id = session::user_id(&session)?;
-
     let paginated = db::uncategorised(&sqlite_pool, user_id, query.offset, query.num_items).await?;
 
     Ok(HttpResponse::Ok().json(paginated))
@@ -86,11 +73,9 @@ pub async fn uncategorised(
 
 pub async fn ancient(
     sqlite_pool: Data<SqlitePool>,
-    session: actix_session::Session,
+    AuthUser(user_id): AuthUser,
     Query(query): Query<PaginationQuery>,
 ) -> crate::Result<HttpResponse> {
-    let user_id = session::user_id(&session)?;
-
     let paginated = db::ancient(&sqlite_pool, user_id, query.offset, query.num_items).await?;
 
     Ok(HttpResponse::Ok().json(paginated))
@@ -98,11 +83,9 @@ pub async fn ancient(
 
 pub async fn medieval(
     sqlite_pool: Data<SqlitePool>,
-    session: actix_session::Session,
+    AuthUser(user_id): AuthUser,
     Query(query): Query<PaginationQuery>,
 ) -> crate::Result<HttpResponse> {
-    let user_id = session::user_id(&session)?;
-
     let paginated = db::medieval(&sqlite_pool, user_id, query.offset, query.num_items).await?;
 
     Ok(HttpResponse::Ok().json(paginated))
@@ -110,11 +93,9 @@ pub async fn medieval(
 
 pub async fn modern(
     sqlite_pool: Data<SqlitePool>,
-    session: actix_session::Session,
+    AuthUser(user_id): AuthUser,
     Query(query): Query<PaginationQuery>,
 ) -> crate::Result<HttpResponse> {
-    let user_id = session::user_id(&session)?;
-
     let paginated = db::modern(&sqlite_pool, user_id, query.offset, query.num_items).await?;
 
     Ok(HttpResponse::Ok().json(paginated))
@@ -122,11 +103,9 @@ pub async fn modern(
 
 pub async fn contemporary(
     sqlite_pool: Data<SqlitePool>,
-    session: actix_session::Session,
+    AuthUser(user_id): AuthUser,
     Query(query): Query<PaginationQuery>,
 ) -> crate::Result<HttpResponse> {
-    let user_id = session::user_id(&session)?;
-
     let paginated = db::contemporary(&sqlite_pool, user_id, query.offset, query.num_items).await?;
 
     Ok(HttpResponse::Ok().json(paginated))
@@ -135,11 +114,10 @@ pub async fn contemporary(
 pub async fn get(
     sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,
-    session: actix_session::Session,
+    AuthUser(user_id): AuthUser,
 ) -> crate::Result<HttpResponse> {
     info!("get person {:?}", params.id);
 
-    let user_id = session::user_id(&session)?;
     let person_id = params.id;
 
     let person = match db::get(sqlite_pool.get_ref(), user_id, person_id).await? {
@@ -154,11 +132,10 @@ pub async fn edit(
     person: Json<ProtoSlimDeck>,
     sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,
-    session: actix_session::Session,
+    AuthUser(user_id): AuthUser,
 ) -> crate::Result<HttpResponse> {
     info!("edit");
 
-    let user_id = session::user_id(&session)?;
     let person_id = params.id;
     let person = person.into_inner();
 
@@ -170,11 +147,9 @@ pub async fn edit(
 pub async fn delete(
     sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,
-    session: actix_session::Session,
+    AuthUser(user_id): AuthUser,
 ) -> crate::Result<HttpResponse> {
     info!("delete");
-
-    let user_id = session::user_id(&session)?;
 
     db::delete(&sqlite_pool, user_id, params.id).await?;
 
@@ -185,13 +160,12 @@ pub async fn add_point(
     point: Json<points_interop::ProtoPoint>,
     sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,
-    session: actix_session::Session,
+    AuthUser(user_id): AuthUser,
 ) -> crate::Result<HttpResponse> {
     info!("add_point");
 
     let person_id = params.id;
     let point = point.into_inner();
-    let user_id = session::user_id(&session)?;
 
     points_db::create(&sqlite_pool, point, person_id).await?;
 
@@ -204,13 +178,12 @@ pub async fn add_multipoints(
     points: Json<Vec<points_interop::ProtoPoint>>,
     sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,
-    session: actix_session::Session,
+    AuthUser(user_id): AuthUser,
 ) -> crate::Result<HttpResponse> {
     info!("add_multipoints");
 
     let person_id = params.id;
     let points = points.into_inner();
-    let user_id = session::user_id(&session)?;
 
     for point in points {
         points_db::create(&sqlite_pool, point, person_id).await?;

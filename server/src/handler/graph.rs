@@ -17,8 +17,8 @@
 
 use crate::db::graph as db;
 use crate::db::SqlitePool;
+use crate::handler::AuthUser;
 use crate::interop::IdParam;
-use crate::session;
 use actix_web::web::{Data, Path};
 use actix_web::HttpResponse;
 
@@ -28,11 +28,10 @@ use tracing::info;
 pub async fn get(
     sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,
-    session: actix_session::Session,
+    AuthUser(user_id): AuthUser,
 ) -> crate::Result<HttpResponse> {
     info!("get {:?}", params.id);
 
-    let user_id = session::user_id(&session)?;
     let deck_id = params.id;
 
     let connectivity = db::get(&sqlite_pool, user_id, deck_id).await?;

@@ -17,8 +17,8 @@
 
 use crate::db::points as db;
 use crate::db::SqlitePool;
+use crate::handler::AuthUser;
 use crate::interop::points as interop;
-use crate::session;
 use actix_web::web::{Data, Path};
 use actix_web::HttpResponse;
 
@@ -34,11 +34,9 @@ pub struct YearRangeParam {
 pub async fn get_points(
     sqlite_pool: Data<SqlitePool>,
     params: Path<YearRangeParam>,
-    session: actix_session::Session,
+    AuthUser(user_id): AuthUser,
 ) -> crate::Result<HttpResponse> {
     info!("get points {:?} {:?}", params.lower, params.upper);
-
-    let user_id = session::user_id(&session)?;
 
     let lower = params.lower;
     let upper = params.upper;

@@ -16,12 +16,10 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::db::quotes as db;
-use crate::handler::decks;
-use crate::handler::PaginationQuery;
+use crate::handler::{decks, AuthUser, PaginationQuery};
 use crate::interop::decks::DeckKind;
 use crate::interop::quotes as interop;
 use crate::interop::IdParam;
-use crate::session;
 use actix_web::web::{Data, Json, Path, Query};
 use actix_web::HttpResponse;
 
@@ -33,11 +31,10 @@ use tracing::info;
 pub async fn create(
     proto_quote: Json<interop::ProtoQuote>,
     sqlite_pool: Data<SqlitePool>,
-    session: actix_session::Session,
+    AuthUser(user_id): AuthUser,
 ) -> crate::Result<HttpResponse> {
     info!("create");
 
-    let user_id = session::user_id(&session)?;
     let proto_quote = proto_quote.into_inner();
 
     let quote = db::get_or_create(&sqlite_pool, user_id, proto_quote).await?;
@@ -47,11 +44,9 @@ pub async fn create(
 
 pub async fn random(
     sqlite_pool: Data<SqlitePool>,
-    session: actix_session::Session,
+    AuthUser(user_id): AuthUser,
 ) -> crate::Result<HttpResponse> {
     info!("random");
-
-    let user_id = session::user_id(&session)?;
 
     let quote = match db::random(sqlite_pool.get_ref(), user_id).await? {
         Some(i) => i,
@@ -63,26 +58,19 @@ pub async fn random(
 
 pub async fn pagination(
     sqlite_pool: Data<SqlitePool>,
-    session: actix_session::Session,
+    AuthUser(user_id): AuthUser,
     Query(query): Query<PaginationQuery>,
 ) -> crate::Result<HttpResponse> {
-    decks::pagination(
-        sqlite_pool,
-        query,
-        session::user_id(&session)?,
-        DeckKind::Quote,
-    )
-    .await
+    decks::pagination(sqlite_pool, query, user_id, DeckKind::Quote).await
 }
 
 pub async fn get(
     sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,
-    session: actix_session::Session,
+    AuthUser(user_id): AuthUser,
 ) -> crate::Result<HttpResponse> {
     info!("get {:?}", params.id);
 
-    let user_id = session::user_id(&session)?;
     let quote_id = params.id;
 
     let quote = match db::get(sqlite_pool.get_ref(), user_id, quote_id).await? {
@@ -96,11 +84,10 @@ pub async fn get(
 pub async fn next(
     sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,
-    session: actix_session::Session,
+    AuthUser(user_id): AuthUser,
 ) -> crate::Result<HttpResponse> {
     info!("next {:?}", params.id);
 
-    let user_id = session::user_id(&session)?;
     let quote_id = params.id;
 
     let quote = match db::next(sqlite_pool.get_ref(), user_id, quote_id).await? {
@@ -114,11 +101,10 @@ pub async fn next(
 pub async fn prev(
     sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,
-    session: actix_session::Session,
+    AuthUser(user_id): AuthUser,
 ) -> crate::Result<HttpResponse> {
     info!("prev {:?}", params.id);
 
-    let user_id = session::user_id(&session)?;
     let quote_id = params.id;
 
     let quote = match db::prev(sqlite_pool.get_ref(), user_id, quote_id).await? {
@@ -133,11 +119,10 @@ pub async fn edit(
     quote: Json<interop::ProtoQuote>,
     sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,
-    session: actix_session::Session,
+    AuthUser(user_id): AuthUser,
 ) -> crate::Result<HttpResponse> {
     info!("edit");
 
-    let user_id = session::user_id(&session)?;
     let quote_id = params.id;
     let quote = quote.into_inner();
 
@@ -149,11 +134,9 @@ pub async fn edit(
 pub async fn delete(
     sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,
-    session: actix_session::Session,
+    AuthUser(user_id): AuthUser,
 ) -> crate::Result<HttpResponse> {
     info!("delete");
-
-    let user_id = session::user_id(&session)?;
 
     db::delete(&sqlite_pool, user_id, params.id).await?;
 
