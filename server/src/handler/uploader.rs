@@ -24,10 +24,10 @@ use crate::interop::AtLeastParam;
 use actix_multipart::Multipart;
 use actix_web::Responder;
 use actix_web::web::{Data, Json, Path};
-use futures::{StreamExt, TryStreamExt};
+use futures::TryStreamExt;
 use std::ffi::OsStr;
-use std::io::Write;
 use std::path::Path as StdPath;
+use tokio::{fs, io::AsyncWriteExt};
 
 pub async fn get_directory(AuthUser(user_id): AuthUser) -> crate::Result<impl Responder> {
     Ok(Json(user_id))
@@ -49,53 +49,32 @@ pub async fn create(
     sqlite_pool: Data<SqlitePool>,
     AuthUser(user_id): AuthUser,
 ) -> crate::Result<impl Responder> {
-    let user_directory = format!("{}/{}", server_config.user_content_path, user_id);
-    std::fs::DirBuilder::new()
-        .recursive(true)
-        .create(&user_directory)?;
+    let user_dir = format!("{}/{}", server_config.user_content_path, user_id);
+    fs::create_dir_all(&user_dir).await?; // async mkdir -p
 
     let mut user_total_image_count = db::get_image_count(&sqlite_pool, user_id).await?;
-    let mut upload_image_count = 0;
+    let mut upload_image_count = 0u64;
 
-    // iterate over multipart stream
-    while let Ok(Some(mut field)) = payload.try_next().await {
-        let content_type = field.content_disposition();
-        let filename = content_type
-            .expect("filename expected")
-            .get_filename()
-            .unwrap();
-
-        let ext = get_extension(filename).unwrap();
+    while let Some(mut field) = payload.try_next().await? {
+        let cd = field.content_disposition().ok_or(Error::BadUpload)?;
+        let filename = cd.get_filename().ok_or(Error::BadUpload)?;
+        let ext = get_extension(filename).ok_or(Error::BadUpload)?;
         let fourc = number_as_fourc(user_total_image_count)?;
-
-        let derived_filename = format!("{}.{}", fourc, ext);
-
-        let filepath = format!("{}/{}", user_directory, derived_filename);
+        let derived = format!("{}.{}", fourc, ext);
+        let path = format!("{}/{}", user_dir, derived);
 
         user_total_image_count += 1;
         upload_image_count += 1;
 
-        // todo: unwrap was added after the File::create - is this right?
-        let mut f = tokio::task::spawn_blocking(|| std::fs::File::create(filepath).unwrap())
-            .await
-            .unwrap();
-
-        // Field in turn is stream of *Bytes* object
-        while let Some(chunk) = field.next().await {
-            let data = chunk.unwrap();
-            // filesystem operations are blocking, we have to use threadpool
-
-            // todo: the await?.unwrap() code looks wrong
-            f = tokio::task::spawn_blocking(move || f.write_all(&data).map(|_| f))
-                .await?
-                .unwrap();
+        let mut file = fs::File::create(&path).await?;
+        while let Some(chunk) = field.try_next().await? {
+            file.write_all(&chunk).await?;
         }
 
-        // save the entry in the images table
-        db::add_image_entry(&sqlite_pool, user_id, derived_filename).await?;
+        db::add_image_entry(&sqlite_pool, user_id, derived).await?;
     }
-    db::set_image_count(&sqlite_pool, user_id, user_total_image_count).await?;
 
+    db::set_image_count(&sqlite_pool, user_id, user_total_image_count).await?;
     Ok(Json(upload_image_count))
 }
 

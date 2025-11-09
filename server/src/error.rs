@@ -53,6 +53,10 @@ pub enum Error {
     Var(#[from] std::env::VarError),
     #[error("int conversion to enum")]
     IntConversionToEnum,
+    #[error("Bad Upload")]
+    BadUpload,
+    #[error(transparent)]
+    MultipartError(#[from] actix_multipart::MultipartError),
     #[error(transparent)]
     SessionGetError(#[from] actix_session::SessionGetError),
     #[error(transparent)]
