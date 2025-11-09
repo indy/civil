@@ -18,13 +18,10 @@
 use crate::interop::Key;
 use crate::interop::font::Font;
 use crate::interop::notes::Note;
-
 use rusqlite::types::{FromSql, FromSqlError, FromSqlResult, ValueRef};
-
-use std::fmt;
+use std::{fmt, str::FromStr};
 
 // isg note: update the db/stats.rs when adding a new DeckKind
-// isg note: update resource_string_to_deck_kind when adding a new DeckKind
 //
 #[derive(
     Copy, Clone, Debug, PartialEq, Eq, serde_repr::Serialize_repr, serde_repr::Deserialize_repr,
@@ -41,36 +38,54 @@ pub enum DeckKind {
     Concept,
 }
 
-impl fmt::Display for DeckKind {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+impl DeckKind {
+    pub const fn singular(self) -> &'static str {
         match self {
-            DeckKind::Article => write!(f, "article"),
-            DeckKind::Person => write!(f, "person"),
-            DeckKind::Idea => write!(f, "idea"),
-            DeckKind::Timeline => write!(f, "timeline"),
-            DeckKind::Quote => write!(f, "quote"),
-            DeckKind::Dialogue => write!(f, "dialogue"),
-            DeckKind::Event => write!(f, "event"),
-            DeckKind::Concept => write!(f, "concept"),
+            DeckKind::Article => "article",
+            DeckKind::Concept => "concept",
+            DeckKind::Dialogue => "dialogue",
+            DeckKind::Event => "event",
+            DeckKind::Idea => "idea",
+            DeckKind::Person => "person",
+            DeckKind::Quote => "quote",
+            DeckKind::Timeline => "timeline",
+        }
+    }
+}
+
+impl fmt::Display for DeckKind {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(self.singular())
+    }
+}
+
+impl FromStr for DeckKind {
+    type Err = crate::Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "article" | "articles" => Ok(DeckKind::Article),
+            "concept" | "concepts" => Ok(DeckKind::Concept),
+            "dialogue" | "dialogues" => Ok(DeckKind::Dialogue),
+            "event" | "events" => Ok(DeckKind::Event),
+            "idea" | "ideas" => Ok(DeckKind::Idea),
+            "person" | "people" => Ok(DeckKind::Person),
+            "quote" | "quotes" => Ok(DeckKind::Quote),
+            "timeline" | "timelines" => Ok(DeckKind::Timeline),
+            _ => Err(crate::Error::InvalidStringToDeckKindConversion),
         }
     }
 }
 
 impl FromSql for DeckKind {
     fn column_result(value: ValueRef<'_>) -> FromSqlResult<Self> {
-        let input = value.as_str()?;
-        match input {
-            "article" => Ok(DeckKind::Article),
-            "person" => Ok(DeckKind::Person),
-            "idea" => Ok(DeckKind::Idea),
-            "timeline" => Ok(DeckKind::Timeline),
-            "quote" => Ok(DeckKind::Quote),
-            "dialogue" => Ok(DeckKind::Dialogue),
-            "event" => Ok(DeckKind::Event),
-            "concept" => Ok(DeckKind::Concept),
-            _ => Err(FromSqlError::InvalidType),
-        }
+        let s = value.as_str()?;
+        s.parse().map_err(|_| FromSqlError::InvalidType)
     }
+}
+
+pub(crate) fn resource_string_to_deck_kind(resource: &str) -> crate::Result<DeckKind> {
+    resource.parse()
 }
 
 #[derive(

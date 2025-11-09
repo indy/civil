@@ -21,7 +21,9 @@ use crate::db::decks as db;
 use crate::db::notes as db_notes;
 use crate::error::Error;
 use crate::handler::{AuthUser, PaginationQuery};
-use crate::interop::decks::{DeckKind, Pagination, SlimDeck, SlimResults};
+use crate::interop::decks::{
+    DeckKind, Pagination, SlimDeck, SlimResults, resource_string_to_deck_kind,
+};
 use crate::interop::dialogues::AiKind;
 use crate::interop::{IdParam, Key};
 use actix_web::Responder;
@@ -313,18 +315,4 @@ pub(crate) async fn pagination(
     }
 
     Ok(Json(pagination_results))
-}
-
-fn resource_string_to_deck_kind(resource: &str) -> crate::Result<DeckKind> {
-    match resource {
-        "articles" => Ok(DeckKind::Article),
-        "people" => Ok(DeckKind::Person),
-        "ideas" => Ok(DeckKind::Idea),
-        "concepts" => Ok(DeckKind::Concept),
-        "timelines" => Ok(DeckKind::Timeline),
-        "quotes" => Ok(DeckKind::Quote),
-        "dialogues" => Ok(DeckKind::Dialogue),
-        "events" => Ok(DeckKind::Event),
-        _ => Err(Error::InvalidResource),
-    }
 }

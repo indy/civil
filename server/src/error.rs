@@ -35,14 +35,14 @@ pub enum Error {
     IO(#[from] std::io::Error),
     #[error("invalid kind")]
     InvalidKind,
-    #[error("invalid resource")]
-    InvalidResource,
     #[error("missing id")]
     MissingId,
     #[error("not found")]
     NotFound,
     #[error("other error")]
     Other,
+    #[error("invalid string to DeckKind conversion")]
+    InvalidStringToDeckKindConversion,
     #[error(transparent)]
     ParseInt(#[from] std::num::ParseIntError),
     #[error("radix conversion error")]
