@@ -18,13 +18,13 @@
 use crate::db::decks::{self, DeckBase, DeckBaseOrigin};
 use crate::db::notes as notes_db;
 use crate::db::sqlite::{self, FromRow};
-use crate::db::{db, DbError, SqlitePool};
+use crate::db::{DbError, SqlitePool, db};
+use crate::interop::Key;
 use crate::interop::decks::{DeckKind, SlimDeck};
 use crate::interop::events::{Event, ProtoEvent};
 use crate::interop::font::Font;
-use crate::interop::Key;
 
-use rusqlite::{params, Row};
+use rusqlite::{Row, params};
 
 #[derive(Debug, Clone)]
 struct EventExtra {
@@ -191,10 +191,7 @@ fn all_conn(conn: &rusqlite::Connection, user_id: Key) -> Result<Vec<SlimDeck>, 
     sqlite::many(&conn, stmt, params![&user_id])
 }
 
-pub(crate) async fn all(
-    sqlite_pool: &SqlitePool,
-    user_id: Key,
-) -> crate::Result<Vec<SlimDeck>> {
+pub(crate) async fn all(sqlite_pool: &SqlitePool, user_id: Key) -> crate::Result<Vec<SlimDeck>> {
     db(sqlite_pool, move |conn| all_conn(conn, user_id)).await
 }
 

@@ -20,12 +20,12 @@ use crate::db::decks::DECKBASE_QUERY;
 use crate::db::notes as notes_db;
 use crate::db::points as points_db;
 use crate::db::sqlite::{self, FromRow};
-use crate::db::{db, DbError, SqlitePool};
+use crate::db::{DbError, SqlitePool, db};
+use crate::interop::Key;
 use crate::interop::decks::{DeckKind, ProtoSlimDeck};
 use crate::interop::font::Font;
 use crate::interop::timelines::Timeline;
-use crate::interop::Key;
-use rusqlite::{params, Row};
+use rusqlite::{Row, params};
 
 impl FromRow for Timeline {
     fn from_row(row: &Row) -> rusqlite::Result<Timeline> {
@@ -94,10 +94,7 @@ fn all_conn(conn: &rusqlite::Connection, user_id: Key) -> Result<Vec<Timeline>, 
     sqlite::many(&conn, stmt, params![&user_id])
 }
 
-pub(crate) async fn all(
-    sqlite_pool: &SqlitePool,
-    user_id: Key,
-) -> crate::Result<Vec<Timeline>> {
+pub(crate) async fn all(sqlite_pool: &SqlitePool, user_id: Key) -> crate::Result<Vec<Timeline>> {
     db(sqlite_pool, move |conn| all_conn(conn, user_id)).await
 }
 

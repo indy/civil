@@ -15,16 +15,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::db::users as db;
-use crate::db::SqlitePool;
-use crate::error::Error;
-use crate::interop::users as interop;
-use crate::interop::Key;
-use crate::session;
 use crate::ServerConfig;
+use crate::db::SqlitePool;
+use crate::db::users as db;
+use crate::error::Error;
+use crate::interop::Key;
+use crate::interop::users as interop;
+use crate::session;
 use actix_web::web::{Data, Json};
 use actix_web::{HttpResponse, Responder};
-use rand::{rng, RngCore};
+use rand::{RngCore, rng};
 use std::env;
 
 #[allow(unused_imports)]

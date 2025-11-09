@@ -15,15 +15,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+use crate::db::SqlitePool;
 use crate::db::notes as db;
 use crate::db::references as db_refs;
-use crate::db::SqlitePool;
 use crate::handler::AuthUser;
+use crate::interop::IdParam;
 use crate::interop::notes as interop;
 use crate::interop::references as interop_refs;
-use crate::interop::IdParam;
-use actix_web::web::{Data, Json, Path};
 use actix_web::Responder;
+use actix_web::web::{Data, Json, Path};
 
 pub async fn create_notes(
     Json(note): Json<interop::ProtoNote>,

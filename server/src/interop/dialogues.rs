@@ -16,10 +16,10 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::ai::openai_interface;
+use crate::interop::Key;
 use crate::interop::decks::{Arrival, DeckKind};
 use crate::interop::font::Font;
 use crate::interop::notes::Note;
-use crate::interop::Key;
 
 use rusqlite::types::{FromSql, FromSqlError, FromSqlResult, ValueRef};
 

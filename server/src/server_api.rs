@@ -36,7 +36,7 @@ use crate::handler::users;
 use actix_files::NamedFile;
 use actix_web::middleware::ErrorHandlerResponse;
 use actix_web::web::{delete, get, post, put, scope};
-use actix_web::{dev, Responder};
+use actix_web::{Responder, dev};
 use std::env;
 use tracing::warn;
 

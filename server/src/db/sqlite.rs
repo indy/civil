@@ -15,18 +15,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::interop::Key;
-
 use crate::db::DbError;
+use crate::interop::Key;
+use rusqlite::{Connection, OptionalExtension, Params, Row, ToSql};
 
-#[allow(unused_imports)]
-use crate::error::Error;
-#[allow(unused_imports)]
-use rusqlite::{Connection, OptionalExtension, Row, ToSql, Params};
 #[allow(unused_imports)]
 use tracing::error;
 
-pub(crate) trait FromRow: Sized { fn from_row(row: &Row) -> rusqlite::Result<Self>;}
+pub(crate) trait FromRow: Sized {
+    fn from_row(row: &Row) -> rusqlite::Result<Self>;
+}
 
 impl FromRow for i32 {
     fn from_row(row: &Row) -> rusqlite::Result<i32> {
@@ -70,7 +68,9 @@ pub(crate) fn zero(conn: &Connection, sql: &str, params: &[&dyn ToSql]) -> Resul
 }
 
 pub(crate) fn one<T: FromRow, P: Params + Clone>(
-    conn: &Connection, sql: &str, params: P
+    conn: &Connection,
+    sql: &str,
+    params: P,
 ) -> Result<T, DbError> {
     conn.prepare_cached(sql)
         .and_then(|mut s| s.query_one(params, T::from_row))
@@ -78,7 +78,9 @@ pub(crate) fn one<T: FromRow, P: Params + Clone>(
 }
 
 pub(crate) fn one_optional<T: FromRow, P: Params + Clone>(
-    conn: &Connection, sql: &str, params: P
+    conn: &Connection,
+    sql: &str,
+    params: P,
 ) -> Result<Option<T>, DbError> {
     conn.prepare_cached(sql)
         .and_then(|mut s| s.query_one(params, T::from_row).optional())
@@ -86,7 +88,9 @@ pub(crate) fn one_optional<T: FromRow, P: Params + Clone>(
 }
 
 pub(crate) fn many<T: FromRow, P: Params + Clone>(
-    conn: &Connection, sql: &str, params: P
+    conn: &Connection,
+    sql: &str,
+    params: P,
 ) -> Result<Vec<T>, DbError> {
     let mut stmt = conn.prepare_cached(sql).map_err(DbError::from)?;
     let mut rows = stmt.query(params).map_err(DbError::from)?;

@@ -17,8 +17,8 @@
 
 use crate::db::stats as stats_db;
 use crate::db::users as users_db;
-use crate::interop::users::UserId;
 use crate::interop::Key;
+use crate::interop::users::UserId;
 
 use crate::db::SqlitePool;
 

@@ -16,11 +16,11 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::db::sqlite::{self, FromRow};
-use crate::db::{db, DbError, SqlitePool};
-use crate::interop::points::{Point, PointKind, ProtoPoint};
+use crate::db::{DbError, SqlitePool, db};
 use crate::interop::Key;
+use crate::interop::points::{Point, PointKind, ProtoPoint};
 
-use rusqlite::{params, Row};
+use rusqlite::{Row, params};
 use std::fmt;
 
 #[allow(unused_imports)]

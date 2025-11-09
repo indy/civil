@@ -16,18 +16,18 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::db::memorise as memorise_db;
+use crate::interop::Key;
 use crate::interop::decks::{Arrival, Ref, SlimDeck};
 use crate::interop::font::Font;
 use crate::interop::memorise::FlashCard;
 use crate::interop::notes::{Note, NoteKind, PreviewNotes, ProtoNote};
-use crate::interop::Key;
 
 #[allow(unused_imports)]
 use tracing::{error, info, warn};
 
 use crate::db::sqlite::{self, FromRow};
-use crate::db::{db, DbError, SqlitePool};
-use rusqlite::{params, Connection, Row};
+use crate::db::{DbError, SqlitePool, db};
+use rusqlite::{Connection, Row, params};
 
 impl FromRow for Note {
     fn from_row(row: &Row) -> rusqlite::Result<Note> {

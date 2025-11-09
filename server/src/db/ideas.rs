@@ -19,12 +19,12 @@ use crate::db::decks;
 use crate::db::decks::DECKBASE_QUERY;
 use crate::db::notes as notes_db;
 use crate::db::sqlite::{self, FromRow};
-use crate::db::{db, DbError, SqlitePool};
+use crate::db::{DbError, SqlitePool, db};
+use crate::interop::Key;
 use crate::interop::decks::{DeckKind, Pagination, ProtoSlimDeck, SlimDeck};
 use crate::interop::font::Font;
 use crate::interop::ideas::Idea;
-use crate::interop::Key;
-use rusqlite::{params, Row};
+use rusqlite::{Row, params};
 
 impl FromRow for Idea {
     fn from_row(row: &Row) -> rusqlite::Result<Idea> {

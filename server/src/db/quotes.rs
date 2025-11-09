@@ -19,13 +19,13 @@ use crate::db::decks;
 use crate::db::decks::DECKBASE_QUERY;
 use crate::db::notes as notes_db;
 use crate::db::sqlite::{self, FromRow};
-use crate::db::{db, DbError, SqlitePool};
+use crate::db::{DbError, SqlitePool, db};
+use crate::interop::Key;
 use crate::interop::decks::DeckKind;
 use crate::interop::notes::NoteKind;
 use crate::interop::quotes::{ProtoQuote, Quote};
-use crate::interop::Key;
 
-use rusqlite::{params, Row};
+use rusqlite::{Row, params};
 
 #[allow(unused_imports)]
 use tracing::{error, info};

@@ -19,12 +19,12 @@ use crate::db::decks;
 use crate::db::notes as notes_db;
 use crate::db::notes;
 use crate::db::sqlite::{self, FromRow};
-use crate::db::{db, DbError, SqlitePool};
+use crate::db::{DbError, SqlitePool, db};
+use crate::interop::Key;
 use crate::interop::articles::{Article, ProtoArticle};
 use crate::interop::decks::{DeckKind, Pagination, SlimDeck};
 use crate::interop::font::Font;
-use crate::interop::Key;
-use rusqlite::{params, Row};
+use rusqlite::{Row, params};
 
 use tracing::error;
 

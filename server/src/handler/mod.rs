@@ -17,8 +17,8 @@
 
 use crate::{error::Error, interop::Key, session};
 use actix_session::SessionExt; // for req.get_session()
-use actix_web::{dev::Payload, FromRequest, HttpRequest};
-use std::future::{ready, Ready}; // ready() and Ready<>
+use actix_web::{FromRequest, HttpRequest, dev::Payload};
+use std::future::{Ready, ready}; // ready() and Ready<>
 
 pub struct AuthUser(pub Key);
 

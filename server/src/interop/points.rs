@@ -15,9 +15,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+use crate::interop::Key;
 use crate::interop::decks::DeckKind;
 use crate::interop::font::Font;
-use crate::interop::Key;
 
 use rusqlite::types::{FromSql, FromSqlError, FromSqlResult, ValueRef};
 

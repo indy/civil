@@ -18,11 +18,11 @@
 use std::cmp;
 
 use crate::db::sqlite::{self, FromRow};
-use crate::db::{db, DbError, SqlitePool};
-use crate::interop::uploader::UserUploadedImage;
+use crate::db::{DbError, SqlitePool, db};
 use crate::interop::Key;
+use crate::interop::uploader::UserUploadedImage;
 
-use rusqlite::{params, Row};
+use rusqlite::{Row, params};
 
 impl FromRow for UserUploadedImage {
     fn from_row(row: &Row) -> rusqlite::Result<UserUploadedImage> {

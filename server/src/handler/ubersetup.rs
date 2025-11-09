@@ -15,18 +15,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+use crate::db::SqlitePool;
 use crate::db::bookmarks as db_bookmarks;
 use crate::db::memorise as db_memorise;
 use crate::db::references as db_references;
 use crate::db::uploader as db_uploader;
-use crate::db::SqlitePool;
 use crate::handler::AuthUser;
+use crate::interop::Key;
 use crate::interop::bookmarks as interop_bookmarks;
 use crate::interop::decks::SlimDeck;
 use crate::interop::uploader as interop_uploader;
-use crate::interop::Key;
-use actix_web::web::{Data, Json};
 use actix_web::Responder;
+use actix_web::web::{Data, Json};
 use chrono::Utc;
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]

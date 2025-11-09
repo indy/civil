@@ -15,12 +15,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use rusqlite::{params, Connection};
+use rusqlite::{Connection, params};
 use tracing::info;
 
-use crate::db::{sqlite, DbError};
-use crate::interop::decks::DeckKind;
+use crate::db::{DbError, sqlite};
 use crate::interop::Key;
+use crate::interop::decks::DeckKind;
 
 pub(crate) fn get_num_decks(
     conn: &Connection,

@@ -15,13 +15,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::db::search as db;
 use crate::db::SqlitePool;
+use crate::db::search as db;
 use crate::handler::{AuthUser, SearchQuery};
-use crate::interop::search::SearchResults;
 use crate::interop::IdParam;
-use actix_web::web::{Data, Json, Path, Query};
+use crate::interop::search::SearchResults;
 use actix_web::Responder;
+use actix_web::web::{Data, Json, Path, Query};
 
 // called by the realtime search at the top of the page
 //

@@ -22,15 +22,15 @@ use crate::db::decks;
 use crate::db::notes as notes_db;
 use crate::db::notes as db_notes;
 use crate::db::sqlite::{self, FromRow};
-use crate::db::{db, DbError, SqlitePool};
+use crate::db::{DbError, SqlitePool, db};
+use crate::interop::Key;
 use crate::interop::decks::{DeckKind, SlimDeck};
 use crate::interop::dialogues as interop;
 use crate::interop::dialogues::{Dialogue, ProtoDialogue};
 use crate::interop::font::Font;
 use crate::interop::notes::NoteKind;
-use crate::interop::Key;
 
-use rusqlite::{params, Row};
+use rusqlite::{Row, params};
 #[allow(unused_imports)]
 use tracing::{error, info};
 

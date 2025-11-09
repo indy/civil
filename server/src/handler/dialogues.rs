@@ -15,15 +15,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::ai::{openai_interface, AI};
-use crate::db::dialogues as db;
+use crate::ai::{AI, openai_interface};
 use crate::db::SqlitePool;
-use crate::handler::{decks, AuthUser, PaginationQuery};
+use crate::db::dialogues as db;
+use crate::handler::{AuthUser, PaginationQuery, decks};
+use crate::interop::IdParam;
 use crate::interop::decks::DeckKind;
 use crate::interop::dialogues as interop;
-use crate::interop::IdParam;
-use actix_web::web::{Data, Json, Path, Query};
 use actix_web::Responder;
+use actix_web::web::{Data, Json, Path, Query};
 
 pub async fn chat(
     Json(dialogue): Json<interop::ProtoChat>,

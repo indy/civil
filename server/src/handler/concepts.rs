@@ -15,13 +15,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::db::concepts as db;
 use crate::db::SqlitePool;
-use crate::handler::{decks, AuthUser, PaginationQuery};
-use crate::interop::decks::{DeckKind, ProtoDeck, ProtoSlimDeck};
+use crate::db::concepts as db;
+use crate::handler::{AuthUser, PaginationQuery, decks};
 use crate::interop::IdParam;
-use actix_web::web::{Data, Json, Path, Query};
+use crate::interop::decks::{DeckKind, ProtoDeck, ProtoSlimDeck};
 use actix_web::Responder;
+use actix_web::web::{Data, Json, Path, Query};
 
 pub async fn create(
     Json(proto_deck): Json<ProtoDeck>,

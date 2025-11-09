@@ -15,15 +15,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::db::uploader as db;
+use crate::ServerConfig;
 use crate::db::SqlitePool;
+use crate::db::uploader as db;
 use crate::error::Error;
 use crate::handler::AuthUser;
 use crate::interop::AtLeastParam;
-use crate::ServerConfig;
 use actix_multipart::Multipart;
-use actix_web::web::{Data, Json, Path};
 use actix_web::Responder;
+use actix_web::web::{Data, Json, Path};
 use futures::{StreamExt, TryStreamExt};
 use std::ffi::OsStr;
 use std::io::Write;

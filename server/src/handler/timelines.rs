@@ -17,12 +17,12 @@
 
 use crate::db::points as points_db;
 use crate::db::timelines as db;
-use crate::handler::{decks, AuthUser, PaginationQuery};
+use crate::handler::{AuthUser, PaginationQuery, decks};
+use crate::interop::IdParam;
 use crate::interop::decks::{DeckKind, ProtoDeck, ProtoSlimDeck};
 use crate::interop::points as points_interop;
-use crate::interop::IdParam;
-use actix_web::web::{Data, Json, Path, Query};
 use actix_web::Responder;
+use actix_web::web::{Data, Json, Path, Query};
 
 use crate::db::SqlitePool;
 

@@ -17,14 +17,14 @@
 
 use crate::db::decks::deckbase_get_or_create;
 use crate::db::sqlite::{self, FromRow};
-use crate::db::{db, DbError, SqlitePool};
+use crate::db::{DbError, SqlitePool, db};
+use crate::interop::Key;
 use crate::interop::decks::Ref;
 use crate::interop::decks::{DeckKind, SlimDeck};
 use crate::interop::font::Font;
 use crate::interop::references::{ReferencesApplied, ReferencesDiff};
-use crate::interop::Key;
 
-use rusqlite::{params, Connection, Row};
+use rusqlite::{Connection, Row, params};
 #[allow(unused_imports)]
 use tracing::info;
 

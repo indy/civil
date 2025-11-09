@@ -15,17 +15,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::ai::{openai_interface, AI};
+use crate::ai::{AI, openai_interface};
+use crate::db::SqlitePool;
 use crate::db::decks as db;
 use crate::db::notes as db_notes;
-use crate::db::SqlitePool;
 use crate::error::Error;
 use crate::handler::{AuthUser, PaginationQuery};
 use crate::interop::decks::{DeckKind, Pagination, SlimDeck, SlimResults};
 use crate::interop::dialogues::AiKind;
 use crate::interop::{IdParam, Key};
-use actix_web::web::{Data, Json, Path, Query};
 use actix_web::Responder;
+use actix_web::web::{Data, Json, Path, Query};
 use serde::Deserialize;
 
 #[allow(unused_imports)]

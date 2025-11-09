@@ -16,10 +16,10 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::db::sqlite::{self, FromRow};
-use crate::db::{db, DbError, SqlitePool};
-use crate::interop::users::{LoginCredentials, Registration, User, UserId};
+use crate::db::{DbError, SqlitePool, db};
 use crate::interop::Key;
-use rusqlite::{params, Row};
+use crate::interop::users::{LoginCredentials, Registration, User, UserId};
+use rusqlite::{Row, params};
 use tracing::info;
 
 impl FromRow for User {

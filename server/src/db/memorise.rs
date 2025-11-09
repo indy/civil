@@ -16,13 +16,13 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::db::sqlite::{self, FromRow};
-use crate::db::{db, DbError, SqlitePool};
+use crate::db::{DbError, SqlitePool, db};
+use crate::interop::Key;
 use crate::interop::decks::SlimDeck;
 use crate::interop::memorise::{Card, CardUpcomingReview, FlashCard, ProtoCard};
-use crate::interop::Key;
 
 use chrono::Utc;
-use rusqlite::{params, Row};
+use rusqlite::{Row, params};
 #[allow(unused_imports)]
 use tracing::info;
 

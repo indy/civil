@@ -16,11 +16,11 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use actix_files as fs;
-use actix_session::{config::PersistentSession, storage::CookieSessionStore, SessionMiddleware};
+use actix_session::{SessionMiddleware, config::PersistentSession, storage::CookieSessionStore};
 use actix_web::cookie::{self, Key, SameSite};
 use actix_web::middleware::{self, ErrorHandlers};
-use actix_web::{http, web, App, HttpServer};
-use civil_server::{self, server_api, ServerConfig};
+use actix_web::{App, HttpServer, http, web};
+use civil_server::{self, ServerConfig, server_api};
 use rusqlite::Connection;
 use std::env;
 use tracing::{error, info};
