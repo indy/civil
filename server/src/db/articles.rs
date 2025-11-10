@@ -15,14 +15,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::db::decks;
-use crate::db::notes as notes_db;
-use crate::db::notes;
 use crate::db::sqlite::{self, FromRow};
-use crate::db::{DbError, SqlitePool, db};
+use crate::db::{DbError, decks, notes};
 use crate::interop::Key;
 use crate::interop::articles::{Article, ProtoArticle};
-use crate::interop::decks::{DeckKind, Pagination, SlimDeck};
+use crate::interop::decks::DeckKind;
 use crate::interop::font::Font;
 use rusqlite::{Row, params};
 
@@ -83,7 +80,7 @@ impl FromRow for Article {
     }
 }
 
-fn all_conn(conn: &rusqlite::Connection, user_id: Key) -> Result<Vec<Article>, DbError> {
+pub(crate) fn all(conn: &rusqlite::Connection, user_id: Key) -> Result<Vec<Article>, DbError> {
     let stmt = "SELECT decks.id, decks.name, decks.kind, decks.created_at,
                        decks.graph_terminator, decks.insignia, decks.font, decks.impact,
                        article_extras.source,
@@ -97,143 +94,7 @@ fn all_conn(conn: &rusqlite::Connection, user_id: Key) -> Result<Vec<Article>, D
     sqlite::many(&conn, stmt, params![&user_id])
 }
 
-pub(crate) async fn all(sqlite_pool: &SqlitePool, user_id: Key) -> crate::Result<Vec<Article>> {
-    db(sqlite_pool, move |conn| all_conn(conn, user_id)).await
-}
-
-fn recent_conn(
-    conn: &rusqlite::Connection,
-    user_id: Key,
-    offset: i32,
-    num_items: i32,
-) -> Result<Pagination<SlimDeck>, DbError> {
-    let stmt = "SELECT decks.id, decks.name, decks.kind, decks.created_at,
-                       decks.graph_terminator, decks.insignia, decks.font, decks.impact,
-                       article_extras.source,
-                       article_extras.author,
-                       article_extras.short_description,
-                       article_extras.published_date
-                FROM decks LEFT JOIN article_extras ON article_extras.deck_id = decks.id
-                WHERE user_id = ?1 and kind = 'article'
-                ORDER BY created_at desc
-                LIMIT ?2
-                OFFSET ?3";
-
-    let items = sqlite::many(&conn, stmt, params![&user_id, &num_items, &offset])?;
-
-    let stmt = "SELECT count(*) FROM decks where user_id=?1 AND kind='article';";
-    let total_items = sqlite::one(&conn, stmt, params![user_id])?;
-
-    let res = Pagination::<SlimDeck> { items, total_items };
-
-    Ok(res)
-}
-
-pub(crate) async fn recent(
-    sqlite_pool: &SqlitePool,
-    user_id: Key,
-    offset: i32,
-    num_items: i32,
-) -> crate::Result<Pagination<SlimDeck>> {
-    db(sqlite_pool, move |conn| {
-        recent_conn(conn, user_id, offset, num_items)
-    })
-    .await
-}
-
-fn rated_conn(
-    conn: &rusqlite::Connection,
-    user_id: Key,
-    offset: i32,
-    num_items: i32,
-) -> Result<Pagination<SlimDeck>, DbError> {
-    let stmt = "SELECT decks.id, decks.name, decks.kind, decks.created_at,
-                       decks.graph_terminator, decks.insignia, decks.font, decks.impact,
-                       article_extras.source,
-                       article_extras.author,
-                       article_extras.short_description,
-                       article_extras.published_date
-                FROM decks LEFT JOIN article_extras ON article_extras.deck_id = decks.id
-                WHERE user_id = ?1 AND kind = 'article' AND decks.impact > 0
-                ORDER BY decks.impact desc, decks.id desc
-                LIMIT ?2
-                OFFSET ?3";
-    let items = sqlite::many(&conn, stmt, params![&user_id, &num_items, &offset])?;
-
-    let stmt = "SELECT count(*)
-                FROM decks LEFT JOIN article_extras ON article_extras.deck_id = decks.id
-                WHERE user_id = ?1 AND kind = 'article' AND decks.impact > 0";
-    let total_items = sqlite::one(&conn, stmt, params![user_id])?;
-
-    let res = Pagination::<SlimDeck> { items, total_items };
-
-    Ok(res)
-}
-
-pub(crate) async fn rated(
-    sqlite_pool: &SqlitePool,
-    user_id: Key,
-    offset: i32,
-    num_items: i32,
-) -> crate::Result<Pagination<SlimDeck>> {
-    db(sqlite_pool, move |conn| {
-        rated_conn(conn, user_id, offset, num_items)
-    })
-    .await
-}
-
-fn orphans_conn(
-    conn: &rusqlite::Connection,
-    user_id: Key,
-    offset: i32,
-    num_items: i32,
-) -> Result<Pagination<SlimDeck>, DbError> {
-    let stmt = "SELECT d.id, d.name, d.kind, d.created_at, d.graph_terminator, d.insignia, d.font, d.impact
-                FROM decks d LEFT JOIN article_extras pe ON pe.deck_id=d.id
-                WHERE d.id NOT IN (SELECT deck_id
-                                   FROM refs
-                                   GROUP BY deck_id)
-                AND d.id NOT IN (SELECT n.deck_id
-                                 FROM notes n INNER JOIN refs r ON n.id = r.note_id
-                                 GROUP by n.deck_id)
-                AND d.kind = 'article'
-                AND d.user_id = ?1
-                ORDER BY d.created_at desc
-                LIMIT ?2
-                OFFSET ?3";
-
-    let items = sqlite::many(&conn, stmt, params![&user_id, &num_items, &offset])?;
-
-    let stmt = "SELECT count(*)
-                FROM decks d LEFT JOIN article_extras pe ON pe.deck_id=d.id
-                WHERE d.id NOT IN (SELECT deck_id
-                                   FROM refs
-                                   GROUP BY deck_id)
-                AND d.id NOT IN (SELECT n.deck_id
-                                 FROM notes n INNER JOIN refs r ON n.id = r.note_id
-                                 GROUP by n.deck_id)
-                AND d.kind = 'article'
-                AND d.user_id = ?1";
-    let total_items = sqlite::one(&conn, stmt, params![user_id])?;
-
-    let res = Pagination::<SlimDeck> { items, total_items };
-
-    Ok(res)
-}
-
-pub(crate) async fn orphans(
-    sqlite_pool: &SqlitePool,
-    user_id: Key,
-    offset: i32,
-    num_items: i32,
-) -> crate::Result<Pagination<SlimDeck>> {
-    db(sqlite_pool, move |conn| {
-        orphans_conn(conn, user_id, offset, num_items)
-    })
-    .await
-}
-
-fn get_conn(
+pub(crate) fn get(
     conn: &rusqlite::Connection,
     user_id: Key,
     article_id: Key,
@@ -254,28 +115,12 @@ fn get_conn(
     )?;
 
     if let Some(ref mut a) = article {
-        a.notes = notes_db::notes_for_deck(conn, article_id)?;
-        a.arrivals = notes_db::arrivals_for_deck(conn, article_id)?;
+        a.notes = notes::notes_for_deck(conn, article_id)?;
+        a.arrivals = notes::arrivals_for_deck(conn, article_id)?;
         decks::hit(&conn, article_id)?;
     }
 
     Ok(article)
-}
-
-pub(crate) async fn get(
-    sqlite_pool: &SqlitePool,
-    user_id: Key,
-    article_id: Key,
-) -> crate::Result<Option<Article>> {
-    db(sqlite_pool, move |conn| get_conn(conn, user_id, article_id)).await
-}
-
-pub(crate) async fn delete(
-    sqlite_pool: &SqlitePool,
-    user_id: Key,
-    deck_id: Key,
-) -> crate::Result<()> {
-    decks::delete(sqlite_pool, user_id, deck_id).await
 }
 
 impl FromRow for ArticleExtra {
@@ -289,7 +134,7 @@ impl FromRow for ArticleExtra {
     }
 }
 
-fn edit_conn(
+pub(crate) fn edit(
     conn: &mut rusqlite::Connection,
     user_id: Key,
     article: ProtoArticle,
@@ -321,13 +166,13 @@ fn edit_conn(
     if (article.insignia & TWITTER_INSIGNIA_BIT) == TWITTER_INSIGNIA_BIT {
         dbg!("make look like twitter");
         decks::overwrite_deck_font(&tx, user_id, article_id, Font::Sans)?;
-        notes::overwrite_note_fonts_conn(&tx, user_id, article_id, Font::Sans)?;
+        notes::overwrite_note_fonts(&tx, user_id, article_id, Font::Sans)?;
     }
     // make book articles look bookish
     if (article.insignia & BOOK_INSIGNIA_BIT) == BOOK_INSIGNIA_BIT {
         dbg!("make look like a book");
         decks::overwrite_deck_font(&tx, user_id, article_id, Font::Serif)?;
-        notes::overwrite_note_fonts_conn(&tx, user_id, article_id, Font::Serif)?;
+        notes::overwrite_note_fonts(&tx, user_id, article_id, Font::Serif)?;
     }
 
     let sql_query: &str = match article_extras_exists.len() {
@@ -368,25 +213,13 @@ fn edit_conn(
     tx.commit()?;
 
     let mut article: Article = (edited_deck, article_extras).into();
-    article.notes = notes_db::notes_for_deck(conn, article_id)?;
-    article.arrivals = notes_db::arrivals_for_deck(conn, article_id)?;
+    article.notes = notes::notes_for_deck(conn, article_id)?;
+    article.arrivals = notes::arrivals_for_deck(conn, article_id)?;
 
     Ok(article)
 }
 
-pub(crate) async fn edit(
-    sqlite_pool: &SqlitePool,
-    user_id: Key,
-    article: ProtoArticle,
-    article_id: Key,
-) -> crate::Result<Article> {
-    db(sqlite_pool, move |conn| {
-        edit_conn(conn, user_id, article, article_id)
-    })
-    .await
-}
-
-fn get_or_create_conn(
+pub(crate) fn get_or_create(
     conn: &mut rusqlite::Connection,
     user_id: Key,
     title: String,
@@ -436,19 +269,8 @@ fn get_or_create_conn(
 
     let mut article: Article = (deck, article_extras).into();
 
-    article.notes = notes_db::notes_for_deck(conn, article.id)?;
-    article.arrivals = notes_db::arrivals_for_deck(conn, article.id)?;
+    article.notes = notes::notes_for_deck(conn, article.id)?;
+    article.arrivals = notes::arrivals_for_deck(conn, article.id)?;
 
     Ok(article)
-}
-
-pub(crate) async fn get_or_create(
-    sqlite_pool: &SqlitePool,
-    user_id: Key,
-    title: String,
-) -> crate::Result<Article> {
-    db(sqlite_pool, move |conn| {
-        get_or_create_conn(conn, user_id, title)
-    })
-    .await
 }

@@ -16,18 +16,17 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::db::memorise as memorise_db;
+use crate::db::sqlite::{self, FromRow};
+use crate::db::{DbError, SqlitePool};
 use crate::interop::Key;
 use crate::interop::decks::{Arrival, Ref, SlimDeck};
 use crate::interop::font::Font;
 use crate::interop::memorise::FlashCard;
 use crate::interop::notes::{Note, NoteKind, PreviewNotes, ProtoNote};
+use rusqlite::{Connection, Row, params};
 
 #[allow(unused_imports)]
 use tracing::{error, info, warn};
-
-use crate::db::sqlite::{self, FromRow};
-use crate::db::{DbError, SqlitePool, db};
-use rusqlite::{Connection, Row, params};
 
 impl FromRow for Note {
     fn from_row(row: &Row) -> rusqlite::Result<Note> {
@@ -271,7 +270,7 @@ pub(crate) fn arrivals_for_deck(
 
     let mut arrivals = arrivals_from_notes_and_refs_and_decks(notes_and_refs_and_decks)?;
 
-    let flashcards = memorise_db::all_flashcards_for_deck_arrivals_conn(conn, deck_id)?;
+    let flashcards = memorise_db::all_flashcards_for_deck_arrivals(conn, deck_id)?;
 
     assign_flashcards_to_arrivals(&mut arrivals, flashcards)?;
 
@@ -328,7 +327,7 @@ fn arrivals_from_notes_and_refs_and_decks(
     Ok(res)
 }
 
-fn delete_note_properly_conn(
+pub(crate) fn delete_note_properly(
     conn: &mut rusqlite::Connection,
     user_id: Key,
     note_id: Key,
@@ -378,17 +377,6 @@ fn delete_note_properly_conn(
 
     // return all the notes that the parent deck has
     notes_for_deck(conn, deck_id)
-}
-
-pub(crate) async fn delete_note_properly(
-    sqlite_pool: &SqlitePool,
-    user_id: Key,
-    note_id: Key,
-) -> crate::Result<Vec<Note>> {
-    db(sqlite_pool, move |conn| {
-        delete_note_properly_conn(conn, user_id, note_id)
-    })
-    .await
 }
 
 pub(crate) fn create_common(
@@ -446,7 +434,7 @@ pub(crate) fn create_note_deck_meta(
     )
 }
 
-fn create_notes_conn(
+pub(crate) fn create_notes(
     conn: &mut rusqlite::Connection,
     user_id: Key,
     note: ProtoNote,
@@ -497,17 +485,6 @@ fn create_notes_conn(
     Ok(all_notes)
 }
 
-pub(crate) async fn create_notes(
-    sqlite_pool: &SqlitePool,
-    user_id: Key,
-    note: ProtoNote,
-) -> crate::Result<Vec<Note>> {
-    db(sqlite_pool, move |conn| {
-        create_notes_conn(conn, user_id, note)
-    })
-    .await
-}
-
 fn update_prev_note_id(conn: &Connection, note_id: Key, prev_note_id: Key) -> Result<(), DbError> {
     let stmt = "UPDATE notes
                 SET prev_note_id = ?2
@@ -522,7 +499,7 @@ fn clear_prev_note_id(conn: &Connection, note_id: Key) -> Result<(), DbError> {
     sqlite::zero(conn, stmt, params![&note_id])
 }
 
-fn preview_conn(
+pub(crate) fn preview(
     conn: &rusqlite::Connection,
     user_id: Key,
     deck_id: Key,
@@ -540,18 +517,7 @@ fn preview_conn(
     Ok(PreviewNotes { deck_id, notes })
 }
 
-pub(crate) async fn preview(
-    sqlite_pool: &SqlitePool,
-    user_id: Key,
-    deck_id: Key,
-) -> crate::Result<PreviewNotes> {
-    db(sqlite_pool, move |conn| {
-        preview_conn(conn, user_id, deck_id)
-    })
-    .await
-}
-
-fn add_auto_summary_conn(
+pub(crate) fn add_auto_summary(
     conn: &rusqlite::Connection,
     user_id: Key,
     deck_id: Key,
@@ -571,22 +537,10 @@ fn add_auto_summary_conn(
     )
 }
 
-pub(crate) async fn add_auto_summary(
-    sqlite_pool: &SqlitePool,
-    user_id: Key,
-    deck_id: Key,
-    prev_id: Option<Key>,
-    summary: String,
-) -> crate::Result<Note> {
-    db(sqlite_pool, move |conn| {
-        add_auto_summary_conn(conn, user_id, deck_id, prev_id, summary)
-    })
-    .await
-}
-
+// this is public because it's used by the civil note parser
 // isg todo: this won't get the note's refs, so maybe use two queries: one to edit another to return the full note
 //
-fn edit_note_conn(
+pub fn edit_note(
     conn: &rusqlite::Connection,
     user_id: Key,
     note: Note,
@@ -634,19 +588,6 @@ fn edit_note_conn(
     }
 }
 
-// this is public because it's used by the civil note parser
-pub async fn edit_note(
-    sqlite_pool: &SqlitePool,
-    user_id: Key,
-    note: Note,
-    note_id: Key,
-) -> crate::Result<Note> {
-    db(sqlite_pool, move |conn| {
-        edit_note_conn(conn, user_id, note, note_id)
-    })
-    .await
-}
-
 pub fn get_all_notes_in_db(sqlite_pool: &SqlitePool) -> crate::Result<Vec<Note>> {
     let conn = sqlite_pool.get()?;
     let stmt = "SELECT n.id,
@@ -667,7 +608,7 @@ fn get_prev_note_id(conn: &rusqlite::Connection, id: Key) -> Result<Option<Key>,
     sqlite::one(&conn, stmt, &[&id])
 }
 
-pub(crate) fn replace_note_fonts_conn(
+pub(crate) fn replace_note_fonts(
     conn: &Connection,
     user_id: Key,
     deck_id: Key,
@@ -690,7 +631,7 @@ pub(crate) fn replace_note_fonts_conn(
     )
 }
 
-pub(crate) fn overwrite_note_fonts_conn(
+pub(crate) fn overwrite_note_fonts(
     conn: &Connection,
     user_id: Key,
     deck_id: Key,

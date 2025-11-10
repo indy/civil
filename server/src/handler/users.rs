@@ -16,8 +16,8 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::ServerConfig;
-use crate::db::SqlitePool;
 use crate::db::users as db;
+use crate::db::{SqlitePool, db_thread};
 use crate::error::Error;
 use crate::interop::Key;
 use crate::interop::users as interop;
@@ -32,11 +32,12 @@ use tracing::info;
 
 pub async fn login(
     Json(login): Json<interop::LoginCredentials>,
-    db_pool: Data<SqlitePool>,
+    sqlite_pool: Data<SqlitePool>,
     session: actix_session::Session,
 ) -> crate::Result<impl Responder> {
     let pw: String = login.password.clone();
-    let (id, password, mut user) = db::login(&db_pool, login).await?;
+    let (id, password, mut user) =
+        db_thread(&sqlite_pool, move |conn| db::login(conn, login)).await?;
 
     // compare hashed password of matched_user with the given LoginCredentials
     let is_valid_password = verify_encoded(&password, pw.as_bytes())?;
@@ -61,7 +62,7 @@ pub async fn login(
 }
 
 pub async fn logout(
-    _db_pool: Data<SqlitePool>,
+    _sqlite_pool: Data<SqlitePool>,
     session: actix_session::Session,
 ) -> crate::Result<impl Responder> {
     session.purge();
@@ -78,13 +79,15 @@ fn verify_encoded(encoded: &str, pwd: &[u8]) -> crate::Result<bool> {
 pub async fn create_user(
     Json(registration): Json<interop::Registration>,
     server_config: Data<ServerConfig>,
-    db_pool: Data<SqlitePool>,
+    sqlite_pool: Data<SqlitePool>,
     session: actix_session::Session,
 ) -> crate::Result<impl Responder> {
     if server_config.registration_magic_word == registration.magic_word {
         let hash = hash_password(&registration.password)?;
-
-        let (id, mut user) = db::create(&db_pool, registration, hash).await?;
+        let (id, mut user) = db_thread(&sqlite_pool, move |conn| {
+            db::create(conn, registration, hash)
+        })
+        .await?;
 
         // save id to the session
         session::save_user_id(&session, id)?;
@@ -106,7 +109,7 @@ pub async fn create_user(
 // if the Json function was used then the compiler would complain that this function wasn't returning the same concrete type
 //
 pub async fn get_user(
-    db_pool: Data<SqlitePool>,
+    sqlite_pool: Data<SqlitePool>,
     session: actix_session::Session,
 ) -> crate::Result<HttpResponse> {
     // no session → empty JSON, same as before
@@ -116,10 +119,9 @@ pub async fn get_user(
     };
 
     // fetch from DB (async, runs on blocking thread internally)
-    let mut user = match db::get(db_pool.get_ref(), user_id).await? {
-        Some(u) => u,
-        None => return Err(crate::Error::NotFound),
-    };
+    let mut user = db_thread(&sqlite_pool, move |conn| db::get(conn, user_id))
+        .await?
+        .ok_or(crate::Error::NotFound)?;
 
     if user_id == Key(1) {
         user.admin = Some(interop::Admin {
@@ -132,11 +134,14 @@ pub async fn get_user(
 
 pub async fn edit_ui_config(
     Json(edit_ui_config): Json<interop::EditUiConfig>,
-    db_pool: Data<SqlitePool>,
+    sqlite_pool: Data<SqlitePool>,
     session: actix_session::Session,
 ) -> crate::Result<impl Responder> {
     let user_id = session::user_id(&session)?;
-    db::edit_ui_config(&db_pool, user_id, edit_ui_config.json).await?;
+    db_thread(&sqlite_pool, move |conn| {
+        db::edit_ui_config(conn, user_id, edit_ui_config.json)
+    })
+    .await?;
 
     // send response
     Ok(Json(true))

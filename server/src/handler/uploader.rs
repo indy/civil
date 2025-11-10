@@ -16,8 +16,8 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::ServerConfig;
-use crate::db::SqlitePool;
 use crate::db::uploader as db;
+use crate::db::{SqlitePool, db_thread};
 use crate::error::Error;
 use crate::handler::AuthUser;
 use crate::interop::AtLeastParam;
@@ -38,7 +38,10 @@ pub async fn get(
     params: Path<AtLeastParam>,
     AuthUser(user_id): AuthUser,
 ) -> crate::Result<impl Responder> {
-    let recent = db::get_recent(&sqlite_pool, user_id, params.at_least).await?;
+    let recent = db_thread(&sqlite_pool, move |conn| {
+        db::get_recent(conn, user_id, params.at_least)
+    })
+    .await?;
 
     Ok(Json(recent))
 }
@@ -52,7 +55,9 @@ pub async fn create(
     let user_dir = format!("{}/{}", server_config.user_content_path, user_id);
     fs::create_dir_all(&user_dir).await?; // async mkdir -p
 
-    let mut user_total_image_count = db::get_image_count(&sqlite_pool, user_id).await?;
+    let mut user_total_image_count =
+        db_thread(&sqlite_pool, move |conn| db::get_image_count(conn, user_id)).await?;
+
     let mut upload_image_count = 0u64;
 
     while let Some(mut field) = payload.try_next().await? {
@@ -71,10 +76,17 @@ pub async fn create(
             file.write_all(&chunk).await?;
         }
 
-        db::add_image_entry(&sqlite_pool, user_id, derived).await?;
+        db_thread(&sqlite_pool, move |conn| {
+            db::add_image_entry(conn, user_id, derived)
+        })
+        .await?;
     }
 
-    db::set_image_count(&sqlite_pool, user_id, user_total_image_count).await?;
+    db_thread(&sqlite_pool, move |conn| {
+        db::set_image_count(conn, user_id, user_total_image_count)
+    })
+    .await?;
+
     Ok(Json(upload_image_count))
 }
 

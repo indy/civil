@@ -67,7 +67,7 @@ pub(crate) fn zero(conn: &Connection, sql: &str, params: &[&dyn ToSql]) -> Resul
     }
 }
 
-pub(crate) fn one<T: FromRow, P: Params + Clone>(
+pub(crate) fn one<T: FromRow, P: Params>(
     conn: &Connection,
     sql: &str,
     params: P,
@@ -77,7 +77,7 @@ pub(crate) fn one<T: FromRow, P: Params + Clone>(
         .map_err(DbError::from)
 }
 
-pub(crate) fn one_optional<T: FromRow, P: Params + Clone>(
+pub(crate) fn one_optional<T: FromRow, P: Params>(
     conn: &Connection,
     sql: &str,
     params: P,
@@ -87,7 +87,7 @@ pub(crate) fn one_optional<T: FromRow, P: Params + Clone>(
         .map_err(DbError::from)
 }
 
-pub(crate) fn many<T: FromRow, P: Params + Clone>(
+pub(crate) fn many<T: FromRow, P: Params>(
     conn: &Connection,
     sql: &str,
     params: P,

@@ -15,11 +15,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+use crate::db::DbError;
 use crate::db::decks;
 use crate::db::notes as notes_db;
 use crate::db::points as points_db;
 use crate::db::sqlite::{self, FromRow};
-use crate::db::{DbError, SqlitePool, db};
 use crate::interop::Key;
 use crate::interop::decks::{DeckKind, Pagination, ProtoSlimDeck, SlimDeck};
 use crate::interop::font::Font;
@@ -48,7 +48,7 @@ impl FromRow for Person {
     }
 }
 
-fn get_or_create_conn(
+pub(crate) fn get_or_create(
     conn: &mut rusqlite::Connection,
     user_id: Key,
     title: String,
@@ -77,18 +77,7 @@ fn get_or_create_conn(
     Ok(person)
 }
 
-pub(crate) async fn get_or_create(
-    sqlite_pool: &SqlitePool,
-    user_id: Key,
-    title: String,
-) -> crate::Result<Person> {
-    db(sqlite_pool, move |conn| {
-        get_or_create_conn(conn, user_id, title)
-    })
-    .await
-}
-
-fn all_conn(conn: &rusqlite::Connection, user_id: Key) -> Result<Vec<Person>, DbError> {
+pub(crate) fn all(conn: &rusqlite::Connection, user_id: Key) -> Result<Vec<Person>, DbError> {
     let stmt = "select d.id,
                 d.name,
                 d.kind,
@@ -123,11 +112,7 @@ fn all_conn(conn: &rusqlite::Connection, user_id: Key) -> Result<Vec<Person>, Db
     sqlite::many(&conn, stmt, params![&user_id])
 }
 
-pub(crate) async fn all(sqlite_pool: &SqlitePool, user_id: Key) -> crate::Result<Vec<Person>> {
-    db(sqlite_pool, move |conn| all_conn(conn, user_id)).await
-}
-
-fn uncategorised_conn(
+pub(crate) fn paginated_uncategorised(
     conn: &rusqlite::Connection,
     user_id: Key,
     offset: i32,
@@ -158,19 +143,7 @@ fn uncategorised_conn(
     Ok(res)
 }
 
-pub(crate) async fn uncategorised(
-    sqlite_pool: &SqlitePool,
-    user_id: Key,
-    offset: i32,
-    num_items: i32,
-) -> crate::Result<Pagination<SlimDeck>> {
-    db(sqlite_pool, move |conn| {
-        uncategorised_conn(conn, user_id, offset, num_items)
-    })
-    .await
-}
-
-fn ancient_conn(
+pub(crate) fn paginated_ancient(
     conn: &rusqlite::Connection,
     user_id: Key,
     offset: i32,
@@ -209,19 +182,7 @@ fn ancient_conn(
     Ok(res)
 }
 
-pub(crate) async fn ancient(
-    sqlite_pool: &SqlitePool,
-    user_id: Key,
-    offset: i32,
-    num_items: i32,
-) -> crate::Result<Pagination<SlimDeck>> {
-    db(sqlite_pool, move |conn| {
-        ancient_conn(conn, user_id, offset, num_items)
-    })
-    .await
-}
-
-fn medieval_conn(
+pub(crate) fn paginated_medieval(
     conn: &rusqlite::Connection,
     user_id: Key,
     offset: i32,
@@ -258,19 +219,7 @@ fn medieval_conn(
     Ok(res)
 }
 
-pub(crate) async fn medieval(
-    sqlite_pool: &SqlitePool,
-    user_id: Key,
-    offset: i32,
-    num_items: i32,
-) -> crate::Result<Pagination<SlimDeck>> {
-    db(sqlite_pool, move |conn| {
-        medieval_conn(conn, user_id, offset, num_items)
-    })
-    .await
-}
-
-fn modern_conn(
+pub(crate) fn paginated_modern(
     conn: &rusqlite::Connection,
     user_id: Key,
     offset: i32,
@@ -308,19 +257,7 @@ fn modern_conn(
     Ok(res)
 }
 
-pub(crate) async fn modern(
-    sqlite_pool: &SqlitePool,
-    user_id: Key,
-    offset: i32,
-    num_items: i32,
-) -> crate::Result<Pagination<SlimDeck>> {
-    db(sqlite_pool, move |conn| {
-        modern_conn(conn, user_id, offset, num_items)
-    })
-    .await
-}
-
-fn contemporary_conn(
+pub(crate) fn paginated_contemporary(
     conn: &rusqlite::Connection,
     user_id: Key,
     offset: i32,
@@ -357,19 +294,7 @@ fn contemporary_conn(
     Ok(res)
 }
 
-pub(crate) async fn contemporary(
-    sqlite_pool: &SqlitePool,
-    user_id: Key,
-    offset: i32,
-    num_items: i32,
-) -> crate::Result<Pagination<SlimDeck>> {
-    db(sqlite_pool, move |conn| {
-        contemporary_conn(conn, user_id, offset, num_items)
-    })
-    .await
-}
-
-fn get_conn(
+pub(crate) fn get(
     conn: &rusqlite::Connection,
     user_id: Key,
     person_id: Key,
@@ -394,15 +319,7 @@ fn get_conn(
     Ok(person)
 }
 
-pub(crate) async fn get(
-    sqlite_pool: &SqlitePool,
-    user_id: Key,
-    person_id: Key,
-) -> crate::Result<Option<Person>> {
-    db(sqlite_pool, move |conn| get_conn(conn, user_id, person_id)).await
-}
-
-fn edit_conn(
+pub(crate) fn edit(
     conn: &mut rusqlite::Connection,
     user_id: Key,
     person: ProtoSlimDeck,
@@ -431,24 +348,4 @@ fn edit_conn(
     person.arrivals = notes_db::arrivals_for_deck(conn, person_id)?;
 
     Ok(person)
-}
-
-pub(crate) async fn edit(
-    sqlite_pool: &SqlitePool,
-    user_id: Key,
-    person: ProtoSlimDeck,
-    person_id: Key,
-) -> crate::Result<Person> {
-    db(sqlite_pool, move |conn| {
-        edit_conn(conn, user_id, person, person_id)
-    })
-    .await
-}
-
-pub(crate) async fn delete(
-    sqlite_pool: &SqlitePool,
-    user_id: Key,
-    deck_id: Key,
-) -> crate::Result<()> {
-    decks::delete(sqlite_pool, user_id, deck_id).await
 }

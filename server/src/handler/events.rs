@@ -15,8 +15,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::db::SqlitePool;
 use crate::db::events as db;
+use crate::db::{SqlitePool, db_thread};
 use crate::handler::decks;
 use crate::handler::{AuthUser, PaginationQuery};
 use crate::interop::IdParam;
@@ -30,7 +30,10 @@ pub async fn create(
     sqlite_pool: Data<SqlitePool>,
     AuthUser(user_id): AuthUser,
 ) -> crate::Result<impl Responder> {
-    let event = db::get_or_create(&sqlite_pool, user_id, proto_deck.title).await?;
+    let event = db_thread(&sqlite_pool, move |conn| {
+        db::get_or_create(conn, user_id, proto_deck.title)
+    })
+    .await?;
 
     Ok(Json(event))
 }
@@ -39,7 +42,7 @@ pub async fn get_all(
     sqlite_pool: Data<SqlitePool>,
     AuthUser(user_id): AuthUser,
 ) -> crate::Result<impl Responder> {
-    let events = db::all(&sqlite_pool, user_id).await?;
+    let events = db_thread(&sqlite_pool, move |conn| db::all(conn, user_id)).await?;
 
     Ok(Json(events))
 }
@@ -57,10 +60,9 @@ pub async fn get(
     params: Path<IdParam>,
     AuthUser(user_id): AuthUser,
 ) -> crate::Result<impl Responder> {
-    let event = match db::get(&sqlite_pool, user_id, params.id).await? {
-        Some(i) => i,
-        None => return Err(crate::Error::NotFound),
-    };
+    let event = db_thread(&sqlite_pool, move |conn| db::get(conn, user_id, params.id))
+        .await?
+        .ok_or(crate::Error::NotFound)?;
 
     Ok(Json(event))
 }
@@ -71,7 +73,10 @@ pub async fn edit(
     params: Path<IdParam>,
     AuthUser(user_id): AuthUser,
 ) -> crate::Result<impl Responder> {
-    let event = db::edit(&sqlite_pool, user_id, event, params.id).await?;
+    let event = db_thread(&sqlite_pool, move |conn| {
+        db::edit(conn, user_id, event, params.id)
+    })
+    .await?;
 
     Ok(Json(event))
 }
@@ -81,7 +86,5 @@ pub async fn delete(
     params: Path<IdParam>,
     AuthUser(user_id): AuthUser,
 ) -> crate::Result<impl Responder> {
-    db::delete(&sqlite_pool, user_id, params.id).await?;
-
-    Ok(Json(true))
+    decks::delete(sqlite_pool, user_id, params.id).await
 }

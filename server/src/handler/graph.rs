@@ -15,8 +15,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::db::SqlitePool;
 use crate::db::graph as db;
+use crate::db::{SqlitePool, db_thread};
 use crate::handler::AuthUser;
 use crate::interop::IdParam;
 use actix_web::Responder;
@@ -27,7 +27,8 @@ pub async fn get(
     params: Path<IdParam>,
     AuthUser(user_id): AuthUser,
 ) -> crate::Result<impl Responder> {
-    let connectivity = db::get(&sqlite_pool, user_id, params.id).await?;
+    let connectivity =
+        db_thread(&sqlite_pool, move |conn| db::get(conn, user_id, params.id)).await?;
 
     Ok(Json(connectivity))
 }

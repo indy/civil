@@ -15,8 +15,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+use crate::db::DbError;
 use crate::db::sqlite::{self, FromRow};
-use crate::db::{DbError, SqlitePool, db};
 use crate::interop::Key;
 use crate::interop::points::{Point, PointKind, ProtoPoint};
 
@@ -59,7 +59,7 @@ impl FromRow for Point {
     }
 }
 
-pub(crate) fn all_conn(
+pub(crate) fn all(
     conn: &rusqlite::Connection,
     user_id: Key,
     deck_id: Key,
@@ -120,7 +120,7 @@ fn year_as_date_string(year: i32) -> String {
     res
 }
 
-fn all_points_within_interval_conn(
+pub(crate) fn all_points_within_interval(
     conn: &mut rusqlite::Connection,
     user_id: Key,
     lower: i32,
@@ -154,18 +154,6 @@ fn all_points_within_interval_conn(
          order by sortdate",
         params![&user_id, &lower_year, &upper_year],
     )
-}
-
-pub(crate) async fn all_points_within_interval(
-    sqlite_pool: &SqlitePool,
-    user_id: Key,
-    lower: i32,
-    upper: i32,
-) -> crate::Result<Vec<Point>> {
-    db(sqlite_pool, move |conn| {
-        all_points_within_interval_conn(conn, user_id, lower, upper)
-    })
-    .await
 }
 
 pub(crate) fn all_points_during_life(
@@ -230,7 +218,7 @@ pub(crate) fn all_points_during_life(
     )
 }
 
-fn create_conn(
+pub(crate) fn create(
     conn: &rusqlite::Connection,
     point: ProtoPoint,
     deck_id: Key,
@@ -254,12 +242,4 @@ fn create_conn(
             &point.upper_date,
             &point.date_fuzz,
         ])
-}
-
-pub(crate) async fn create(
-    sqlite_pool: &SqlitePool,
-    point: ProtoPoint,
-    deck_id: Key,
-) -> crate::Result<()> {
-    db(sqlite_pool, move |conn| create_conn(conn, point, deck_id)).await
 }

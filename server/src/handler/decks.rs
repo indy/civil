@@ -16,9 +16,9 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::ai::{AI, openai_interface};
-use crate::db::SqlitePool;
 use crate::db::decks as db;
 use crate::db::notes as db_notes;
+use crate::db::{SqlitePool, db_thread};
 use crate::error::Error;
 use crate::handler::{AuthUser, PaginationQuery};
 use crate::interop::decks::{
@@ -38,7 +38,7 @@ pub async fn hits(
     params: Path<IdParam>,
     AuthUser(_user_id): AuthUser,
 ) -> crate::Result<impl Responder> {
-    let hits = db::get_hits(&sqlite_pool, params.id).await?;
+    let hits = db_thread(&sqlite_pool, move |conn| db::get_hits(conn, params.id)).await?;
 
     Ok(Json(hits))
 }
@@ -59,23 +59,21 @@ pub async fn insignias(
 ) -> crate::Result<impl Responder> {
     let paginated: Pagination<SlimDeck> = if let Some(resource_string) = query.resource {
         let deck_kind = resource_string_to_deck_kind(&resource_string)?;
-        db::insignia_filter(
-            &sqlite_pool,
-            user_id,
-            deck_kind,
-            query.insignia,
-            query.offset,
-            query.num_items,
-        )
+        db_thread(&sqlite_pool, move |conn| {
+            db::insignia_filter(
+                conn,
+                user_id,
+                deck_kind,
+                query.insignia,
+                query.offset,
+                query.num_items,
+            )
+        })
         .await?
     } else {
-        db::insignia_filter_any(
-            &sqlite_pool,
-            user_id,
-            query.insignia,
-            query.offset,
-            query.num_items,
-        )
+        db_thread(&sqlite_pool, move |conn| {
+            db::insignia_filter_any(conn, user_id, query.insignia, query.offset, query.num_items)
+        })
         .await?
     };
 
@@ -93,7 +91,11 @@ pub async fn recent(
     Query(query): Query<RecentQuery>,
 ) -> crate::Result<impl Responder> {
     let deck_kind = resource_string_to_deck_kind(&query.resource)?;
-    let results = db::recent(&sqlite_pool, user_id, deck_kind).await?;
+    let results = db_thread(&sqlite_pool, move |conn| {
+        db::recent(conn, user_id, deck_kind)
+    })
+    .await?;
+
     let res = SlimResults { results };
 
     Ok(Json(res))
@@ -111,10 +113,17 @@ pub async fn recently_visited(
     Query(query): Query<RecentKindNum>,
 ) -> crate::Result<impl Responder> {
     let results: Vec<SlimDeck> = if let Some(resource_string) = query.resource {
+        // can't call resource_string_to_deck_kind inside the move block since it returns a crate::Error
         let deck_kind = resource_string_to_deck_kind(&resource_string)?;
-        db::recently_visited(&sqlite_pool, user_id, deck_kind, query.num).await?
+        db_thread(&sqlite_pool, move |conn| {
+            db::recently_visited(conn, user_id, deck_kind, query.num)
+        })
+        .await?
     } else {
-        db::recently_visited_any(&sqlite_pool, user_id, query.num).await?
+        db_thread(&sqlite_pool, move |conn| {
+            db::recently_visited_any(conn, user_id, query.num)
+        })
+        .await?
     };
 
     let res = SlimResults { results };
@@ -164,13 +173,15 @@ pub async fn summarize(
                     summary.push('\n');
                 }
 
-                let note = db_notes::add_auto_summary(
-                    &sqlite_pool,
-                    user_id,
-                    params.id,
-                    summarize_struct.prev_id,
-                    summary.trim().to_string(),
-                )
+                let note = db_thread(&sqlite_pool, move |conn| {
+                    db_notes::add_auto_summary(
+                        conn,
+                        user_id,
+                        params.id,
+                        summarize_struct.prev_id,
+                        summary.trim().to_string(),
+                    )
+                })
                 .await?;
 
                 Ok(Json(note))
@@ -279,7 +290,10 @@ pub async fn preview(
     params: Path<IdParam>,
     AuthUser(user_id): AuthUser,
 ) -> crate::Result<impl Responder> {
-    let preview = db_notes::preview(&sqlite_pool, user_id, params.id).await?;
+    let preview = db_thread(&sqlite_pool, move |conn| {
+        db_notes::preview(conn, user_id, params.id)
+    })
+    .await?;
 
     Ok(Json(preview))
 }
@@ -290,29 +304,93 @@ pub(crate) async fn pagination(
     user_id: Key,
     deck_kind: DeckKind,
 ) -> crate::Result<impl Responder> {
-    let pagination_results;
-    if deck_kind == DeckKind::Event {
-        // events are treated differently from other deck kinds
-        // they should be listed in chronological order of the events they describe, not creation date
-        //
-        pagination_results = db::pagination_events_chronologically(
-            &sqlite_pool,
-            user_id,
-            deck_kind,
-            query.offset,
-            query.num_items,
-        )
-        .await?;
-    } else {
-        pagination_results = db::pagination(
-            &sqlite_pool,
-            user_id,
-            deck_kind,
-            query.offset,
-            query.num_items,
-        )
-        .await?;
-    }
+    let slimdecks = db_thread(&sqlite_pool, move |conn| {
+        if deck_kind == DeckKind::Event {
+            // events are treated differently from other deck kinds
+            // they should be listed in chronological order of the events they describe, not creation date
+            //
+            db::pagination_events_chronologically(
+                conn,
+                user_id,
+                deck_kind,
+                query.offset,
+                query.num_items,
+            )
+        } else {
+            db::pagination(conn, user_id, deck_kind, query.offset, query.num_items)
+        }
+    })
+    .await?;
 
-    Ok(Json(pagination_results))
+    Ok(Json(slimdecks))
+}
+
+pub async fn paginated_unnoted(
+    sqlite_pool: Data<SqlitePool>,
+    user_id: Key,
+    deck_kind: DeckKind,
+    offset: i32,
+    num_items: i32,
+) -> crate::Result<impl Responder> {
+    let slimdecks = db_thread(&sqlite_pool, move |conn| {
+        db::paginated_unnoted(conn, user_id, deck_kind, offset, num_items)
+    })
+    .await?;
+
+    Ok(Json(slimdecks))
+}
+
+pub async fn paginated_recents(
+    sqlite_pool: Data<SqlitePool>,
+    user_id: Key,
+    deck_kind: DeckKind,
+    offset: i32,
+    num_items: i32,
+) -> crate::Result<impl Responder> {
+    let slimdecks = db_thread(&sqlite_pool, move |conn| {
+        db::paginated_recents(conn, user_id, deck_kind, offset, num_items)
+    })
+    .await?;
+
+    Ok(Json(slimdecks))
+}
+
+pub async fn paginated_orphans(
+    sqlite_pool: Data<SqlitePool>,
+    user_id: Key,
+    deck_kind: DeckKind,
+    offset: i32,
+    num_items: i32,
+) -> crate::Result<impl Responder> {
+    let slimdecks = db_thread(&sqlite_pool, move |conn| {
+        db::paginated_orphans(conn, user_id, deck_kind, offset, num_items)
+    })
+    .await?;
+
+    Ok(Json(slimdecks))
+}
+
+pub async fn paginated_rated(
+    sqlite_pool: Data<SqlitePool>,
+    user_id: Key,
+    deck_kind: DeckKind,
+    offset: i32,
+    num_items: i32,
+) -> crate::Result<impl Responder> {
+    let slimdecks = db_thread(&sqlite_pool, move |conn| {
+        db::paginated_rated(conn, user_id, deck_kind, offset, num_items)
+    })
+    .await?;
+
+    Ok(Json(slimdecks))
+}
+
+pub(crate) async fn delete(
+    sqlite_pool: Data<SqlitePool>,
+    user_id: Key,
+    deck_id: Key,
+) -> crate::Result<impl Responder> {
+    db_thread(&sqlite_pool, move |conn| db::delete(conn, user_id, deck_id)).await?;
+
+    Ok(Json(true))
 }

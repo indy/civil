@@ -15,8 +15,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::db::SqlitePool;
 use crate::db::quotes as db;
+use crate::db::{SqlitePool, db_thread};
 use crate::handler::{AuthUser, PaginationQuery, decks};
 use crate::interop::IdParam;
 use crate::interop::decks::DeckKind;
@@ -29,7 +29,10 @@ pub async fn create(
     sqlite_pool: Data<SqlitePool>,
     AuthUser(user_id): AuthUser,
 ) -> crate::Result<impl Responder> {
-    let quote = db::get_or_create(&sqlite_pool, user_id, proto_quote).await?;
+    let quote = db_thread(&sqlite_pool, move |conn| {
+        db::get_or_create(conn, user_id, proto_quote)
+    })
+    .await?;
 
     Ok(Json(quote))
 }
@@ -38,10 +41,9 @@ pub async fn random(
     sqlite_pool: Data<SqlitePool>,
     AuthUser(user_id): AuthUser,
 ) -> crate::Result<impl Responder> {
-    let quote = match db::random(&sqlite_pool, user_id).await? {
-        Some(i) => i,
-        None => return Err(crate::Error::NotFound),
-    };
+    let quote = db_thread(&sqlite_pool, move |conn| db::random(conn, user_id))
+        .await?
+        .ok_or(crate::Error::NotFound)?;
 
     Ok(Json(quote))
 }
@@ -59,10 +61,9 @@ pub async fn get(
     params: Path<IdParam>,
     AuthUser(user_id): AuthUser,
 ) -> crate::Result<impl Responder> {
-    let quote = match db::get(&sqlite_pool, user_id, params.id).await? {
-        Some(i) => i,
-        None => return Err(crate::Error::NotFound),
-    };
+    let quote = db_thread(&sqlite_pool, move |conn| db::get(conn, user_id, params.id))
+        .await?
+        .ok_or(crate::Error::NotFound)?;
 
     Ok(Json(quote))
 }
@@ -72,10 +73,9 @@ pub async fn next(
     params: Path<IdParam>,
     AuthUser(user_id): AuthUser,
 ) -> crate::Result<impl Responder> {
-    let quote = match db::next(&sqlite_pool, user_id, params.id).await? {
-        Some(i) => i,
-        None => return Err(crate::Error::NotFound),
-    };
+    let quote = db_thread(&sqlite_pool, move |conn| db::next(conn, user_id, params.id))
+        .await?
+        .ok_or(crate::Error::NotFound)?;
 
     Ok(Json(quote))
 }
@@ -85,10 +85,9 @@ pub async fn prev(
     params: Path<IdParam>,
     AuthUser(user_id): AuthUser,
 ) -> crate::Result<impl Responder> {
-    let quote = match db::prev(&sqlite_pool, user_id, params.id).await? {
-        Some(i) => i,
-        None => return Err(crate::Error::NotFound),
-    };
+    let quote = db_thread(&sqlite_pool, move |conn| db::prev(conn, user_id, params.id))
+        .await?
+        .ok_or(crate::Error::NotFound)?;
 
     Ok(Json(quote))
 }
@@ -99,7 +98,10 @@ pub async fn edit(
     params: Path<IdParam>,
     AuthUser(user_id): AuthUser,
 ) -> crate::Result<impl Responder> {
-    let quote = db::edit(&sqlite_pool, user_id, quote, params.id).await?;
+    let quote = db_thread(&sqlite_pool, move |conn| {
+        db::edit(conn, user_id, quote, params.id)
+    })
+    .await?;
 
     Ok(Json(quote))
 }
@@ -109,7 +111,5 @@ pub async fn delete(
     params: Path<IdParam>,
     AuthUser(user_id): AuthUser,
 ) -> crate::Result<impl Responder> {
-    db::delete(&sqlite_pool, user_id, params.id).await?;
-
-    Ok(Json(true))
+    decks::delete(sqlite_pool, user_id, params.id).await
 }

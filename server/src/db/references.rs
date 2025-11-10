@@ -15,9 +15,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+use crate::db::DbError;
 use crate::db::decks::deckbase_get_or_create;
 use crate::db::sqlite::{self, FromRow};
-use crate::db::{DbError, SqlitePool, db};
 use crate::interop::Key;
 use crate::interop::decks::Ref;
 use crate::interop::decks::{DeckKind, SlimDeck};
@@ -47,7 +47,7 @@ impl FromRow for Ref {
     }
 }
 
-fn update_references_conn(
+pub(crate) fn update_references(
     conn: &mut rusqlite::Connection,
     diff: ReferencesDiff,
     user_id: Key,
@@ -139,36 +139,14 @@ fn update_references_conn(
          WHERE r.note_id = ?1 AND d.id = r.deck_id";
     let refs: Vec<Ref> = sqlite::many(&tx, stmt_all_decks, params![&note_id])?;
 
-    let recents = decks_recently_referenced_conn(&tx, user_id)?;
+    let recents = decks_recently_referenced(&tx, user_id)?;
 
     tx.commit()?;
 
     Ok(ReferencesApplied { refs, recents })
 }
 
-pub(crate) async fn update_references(
-    sqlite_pool: &SqlitePool,
-    diff: ReferencesDiff,
-    user_id: Key,
-    note_id: Key,
-) -> crate::Result<ReferencesApplied> {
-    db(sqlite_pool, move |conn| {
-        update_references_conn(conn, diff, user_id, note_id)
-    })
-    .await
-}
-
-pub(crate) async fn get_decks_recently_referenced(
-    sqlite_pool: &SqlitePool,
-    user_id: Key,
-) -> crate::Result<Vec<SlimDeck>> {
-    db(sqlite_pool, move |conn| {
-        decks_recently_referenced_conn(conn, user_id)
-    })
-    .await
-}
-
-fn decks_recently_referenced_conn(
+pub(crate) fn decks_recently_referenced(
     conn: &Connection,
     user_id: Key,
 ) -> Result<Vec<SlimDeck>, DbError> {

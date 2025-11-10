@@ -15,12 +15,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::db::SqlitePool;
 use crate::db::articles as db;
-use crate::handler::{AuthUser, PaginationQuery};
+use crate::db::{SqlitePool, db_thread};
+use crate::handler::{AuthUser, PaginationQuery, decks};
 use crate::interop::IdParam;
 use crate::interop::articles as interop;
-use crate::interop::decks::ProtoDeck;
+use crate::interop::decks::{DeckKind, ProtoDeck};
 use actix_web::Responder;
 use actix_web::web::{Data, Json, Path, Query};
 
@@ -29,7 +29,10 @@ pub async fn create(
     sqlite_pool: Data<SqlitePool>,
     AuthUser(user_id): AuthUser,
 ) -> crate::Result<impl Responder> {
-    let article = db::get_or_create(&sqlite_pool, user_id, proto_deck.title).await?;
+    let article = db_thread(&sqlite_pool, move |conn| {
+        db::get_or_create(conn, user_id, proto_deck.title)
+    })
+    .await?;
 
     Ok(Json(article))
 }
@@ -38,11 +41,12 @@ pub async fn get_all(
     sqlite_pool: Data<SqlitePool>,
     AuthUser(user_id): AuthUser,
 ) -> crate::Result<impl Responder> {
-    let articles = db::all(&sqlite_pool, user_id).await?;
+    let articles = db_thread(&sqlite_pool, move |conn| db::all(conn, user_id)).await?;
 
     Ok(Json(articles))
 }
 
+// nocheckin: why does pagination just call recent?
 pub async fn pagination(
     sqlite_pool: Data<SqlitePool>,
     AuthUser(user_id): AuthUser,
@@ -55,31 +59,25 @@ pub async fn pagination(
 pub async fn recent(
     sqlite_pool: Data<SqlitePool>,
     AuthUser(user_id): AuthUser,
-    Query(query): Query<PaginationQuery>,
+    Query(PaginationQuery { offset, num_items }): Query<PaginationQuery>,
 ) -> crate::Result<impl Responder> {
-    let recent = db::recent(&sqlite_pool, user_id, query.offset, query.num_items).await?;
-
-    Ok(Json(recent))
+    decks::paginated_recents(sqlite_pool, user_id, DeckKind::Article, offset, num_items).await
 }
 
 pub async fn orphans(
     sqlite_pool: Data<SqlitePool>,
     AuthUser(user_id): AuthUser,
-    Query(query): Query<PaginationQuery>,
+    Query(PaginationQuery { offset, num_items }): Query<PaginationQuery>,
 ) -> crate::Result<impl Responder> {
-    let orphans = db::orphans(&sqlite_pool, user_id, query.offset, query.num_items).await?;
-
-    Ok(Json(orphans))
+    decks::paginated_orphans(sqlite_pool, user_id, DeckKind::Article, offset, num_items).await
 }
 
 pub async fn rated(
     sqlite_pool: Data<SqlitePool>,
     AuthUser(user_id): AuthUser,
-    Query(query): Query<PaginationQuery>,
+    Query(PaginationQuery { offset, num_items }): Query<PaginationQuery>,
 ) -> crate::Result<impl Responder> {
-    let rated = db::rated(&sqlite_pool, user_id, query.offset, query.num_items).await?;
-
-    Ok(Json(rated))
+    decks::paginated_rated(sqlite_pool, user_id, DeckKind::Article, offset, num_items).await
 }
 
 pub async fn get(
@@ -87,10 +85,9 @@ pub async fn get(
     params: Path<IdParam>,
     AuthUser(user_id): AuthUser,
 ) -> crate::Result<impl Responder> {
-    let article = match db::get(&sqlite_pool, user_id, params.id).await? {
-        Some(i) => i,
-        None => return Err(crate::Error::NotFound),
-    };
+    let article = db_thread(&sqlite_pool, move |conn| db::get(conn, user_id, params.id))
+        .await?
+        .ok_or(crate::Error::NotFound)?;
 
     Ok(Json(article))
 }
@@ -101,7 +98,10 @@ pub async fn edit(
     params: Path<IdParam>,
     AuthUser(user_id): AuthUser,
 ) -> crate::Result<impl Responder> {
-    let article = db::edit(&sqlite_pool, user_id, article, params.id).await?;
+    let article = db_thread(&sqlite_pool, move |conn| {
+        db::edit(conn, user_id, article, params.id)
+    })
+    .await?;
 
     Ok(Json(article))
 }
@@ -111,7 +111,5 @@ pub async fn delete(
     params: Path<IdParam>,
     AuthUser(user_id): AuthUser,
 ) -> crate::Result<impl Responder> {
-    db::delete(&sqlite_pool, user_id, params.id).await?;
-
-    Ok(Json(true))
+    decks::delete(sqlite_pool, user_id, params.id).await
 }

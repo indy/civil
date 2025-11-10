@@ -31,3 +31,14 @@ r2d2 = "0.8.10"
 r2d2_sqlite = "0.31.0"
 rusqlite = { version = "0.37.0", features = ["bundled", "chrono"] }
 rusqlite_migration = "2.3.0"
+
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+unused_must_use = "deny"
+
+[workspace.lints.clippy]
+dbg_macro = "deny"
+unwrap_used = "deny"
+expect_used = "deny"
+large_enum_variant = "warn"

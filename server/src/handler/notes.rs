@@ -15,9 +15,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::db::SqlitePool;
 use crate::db::notes as db;
 use crate::db::references as db_refs;
+use crate::db::{SqlitePool, db_thread};
 use crate::handler::AuthUser;
 use crate::interop::IdParam;
 use crate::interop::notes as interop;
@@ -30,7 +30,10 @@ pub async fn create_notes(
     sqlite_pool: Data<SqlitePool>,
     AuthUser(user_id): AuthUser,
 ) -> crate::Result<impl Responder> {
-    let notes = db::create_notes(&sqlite_pool, user_id, note).await?;
+    let notes = db_thread(&sqlite_pool, move |conn| {
+        db::create_notes(conn, user_id, note)
+    })
+    .await?;
 
     Ok(Json(notes))
 }
@@ -41,7 +44,10 @@ pub async fn edit_note(
     params: Path<IdParam>,
     AuthUser(user_id): AuthUser,
 ) -> crate::Result<impl Responder> {
-    let note = db::edit_note(&sqlite_pool, user_id, note, params.id).await?;
+    let note = db_thread(&sqlite_pool, move |conn| {
+        db::edit_note(conn, user_id, note, params.id)
+    })
+    .await?;
 
     Ok(Json(note))
 }
@@ -51,7 +57,10 @@ pub async fn delete_note(
     params: Path<IdParam>,
     AuthUser(user_id): AuthUser,
 ) -> crate::Result<impl Responder> {
-    let notes = db::delete_note_properly(&sqlite_pool, user_id, params.id).await?;
+    let notes = db_thread(&sqlite_pool, move |conn| {
+        db::delete_note_properly(conn, user_id, params.id)
+    })
+    .await?;
 
     Ok(Json(notes))
 }
@@ -62,7 +71,10 @@ pub async fn edit_references(
     params: Path<IdParam>,
     AuthUser(user_id): AuthUser,
 ) -> crate::Result<impl Responder> {
-    let decks_for_note = db_refs::update_references(&sqlite_pool, diff, user_id, params.id).await?;
+    let decks_for_note = db_thread(&sqlite_pool, move |conn| {
+        db_refs::update_references(conn, diff, user_id, params.id)
+    })
+    .await?;
 
     Ok(Json(decks_for_note))
 }

@@ -15,11 +15,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::db::SqlitePool;
 use crate::db::bookmarks as db_bookmarks;
 use crate::db::memorise as db_memorise;
 use crate::db::references as db_references;
 use crate::db::uploader as db_uploader;
+use crate::db::{SqlitePool, db_thread};
 use crate::handler::AuthUser;
 use crate::interop::Key;
 use crate::interop::bookmarks as interop_bookmarks;
@@ -45,13 +45,26 @@ pub async fn setup(
     AuthUser(user_id): AuthUser,
 ) -> crate::Result<impl Responder> {
     let directory = user_id;
-    let recently_used_decks =
-        db_references::get_decks_recently_referenced(&sqlite_pool, user_id).await?;
-    let recent_images = db_uploader::get_recent(&sqlite_pool, user_id, 0).await?;
-    let upcoming_review =
-        db_memorise::get_cards_upcoming_review(&sqlite_pool, user_id, Utc::now().naive_utc())
-            .await?;
-    let bookmarks = db_bookmarks::get_bookmarks(&sqlite_pool, user_id).await?;
+
+    let recently_used_decks = db_thread(&sqlite_pool, move |conn| {
+        db_references::decks_recently_referenced(conn, user_id)
+    })
+    .await?;
+
+    let recent_images = db_thread(&sqlite_pool, move |conn| {
+        db_uploader::get_recent(conn, user_id, 0)
+    })
+    .await?;
+
+    let upcoming_review = db_thread(&sqlite_pool, move |conn| {
+        db_memorise::get_cards_upcoming_review(conn, user_id, Utc::now().naive_utc())
+    })
+    .await?;
+
+    let bookmarks = db_thread(&sqlite_pool, move |conn| {
+        db_bookmarks::get_bookmarks(conn, user_id)
+    })
+    .await?;
 
     let uber = UberStruct {
         directory,

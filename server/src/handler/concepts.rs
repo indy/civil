@@ -15,8 +15,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::db::SqlitePool;
 use crate::db::concepts as db;
+use crate::db::{SqlitePool, db_thread};
 use crate::handler::{AuthUser, PaginationQuery, decks};
 use crate::interop::IdParam;
 use crate::interop::decks::{DeckKind, ProtoDeck, ProtoSlimDeck};
@@ -28,7 +28,10 @@ pub async fn create(
     sqlite_pool: Data<SqlitePool>,
     AuthUser(user_id): AuthUser,
 ) -> crate::Result<impl Responder> {
-    let concept = db::get_or_create(&sqlite_pool, user_id, proto_deck.title).await?;
+    let concept = db_thread(&sqlite_pool, move |conn| {
+        db::get_or_create(conn, user_id, proto_deck.title)
+    })
+    .await?;
 
     Ok(Json(concept))
 }
@@ -37,7 +40,7 @@ pub async fn get_all(
     sqlite_pool: Data<SqlitePool>,
     AuthUser(user_id): AuthUser,
 ) -> crate::Result<impl Responder> {
-    let concepts = db::all(&sqlite_pool, user_id).await?;
+    let concepts = db_thread(&sqlite_pool, move |conn| db::all(conn, user_id)).await?;
 
     Ok(Json(concepts))
 }
@@ -53,31 +56,25 @@ pub async fn pagination(
 pub async fn recent(
     sqlite_pool: Data<SqlitePool>,
     AuthUser(user_id): AuthUser,
-    Query(query): Query<PaginationQuery>,
+    Query(PaginationQuery { offset, num_items }): Query<PaginationQuery>,
 ) -> crate::Result<impl Responder> {
-    let recent = db::recent(&sqlite_pool, user_id, query.offset, query.num_items).await?;
-
-    Ok(Json(recent))
+    decks::paginated_recents(sqlite_pool, user_id, DeckKind::Concept, offset, num_items).await
 }
 
 pub async fn orphans(
     sqlite_pool: Data<SqlitePool>,
     AuthUser(user_id): AuthUser,
-    Query(query): Query<PaginationQuery>,
+    Query(PaginationQuery { offset, num_items }): Query<PaginationQuery>,
 ) -> crate::Result<impl Responder> {
-    let orphans = db::orphans(&sqlite_pool, user_id, query.offset, query.num_items).await?;
-
-    Ok(Json(orphans))
+    decks::paginated_orphans(sqlite_pool, user_id, DeckKind::Concept, offset, num_items).await
 }
 
 pub async fn unnoted(
     sqlite_pool: Data<SqlitePool>,
     AuthUser(user_id): AuthUser,
-    Query(query): Query<PaginationQuery>,
+    Query(PaginationQuery { offset, num_items }): Query<PaginationQuery>,
 ) -> crate::Result<impl Responder> {
-    let unnoted = db::unnoted(&sqlite_pool, user_id, query.offset, query.num_items).await?;
-
-    Ok(Json(unnoted))
+    decks::paginated_unnoted(sqlite_pool, user_id, DeckKind::Concept, offset, num_items).await
 }
 
 pub async fn convert(
@@ -85,10 +82,11 @@ pub async fn convert(
     params: Path<IdParam>,
     AuthUser(user_id): AuthUser,
 ) -> crate::Result<impl Responder> {
-    let idea = match db::convert(&sqlite_pool, user_id, params.id).await? {
-        Some(i) => i,
-        None => return Err(crate::Error::NotFound),
-    };
+    let idea = db_thread(&sqlite_pool, move |conn| {
+        db::convert(conn, user_id, params.id)
+    })
+    .await?
+    .ok_or(crate::Error::NotFound)?;
 
     Ok(Json(idea))
 }
@@ -98,10 +96,9 @@ pub async fn get(
     params: Path<IdParam>,
     AuthUser(user_id): AuthUser,
 ) -> crate::Result<impl Responder> {
-    let concept = match db::get(&sqlite_pool, user_id, params.id).await? {
-        Some(i) => i,
-        None => return Err(crate::Error::NotFound),
-    };
+    let concept = db_thread(&sqlite_pool, move |conn| db::get(conn, user_id, params.id))
+        .await?
+        .ok_or(crate::Error::NotFound)?;
 
     Ok(Json(concept))
 }
@@ -112,7 +109,10 @@ pub async fn edit(
     params: Path<IdParam>,
     AuthUser(user_id): AuthUser,
 ) -> crate::Result<impl Responder> {
-    let concept = db::edit(&sqlite_pool, user_id, concept, params.id).await?;
+    let concept = db_thread(&sqlite_pool, move |conn| {
+        db::edit(conn, user_id, concept, params.id)
+    })
+    .await?;
 
     Ok(Json(concept))
 }
@@ -122,7 +122,5 @@ pub async fn delete(
     params: Path<IdParam>,
     AuthUser(user_id): AuthUser,
 ) -> crate::Result<impl Responder> {
-    db::delete(&sqlite_pool, user_id, params.id).await?;
-
-    Ok(Json(true))
+    decks::delete(sqlite_pool, user_id, params.id).await
 }

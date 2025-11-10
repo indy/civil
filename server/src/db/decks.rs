@@ -15,13 +15,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+use crate::db::DbError;
 use crate::db::notes;
 use crate::db::sqlite::{self, FromRow};
-use crate::db::{DbError, SqlitePool, db};
 use crate::interop::Key;
-use crate::interop::decks as interop;
+use crate::interop::decks::{DeckKind, Hit, Pagination, SlimDeck};
 use crate::interop::font::Font;
-use rusqlite::{Connection, Row, params};
+use rusqlite::{Connection, Row, named_params, params};
 
 #[allow(unused_imports)]
 use tracing::{info, warn};
@@ -40,7 +40,7 @@ pub(crate) enum DeckBaseOrigin {
 pub struct DeckBase {
     pub id: Key,
     pub title: String,
-    pub deck_kind: interop::DeckKind,
+    pub deck_kind: DeckKind,
     pub created_at: chrono::NaiveDateTime,
     pub graph_terminator: bool,
     pub insignia: i32,
@@ -48,9 +48,9 @@ pub struct DeckBase {
     pub impact: i32,
 }
 
-impl FromRow for interop::SlimDeck {
-    fn from_row(row: &Row) -> rusqlite::Result<interop::SlimDeck> {
-        Ok(interop::SlimDeck {
+impl FromRow for SlimDeck {
+    fn from_row(row: &Row) -> rusqlite::Result<SlimDeck> {
+        Ok(SlimDeck {
             id: row.get(0)?,
             title: row.get(1)?,
             deck_kind: row.get(2)?,
@@ -78,9 +78,9 @@ impl FromRow for DeckBase {
     }
 }
 
-impl FromRow for interop::Hit {
-    fn from_row(row: &Row) -> rusqlite::Result<interop::Hit> {
-        Ok(interop::Hit {
+impl FromRow for Hit {
+    fn from_row(row: &Row) -> rusqlite::Result<Hit> {
+        Ok(Hit {
             created_at: row.get(0)?,
         })
     }
@@ -93,11 +93,11 @@ impl FromRow for Font {
     }
 }
 
-fn recently_visited_any_conn(
+pub(crate) fn recently_visited_any(
     conn: &rusqlite::Connection,
     user_id: Key,
     num: i32,
-) -> Result<Vec<interop::SlimDeck>, DbError> {
+) -> Result<Vec<SlimDeck>, DbError> {
     let stmt = "SELECT decks.id, decks.name, decks.kind, decks.created_at, decks.graph_terminator, decks.insignia, decks.font, decks.impact, max(hits.created_at) as most_recent_visit
                 FROM hits INNER JOIN decks ON decks.id = hits.deck_id
                 WHERE decks.user_id = ?1
@@ -108,23 +108,12 @@ fn recently_visited_any_conn(
     sqlite::many(&conn, stmt, params![&user_id, &num])
 }
 
-pub(crate) async fn recently_visited_any(
-    sqlite_pool: &SqlitePool,
-    user_id: Key,
-    num: i32,
-) -> crate::Result<Vec<interop::SlimDeck>> {
-    db(sqlite_pool, move |conn| {
-        recently_visited_any_conn(conn, user_id, num)
-    })
-    .await
-}
-
-pub fn recently_visited_conn(
+pub(crate) fn recently_visited(
     conn: &rusqlite::Connection,
     user_id: Key,
-    deck_kind: interop::DeckKind,
+    deck_kind: DeckKind,
     num: i32,
-) -> Result<Vec<interop::SlimDeck>, DbError> {
+) -> Result<Vec<SlimDeck>, DbError> {
     let stmt = "SELECT decks.id, decks.name, decks.kind, decks.created_at, decks.graph_terminator, decks.insignia, decks.font, decks.impact, max(hits.created_at) as most_recent_visit
                 FROM hits INNER JOIN decks ON decks.id = hits.deck_id
                 WHERE decks.user_id = ?1 AND decks.kind=?2
@@ -135,35 +124,23 @@ pub fn recently_visited_conn(
     sqlite::many(&conn, stmt, params![&user_id, &deck_kind.to_string(), &num])
 }
 
-pub(crate) async fn recently_visited(
-    sqlite_pool: &SqlitePool,
-    user_id: Key,
-    deck_kind: interop::DeckKind,
-    num: i32,
-) -> crate::Result<Vec<interop::SlimDeck>> {
-    db(sqlite_pool, move |conn| {
-        recently_visited_conn(conn, user_id, deck_kind, num)
-    })
-    .await
-}
-
 fn num_decks_for_deck_kind(
     conn: &rusqlite::Connection,
     user_id: Key,
-    deck_kind: interop::DeckKind,
+    deck_kind: DeckKind,
 ) -> Result<i32, DbError> {
     let stmt = "SELECT count(*) FROM decks where user_id=?1 AND kind=?2;";
 
     sqlite::one(&conn, stmt, params![user_id, &deck_kind.to_string()])
 }
 
-fn pagination_conn(
+pub(crate) fn pagination(
     conn: &rusqlite::Connection,
     user_id: Key,
-    deck_kind: interop::DeckKind,
+    deck_kind: DeckKind,
     offset: i32,
     num_items: i32,
-) -> Result<interop::Pagination<interop::SlimDeck>, DbError> {
+) -> Result<Pagination<SlimDeck>, DbError> {
     let stmt = "SELECT id, name, kind, created_at, graph_terminator, insignia, font, impact
                 FROM decks
                 WHERE user_id = ?1 AND kind = ?2
@@ -179,31 +156,18 @@ fn pagination_conn(
 
     let total_items = num_decks_for_deck_kind(conn, user_id, deck_kind)?;
 
-    let res = interop::Pagination::<interop::SlimDeck> { items, total_items };
+    let res = Pagination::<SlimDeck> { items, total_items };
 
     Ok(res)
 }
 
-pub(crate) async fn pagination(
-    sqlite_pool: &SqlitePool,
-    user_id: Key,
-    deck_kind: interop::DeckKind,
-    offset: i32,
-    num_items: i32,
-) -> crate::Result<interop::Pagination<interop::SlimDeck>> {
-    db(sqlite_pool, move |conn| {
-        pagination_conn(conn, user_id, deck_kind, offset, num_items)
-    })
-    .await
-}
-
-fn pagination_events_chronologically_conn(
+pub(crate) fn pagination_events_chronologically(
     conn: &rusqlite::Connection,
     user_id: Key,
-    deck_kind: interop::DeckKind,
+    deck_kind: DeckKind,
     offset: i32,
     num_items: i32,
-) -> Result<interop::Pagination<interop::SlimDeck>, DbError> {
+) -> Result<Pagination<SlimDeck>, DbError> {
     let stmt = "SELECT d.id, d.name, d.kind, d.created_at, d.graph_terminator, d.insignia, d.font, d.impact
                 FROM decks as d LEFT JOIN points AS p ON p.deck_id = d.id
                 WHERE d.user_id = ?1 AND d.kind = ?2
@@ -220,22 +184,9 @@ fn pagination_events_chronologically_conn(
 
     let total_items = num_decks_for_deck_kind(conn, user_id, deck_kind)?;
 
-    let res = interop::Pagination::<interop::SlimDeck> { items, total_items };
+    let res = Pagination::<SlimDeck> { items, total_items };
 
     Ok(res)
-}
-
-pub(crate) async fn pagination_events_chronologically(
-    sqlite_pool: &SqlitePool,
-    user_id: Key,
-    deck_kind: interop::DeckKind,
-    offset: i32,
-    num_items: i32,
-) -> crate::Result<interop::Pagination<interop::SlimDeck>> {
-    db(sqlite_pool, move |conn| {
-        pagination_events_chronologically_conn(conn, user_id, deck_kind, offset, num_items)
-    })
-    .await
 }
 
 // note: may execute multiple sql write statements so should be in a transaction
@@ -246,7 +197,7 @@ pub(crate) async fn pagination_events_chronologically(
 pub(crate) fn deckbase_get_or_create(
     tx: &Connection,
     user_id: Key,
-    kind: interop::DeckKind,
+    kind: DeckKind,
     name: &str,
     graph_terminator: bool,
     insignia: i32,
@@ -281,22 +232,15 @@ pub(crate) fn hit(conn: &Connection, deck_id: Key) -> Result<(), DbError> {
     sqlite::zero(conn, stmt, params![&deck_id])
 }
 
-fn get_hits_conn(conn: &rusqlite::Connection, deck_id: Key) -> Result<Vec<interop::Hit>, DbError> {
+pub(crate) fn get_hits(conn: &rusqlite::Connection, deck_id: Key) -> Result<Vec<Hit>, DbError> {
     let stmt = "SELECT created_at FROM hits WHERE deck_id = ?1 ORDER BY created_at DESC;";
     sqlite::many(&conn, stmt, params![&deck_id])
-}
-
-pub(crate) async fn get_hits(
-    sqlite_pool: &SqlitePool,
-    deck_id: Key,
-) -> crate::Result<Vec<interop::Hit>> {
-    db(sqlite_pool, move |conn| get_hits_conn(conn, deck_id)).await
 }
 
 fn deckbase_get_by_name(
     conn: &Connection,
     user_id: Key,
-    kind: interop::DeckKind,
+    kind: DeckKind,
     name: &str,
 ) -> Result<DeckBase, DbError> {
     let stmt = "SELECT id, name, kind, created_at, graph_terminator, insignia, font, impact
@@ -308,7 +252,7 @@ fn deckbase_get_by_name(
 pub(crate) fn deckbase_create(
     tx: &Connection,
     user_id: Key,
-    kind: interop::DeckKind,
+    kind: DeckKind,
     name: &str,
     graph_terminator: bool,
     insignia: i32,
@@ -343,7 +287,7 @@ pub(crate) fn deckbase_edit(
     tx: &Connection,
     user_id: Key,
     deck_id: Key,
-    kind: interop::DeckKind,
+    kind: DeckKind,
     name: &str,
     graph_terminator: bool,
     insignia: i32,
@@ -355,7 +299,7 @@ pub(crate) fn deckbase_edit(
 
     if original_font != font {
         // change all of this deck's notes that have the old font to the new font
-        notes::replace_note_fonts_conn(tx, user_id, deck_id, original_font, font)?;
+        notes::replace_note_fonts(tx, user_id, deck_id, original_font, font)?;
     }
 
     let stmt = "UPDATE decks
@@ -378,14 +322,14 @@ pub(crate) fn deckbase_edit(
     )
 }
 
-fn insignia_filter_conn(
+pub(crate) fn insignia_filter(
     conn: &rusqlite::Connection,
     user_id: Key,
-    deck_kind: interop::DeckKind,
+    deck_kind: DeckKind,
     insignia: i32,
     offset: i32,
     num_items: i32,
-) -> Result<interop::Pagination<interop::SlimDeck>, DbError> {
+) -> Result<Pagination<SlimDeck>, DbError> {
     let stmt = "SELECT id, name, kind, created_at, graph_terminator, insignia, font, impact
                 FROM decks
                 WHERE user_id = ?1 AND insignia & ?2 AND kind = ?3
@@ -412,32 +356,18 @@ fn insignia_filter_conn(
         params![user_id, &insignia, &deck_kind.to_string()],
     )?;
 
-    let res = interop::Pagination::<interop::SlimDeck> { items, total_items };
+    let res = Pagination::<SlimDeck> { items, total_items };
 
     Ok(res)
 }
 
-pub(crate) async fn insignia_filter(
-    sqlite_pool: &SqlitePool,
-    user_id: Key,
-    deck_kind: interop::DeckKind,
-    insignia: i32,
-    offset: i32,
-    num_items: i32,
-) -> crate::Result<interop::Pagination<interop::SlimDeck>> {
-    db(sqlite_pool, move |conn| {
-        insignia_filter_conn(conn, user_id, deck_kind, insignia, offset, num_items)
-    })
-    .await
-}
-
-fn insignia_filter_any_conn(
+pub(crate) fn insignia_filter_any(
     conn: &rusqlite::Connection,
     user_id: Key,
     insignia: i32,
     offset: i32,
     num_items: i32,
-) -> Result<interop::Pagination<interop::SlimDeck>, DbError> {
+) -> Result<Pagination<SlimDeck>, DbError> {
     let stmt = "SELECT id, name, kind, created_at, graph_terminator, insignia, font, impact
                 FROM decks
                 WHERE user_id = ?1 AND insignia & ?2
@@ -454,29 +384,16 @@ fn insignia_filter_any_conn(
     let stmt = "SELECT count(*) FROM decks where user_id=?1 AND insignia & ?2;";
     let total_items = sqlite::one(&conn, stmt, params![user_id, &insignia])?;
 
-    let res = interop::Pagination::<interop::SlimDeck> { items, total_items };
+    let res = Pagination::<SlimDeck> { items, total_items };
 
     Ok(res)
 }
 
-pub(crate) async fn insignia_filter_any(
-    sqlite_pool: &SqlitePool,
-    user_id: Key,
-    insignia: i32,
-    offset: i32,
-    num_items: i32,
-) -> crate::Result<interop::Pagination<interop::SlimDeck>> {
-    db(sqlite_pool, move |conn| {
-        insignia_filter_any_conn(conn, user_id, insignia, offset, num_items)
-    })
-    .await
-}
-
-fn recent_conn(
+pub(crate) fn recent(
     conn: &rusqlite::Connection,
     user_id: Key,
-    deck_kind: interop::DeckKind,
-) -> Result<Vec<interop::SlimDeck>, DbError> {
+    deck_kind: DeckKind,
+) -> Result<Vec<SlimDeck>, DbError> {
     let limit: i32 = 10;
 
     let stmt = "SELECT id, name, kind, created_at, graph_terminator, insignia, font, impact
@@ -490,20 +407,9 @@ fn recent_conn(
     sqlite::many(&conn, &stmt, params![&user_id])
 }
 
-pub(crate) async fn recent(
-    sqlite_pool: &SqlitePool,
-    user_id: Key,
-    deck_kind: interop::DeckKind,
-) -> crate::Result<Vec<interop::SlimDeck>> {
-    db(sqlite_pool, move |conn| {
-        recent_conn(conn, user_id, deck_kind)
-    })
-    .await
-}
-
 // delete anything that's represented as a deck (article, person, idea, timeline, quote, dialogue)
 //
-fn delete_conn(conn: &Connection, user_id: Key, id: Key) -> Result<(), DbError> {
+pub(crate) fn delete(conn: &Connection, user_id: Key, id: Key) -> Result<(), DbError> {
     sqlite::zero(
         &conn,
         "DELETE FROM decks WHERE id = ?2 and user_id = ?1",
@@ -511,14 +417,6 @@ fn delete_conn(conn: &Connection, user_id: Key, id: Key) -> Result<(), DbError> 
     )?;
 
     Ok(())
-}
-
-pub(crate) async fn delete(
-    sqlite_pool: &SqlitePool,
-    user_id: Key,
-    deck_id: Key,
-) -> crate::Result<()> {
-    db(sqlite_pool, move |conn| delete_conn(conn, user_id, deck_id)).await
 }
 
 fn get_font_of_deck(conn: &Connection, deck_id: Key) -> Result<Font, DbError> {
@@ -542,4 +440,178 @@ pub(crate) fn overwrite_deck_font(
          WHERE user_id = ?1 AND id = ?2 AND font <> ?3",
         params![&user_id, &deck_id, &i32::from(new_font)],
     )
+}
+
+pub(crate) fn paginated_unnoted(
+    conn: &rusqlite::Connection,
+    user_id: Key,
+    deck_kind: DeckKind,
+    offset: i32,
+    num_items: i32,
+) -> Result<Pagination<SlimDeck>, DbError> {
+    let stmt = "SELECT d.id, d.name, d.kind, d.created_at, d.graph_terminator, d.insignia, d.font, d.impact
+                FROM decks d LEFT JOIN notes n ON (d.id = n.deck_id AND n.kind != 4)
+                WHERE n.deck_id IS NULL
+                AND d.kind=:kind
+                AND d.user_id=:user_id
+                ORDER BY d.created_at DESC
+                LIMIT :limit
+                OFFSET :offset";
+    let items = sqlite::many(
+        &conn,
+        stmt,
+        named_params! {
+            ":kind": deck_kind.to_string(),
+            ":user_id": user_id,
+            ":limit": num_items,
+            ":offset": offset,
+        },
+    )?;
+
+    let stmt = "SELECT count(*)
+                FROM decks d LEFT JOIN notes n ON (d.id = n.deck_id AND n.kind != 4)
+                WHERE n.deck_id IS NULL
+                AND d.kind=:kind
+                AND d.user_id=:user_id";
+    let total_items = sqlite::one(
+        &conn,
+        stmt,
+        named_params! {
+            ":user_id": user_id,
+            ":kind": deck_kind.to_string(),
+        },
+    )?;
+
+    let res = Pagination::<SlimDeck> { items, total_items };
+
+    Ok(res)
+}
+
+pub(crate) fn paginated_recents(
+    conn: &rusqlite::Connection,
+    user_id: Key,
+    deck_kind: DeckKind,
+    offset: i32,
+    num_items: i32,
+) -> Result<Pagination<SlimDeck>, DbError> {
+    let stmt = "SELECT id, name, kind, created_at, graph_terminator, insignia, font, impact
+                FROM decks
+                WHERE user_id = :user_id AND kind = :kind
+                ORDER BY created_at DESC
+                LIMIT :limit
+                OFFSET :offset";
+
+    let items = sqlite::many(
+        &conn,
+        stmt,
+        named_params! {
+            ":kind": deck_kind.to_string(),
+            ":user_id": user_id,
+            ":limit": num_items,
+            ":offset": offset,
+        },
+    )?;
+
+    let stmt = "SELECT count(*) FROM decks where user_id=:user_id AND kind=:kind;";
+    let total_items = sqlite::one(
+        &conn,
+        stmt,
+        named_params! {
+            ":user_id": user_id,
+            ":kind": deck_kind.to_string(),
+        },
+    )?;
+
+    let res = Pagination::<SlimDeck> { items, total_items };
+
+    Ok(res)
+}
+
+pub(crate) fn paginated_orphans(
+    conn: &rusqlite::Connection,
+    user_id: Key,
+    deck_kind: DeckKind,
+    offset: i32,
+    num_items: i32,
+) -> Result<Pagination<SlimDeck>, DbError> {
+    let stmt = "SELECT id, name, kind, created_at, graph_terminator, insignia, font, impact
+                FROM decks
+                WHERE id NOT IN (SELECT deck_id
+                                 FROM refs
+                                 GROUP BY deck_id)
+                AND id NOT IN (SELECT n.deck_id
+                               FROM notes n INNER JOIN refs r ON n.id = r.note_id
+                               GROUP BY n.deck_id)
+                AND kind = :kind
+                AND user_id = :user_id
+                ORDER BY created_at DESC
+                LIMIT :limit
+                OFFSET :offset";
+
+    let items = sqlite::many(
+        &conn,
+        stmt,
+        named_params! {
+            ":kind": deck_kind.to_string(),
+            ":user_id": user_id,
+            ":limit": num_items,
+            ":offset": offset
+        },
+    )?;
+
+    let stmt = "SELECT count(*)
+                FROM decks
+                WHERE id NOT IN (SELECT deck_id
+                                 FROM refs
+                                 GROUP BY deck_id)
+                AND id NOT IN (SELECT n.deck_id
+                               FROM notes n INNER JOIN refs r ON n.id = r.note_id
+                               GROUP BY n.deck_id)
+                AND kind = 'idea'
+                AND user_id = :user_id";
+    let total_items = sqlite::one(&conn, stmt, named_params! {":user_id": user_id})?;
+
+    let res = Pagination::<SlimDeck> { items, total_items };
+
+    Ok(res)
+}
+
+pub(crate) fn paginated_rated(
+    conn: &rusqlite::Connection,
+    user_id: Key,
+    deck_kind: DeckKind,
+    offset: i32,
+    num_items: i32,
+) -> Result<Pagination<SlimDeck>, DbError> {
+    let stmt = "SELECT id, name, kind, created_at, graph_terminator, insignia, font, impact
+                FROM decks
+                WHERE user_id = :user_id AND kind = :kind AND impact > 0
+                ORDER BY impact desc, id desc
+                LIMIT :limit
+                OFFSET :offset";
+
+    let items = sqlite::many(
+        &conn,
+        stmt,
+        named_params! {
+            ":kind": deck_kind.to_string(),
+            ":user_id": user_id,
+            ":limit": num_items,
+            ":offset": offset,
+        },
+    )?;
+
+    let stmt = "SELECT count(*) FROM decks where user_id=:user_id AND kind=:kind AND impact > 0";
+    let total_items = sqlite::one(
+        &conn,
+        stmt,
+        named_params! {
+            ":user_id": user_id,
+            ":kind": deck_kind.to_string(),
+        },
+    )?;
+
+    let res = Pagination::<SlimDeck> { items, total_items };
+
+    Ok(res)
 }

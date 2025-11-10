@@ -15,8 +15,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+use crate::db::DbError;
 use crate::db::sqlite::{self, FromRow};
-use crate::db::{DbError, SqlitePool, db};
 use crate::interop::Key;
 use crate::interop::decks::{DeckKind, RefKind, SlimDeck};
 use crate::interop::font::Font;
@@ -128,7 +128,7 @@ fn add_edge(edges_map: &mut HashMap<(Key, Key, Direction), Edge>, edge: Edge) {
     edges_map.insert(edges_map_key, edge);
 }
 
-fn get_conn(
+pub(crate) fn get(
     conn: &mut rusqlite::Connection,
     user_id: Key,
     deck_id: Key,
@@ -168,14 +168,6 @@ fn get_conn(
         edges,
         decks,
     })
-}
-
-pub(crate) async fn get(
-    sqlite_pool: &SqlitePool,
-    user_id: Key,
-    deck_id: Key,
-) -> crate::Result<ConnectivityData> {
-    db(sqlite_pool, move |conn| get_conn(conn, user_id, deck_id)).await
 }
 
 fn neighbours(conn: &Connection, user_id: Key, deck_id: Key) -> Result<Vec<Connectivity>, DbError> {

@@ -15,11 +15,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+use crate::db::DbError;
 use crate::db::decks;
 use crate::db::decks::DECKBASE_QUERY;
 use crate::db::notes as notes_db;
 use crate::db::sqlite::{self, FromRow};
-use crate::db::{DbError, SqlitePool, db};
 use crate::interop::Key;
 use crate::interop::decks::DeckKind;
 use crate::interop::notes::NoteKind;
@@ -67,7 +67,7 @@ impl FromRow for Quote {
     }
 }
 
-fn get_or_create_conn(
+pub(crate) fn get_or_create(
     conn: &mut rusqlite::Connection,
     user_id: Key,
     quote: ProtoQuote,
@@ -109,18 +109,7 @@ fn get_or_create_conn(
     Ok(quote)
 }
 
-pub(crate) async fn get_or_create(
-    sqlite_pool: &SqlitePool,
-    user_id: Key,
-    quote: ProtoQuote,
-) -> crate::Result<Quote> {
-    db(sqlite_pool, move |conn| {
-        get_or_create_conn(conn, user_id, quote)
-    })
-    .await
-}
-
-fn random_conn(conn: &rusqlite::Connection, user_id: Key) -> Result<Option<Quote>, DbError> {
+pub(crate) fn random(conn: &rusqlite::Connection, user_id: Key) -> Result<Option<Quote>, DbError> {
     let stmt = "SELECT id, name, kind, created_at, graph_terminator, insignia, font, impact
          FROM decks
          WHERE user_id = ?1 and kind = ?2
@@ -139,11 +128,7 @@ fn random_conn(conn: &rusqlite::Connection, user_id: Key) -> Result<Option<Quote
     Ok(quote)
 }
 
-pub(crate) async fn random(sqlite_pool: &SqlitePool, user_id: Key) -> crate::Result<Option<Quote>> {
-    db(sqlite_pool, move |conn| random_conn(conn, user_id)).await
-}
-
-fn get_conn(
+pub(crate) fn get(
     conn: &rusqlite::Connection,
     user_id: Key,
     quote_id: Key,
@@ -163,15 +148,7 @@ fn get_conn(
     Ok(quote)
 }
 
-pub(crate) async fn get(
-    sqlite_pool: &SqlitePool,
-    user_id: Key,
-    quote_id: Key,
-) -> crate::Result<Option<Quote>> {
-    db(sqlite_pool, move |conn| get_conn(conn, user_id, quote_id)).await
-}
-
-fn next_conn(
+pub(crate) fn next(
     conn: &rusqlite::Connection,
     user_id: Key,
     quote_id: Key,
@@ -205,15 +182,7 @@ fn next_conn(
     Ok(quote)
 }
 
-pub(crate) async fn next(
-    sqlite_pool: &SqlitePool,
-    user_id: Key,
-    quote_id: Key,
-) -> crate::Result<Option<Quote>> {
-    db(sqlite_pool, move |conn| next_conn(conn, user_id, quote_id)).await
-}
-
-fn prev_conn(
+pub(crate) fn prev(
     conn: &rusqlite::Connection,
     user_id: Key,
     quote_id: Key,
@@ -247,15 +216,7 @@ fn prev_conn(
     Ok(quote)
 }
 
-pub(crate) async fn prev(
-    sqlite_pool: &SqlitePool,
-    user_id: Key,
-    quote_id: Key,
-) -> crate::Result<Option<Quote>> {
-    db(sqlite_pool, move |conn| prev_conn(conn, user_id, quote_id)).await
-}
-
-fn edit_conn(
+pub(crate) fn edit(
     conn: &mut rusqlite::Connection,
     user_id: Key,
     quote: ProtoQuote,
@@ -283,24 +244,4 @@ fn edit_conn(
     quote.arrivals = notes_db::arrivals_for_deck(conn, quote_id)?;
 
     Ok(quote)
-}
-
-pub(crate) async fn edit(
-    sqlite_pool: &SqlitePool,
-    user_id: Key,
-    quote: ProtoQuote,
-    quote_id: Key,
-) -> crate::Result<Quote> {
-    db(sqlite_pool, move |conn| {
-        edit_conn(conn, user_id, quote, quote_id)
-    })
-    .await
-}
-
-pub(crate) async fn delete(
-    sqlite_pool: &SqlitePool,
-    user_id: Key,
-    deck_id: Key,
-) -> crate::Result<()> {
-    decks::delete(sqlite_pool, user_id, deck_id).await
 }

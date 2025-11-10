@@ -15,8 +15,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+use crate::db::DbError;
 use crate::db::sqlite::{self, FromRow};
-use crate::db::{DbError, SqlitePool, db};
 use crate::interop::Key;
 use crate::interop::decks::SlimDeck;
 use crate::interop::memorise::{Card, CardUpcomingReview, FlashCard, ProtoCard};
@@ -105,7 +105,7 @@ pub(crate) fn all_flashcards_for_note(
     )
 }
 
-pub(crate) fn all_flashcards_for_deck_arrivals_conn(
+pub(crate) fn all_flashcards_for_deck_arrivals(
     conn: &rusqlite::Connection,
     deck_id: Key,
 ) -> Result<Vec<FlashCard>, DbError> {
@@ -152,7 +152,7 @@ pub(crate) fn all_flashcards_for_deck_additional_query(
     )
 }
 
-pub(crate) fn all_flashcards_for_search_query_conn(
+pub(crate) fn all_flashcards_for_search_query(
     conn: &rusqlite::Connection,
     user_id: Key,
     query: String,
@@ -176,7 +176,7 @@ pub(crate) fn all_flashcards_for_search_query_conn(
     )
 }
 
-fn create_card_conn(
+pub(crate) fn create_card(
     conn: &mut rusqlite::Connection,
     card: ProtoCard,
     user_id: Key,
@@ -211,18 +211,7 @@ fn create_card_conn(
     Ok(flashcard)
 }
 
-pub(crate) async fn create_card(
-    sqlite_pool: &SqlitePool,
-    card: ProtoCard,
-    user_id: Key,
-) -> crate::Result<FlashCard> {
-    db(sqlite_pool, move |conn| {
-        create_card_conn(conn, card, user_id)
-    })
-    .await
-}
-
-fn get_card_full_fat_conn(
+pub(crate) fn get_card_full_fat(
     conn: &rusqlite::Connection,
     user_id: Key,
     card_id: Key,
@@ -238,18 +227,7 @@ fn get_card_full_fat_conn(
     )
 }
 
-pub(crate) async fn get_card_full_fat(
-    sqlite_pool: &SqlitePool,
-    user_id: Key,
-    card_id: Key,
-) -> crate::Result<FlashCard> {
-    db(sqlite_pool, move |conn| {
-        get_card_full_fat_conn(conn, user_id, card_id)
-    })
-    .await
-}
-
-fn card_rated_conn(
+pub(crate) fn card_rated(
     conn: &mut rusqlite::Connection,
     card: FlashCard,
     rating: i16,
@@ -284,15 +262,7 @@ fn card_rated_conn(
     Ok(())
 }
 
-pub(crate) async fn card_rated(
-    sqlite_pool: &SqlitePool,
-    card: FlashCard,
-    rating: i16,
-) -> crate::Result<()> {
-    db(sqlite_pool, move |conn| card_rated_conn(conn, card, rating)).await
-}
-
-fn edit_flashcard_conn(
+pub(crate) fn edit_flashcard(
     conn: &rusqlite::Connection,
     user_id: Key,
     flashcard: FlashCard,
@@ -308,19 +278,7 @@ fn edit_flashcard_conn(
     )
 }
 
-pub(crate) async fn edit_flashcard(
-    sqlite_pool: &SqlitePool,
-    user_id: Key,
-    flashcard: FlashCard,
-    flashcard_id: Key,
-) -> crate::Result<FlashCard> {
-    db(sqlite_pool, move |conn| {
-        edit_flashcard_conn(conn, user_id, flashcard, flashcard_id)
-    })
-    .await
-}
-
-fn delete_flashcard_conn(
+pub(crate) fn delete_flashcard(
     conn: &mut rusqlite::Connection,
     user_id: Key,
     flashcard_id: Key,
@@ -344,18 +302,7 @@ fn delete_flashcard_conn(
     Ok(())
 }
 
-pub(crate) async fn delete_flashcard(
-    sqlite_pool: &SqlitePool,
-    user_id: Key,
-    flashcard_id: Key,
-) -> crate::Result<()> {
-    db(sqlite_pool, move |conn| {
-        delete_flashcard_conn(conn, user_id, flashcard_id)
-    })
-    .await
-}
-
-fn get_cards_conn(
+pub(crate) fn get_cards(
     conn: &rusqlite::Connection,
     user_id: Key,
     due: chrono::NaiveDateTime,
@@ -374,15 +321,10 @@ fn get_cards_conn(
     )
 }
 
-pub(crate) async fn get_cards(
-    sqlite_pool: &SqlitePool,
+pub(crate) fn get_practice_card(
+    conn: &rusqlite::Connection,
     user_id: Key,
-    due: chrono::NaiveDateTime,
-) -> crate::Result<Vec<Card>> {
-    db(sqlite_pool, move |conn| get_cards_conn(conn, user_id, due)).await
-}
-
-fn get_practice_card_conn(conn: &rusqlite::Connection, user_id: Key) -> Result<Card, DbError> {
+) -> Result<Card, DbError> {
     info!("get_practice_card");
 
     sqlite::one(
@@ -398,17 +340,7 @@ fn get_practice_card_conn(conn: &rusqlite::Connection, user_id: Key) -> Result<C
     )
 }
 
-pub(crate) async fn get_practice_card(
-    sqlite_pool: &SqlitePool,
-    user_id: Key,
-) -> crate::Result<Card> {
-    db(sqlite_pool, move |conn| {
-        get_practice_card_conn(conn, user_id)
-    })
-    .await
-}
-
-fn get_cards_upcoming_review_conn(
+pub(crate) fn get_cards_upcoming_review(
     conn: &mut rusqlite::Connection,
     user_id: Key,
     due: chrono::NaiveDateTime,
@@ -451,15 +383,4 @@ fn get_cards_upcoming_review_conn(
         review_count,
         earliest_review_date,
     })
-}
-
-pub(crate) async fn get_cards_upcoming_review(
-    sqlite_pool: &SqlitePool,
-    user_id: Key,
-    due: chrono::NaiveDateTime,
-) -> crate::Result<CardUpcomingReview> {
-    db(sqlite_pool, move |conn| {
-        get_cards_upcoming_review_conn(conn, user_id, due)
-    })
-    .await
 }

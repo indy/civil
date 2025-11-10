@@ -15,8 +15,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::db::SqlitePool;
 use crate::db::search as db;
+use crate::db::{SqlitePool, db_thread};
 use crate::handler::{AuthUser, SearchQuery};
 use crate::interop::IdParam;
 use crate::interop::search::SearchResults;
@@ -32,7 +32,10 @@ pub async fn search_at_deck_level(
 ) -> crate::Result<impl Responder> {
     let q: String = query.q;
     let q2 = q.clone();
-    let deck_level_results = db::search_at_deck_level(&sqlite_pool, user_id, q).await?;
+    let deck_level_results = db_thread(&sqlite_pool, move |conn| {
+        db::search_at_deck_level(conn, user_id, q)
+    })
+    .await?;
 
     let res = SearchResults {
         search_text: q2,
@@ -52,7 +55,10 @@ pub async fn search_names_at_deck_level(
 ) -> crate::Result<impl Responder> {
     let q: String = query.q;
     let q2 = q.clone();
-    let results = db::search_names_at_deck_level(&sqlite_pool, user_id, q).await?;
+    let results = db_thread(&sqlite_pool, move |conn| {
+        db::search_names_at_deck_level(conn, user_id, q)
+    })
+    .await?;
 
     let res = SearchResults {
         search_text: q2,
@@ -71,7 +77,10 @@ pub async fn additional_search_for_decks(
     // search deck, article_extras etc tables for text similar to deck_id's title
     // ignore anything that explicitly links back to the deck
     //
-    let res = db::additional_search_at_deck_level(&sqlite_pool, user_id, params.id).await?;
+    let res = db_thread(&sqlite_pool, move |conn| {
+        db::additional_search_at_deck_level(conn, user_id, params.id)
+    })
+    .await?;
 
     Ok(Json(res))
 }
@@ -83,7 +92,10 @@ pub async fn search_at_all_levels(
     AuthUser(user_id): AuthUser,
     Query(query): Query<SearchQuery>,
 ) -> crate::Result<impl Responder> {
-    let res = db::search_at_all_levels(&sqlite_pool, user_id, query.q).await?;
+    let res = db_thread(&sqlite_pool, move |conn| {
+        db::search_at_all_levels(conn, user_id, query.q)
+    })
+    .await?;
 
     Ok(Json(res))
 }
@@ -93,7 +105,10 @@ pub async fn search_quotes(
     AuthUser(user_id): AuthUser,
     Query(query): Query<SearchQuery>,
 ) -> crate::Result<impl Responder> {
-    let res = db::search_quotes(&sqlite_pool, user_id, query.q).await?;
+    let res = db_thread(&sqlite_pool, move |conn| {
+        db::search_quotes(conn, user_id, query.q)
+    })
+    .await?;
 
     Ok(Json(res))
 }

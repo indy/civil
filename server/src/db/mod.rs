@@ -60,7 +60,7 @@ pub enum DbError {
 }
 
 // Blocking helper: only DbError crosses the thread boundary.
-pub async fn db<T, F>(pool: &SqlitePool, f: F) -> crate::Result<T>
+pub async fn db_thread<T, F>(pool: &SqlitePool, f: F) -> crate::Result<T>
 where
     F: FnOnce(&mut rusqlite::Connection) -> Result<T, DbError> + Send + 'static,
     T: Send + 'static,

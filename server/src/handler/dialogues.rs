@@ -16,8 +16,8 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::ai::{AI, openai_interface};
-use crate::db::SqlitePool;
 use crate::db::dialogues as db;
+use crate::db::{SqlitePool, db_thread};
 use crate::handler::{AuthUser, PaginationQuery, decks};
 use crate::interop::IdParam;
 use crate::interop::decks::DeckKind;
@@ -40,7 +40,10 @@ pub async fn create(
     sqlite_pool: Data<SqlitePool>,
     AuthUser(user_id): AuthUser,
 ) -> crate::Result<impl Responder> {
-    let dialogue = db::create(&sqlite_pool, user_id, proto_dialogue).await?;
+    let dialogue = db_thread(&sqlite_pool, move |conn| {
+        db::create(conn, user_id, proto_dialogue)
+    })
+    .await?;
 
     Ok(Json(dialogue))
 }
@@ -49,7 +52,7 @@ pub async fn get_all(
     sqlite_pool: Data<SqlitePool>,
     AuthUser(user_id): AuthUser,
 ) -> crate::Result<impl Responder> {
-    let dialogues = db::listings(&sqlite_pool, user_id).await?;
+    let dialogues = db_thread(&sqlite_pool, move |conn| db::all(conn, user_id)).await?;
 
     Ok(Json(dialogues))
 }
@@ -72,10 +75,16 @@ pub async fn converse(
     let chat_message = chat_message.into_inner();
 
     // save the user's chat message
-    let mut prev_note_id =
-        db::add_chat_message(&sqlite_pool, user_id, params.id, chat_message).await?;
+    let deck_id = params.id;
+    let mut prev_note_id = db_thread(&sqlite_pool, move |conn| {
+        db::add_chat_message(conn, user_id, deck_id, chat_message)
+    })
+    .await?;
 
-    let (ai_kind, history) = db::get_chat_history(&sqlite_pool, user_id, params.id).await?;
+    let (ai_kind, history) = db_thread(&sqlite_pool, move |conn| {
+        db::get_chat_history(conn, user_id, deck_id)
+    })
+    .await?;
 
     let response = ai.chat(ai_kind, history).await?;
 
@@ -88,10 +97,15 @@ pub async fn converse(
             role: openai_interface::Role::from(message.role),
             content: message.content,
         };
-        prev_note_id = db::add_chat_message(&sqlite_pool, user_id, params.id, acm).await?;
+        prev_note_id = db_thread(&sqlite_pool, move |conn| {
+            db::add_chat_message(conn, user_id, deck_id, acm)
+        })
+        .await?;
     }
 
-    let dialogue = db::get(&sqlite_pool, user_id, params.id).await?;
+    let dialogue = db_thread(&sqlite_pool, move |conn| db::get(conn, user_id, params.id))
+        .await?
+        .ok_or(crate::Error::NotFound)?;
 
     Ok(Json(dialogue))
 }
@@ -101,10 +115,9 @@ pub async fn get(
     params: Path<IdParam>,
     AuthUser(user_id): AuthUser,
 ) -> crate::Result<impl Responder> {
-    let dialogue = match db::get(&sqlite_pool, user_id, params.id).await? {
-        Some(i) => i,
-        None => return Err(crate::Error::NotFound),
-    };
+    let dialogue = db_thread(&sqlite_pool, move |conn| db::get(conn, user_id, params.id))
+        .await?
+        .ok_or(crate::Error::NotFound)?;
 
     Ok(Json(dialogue))
 }
@@ -115,7 +128,10 @@ pub async fn edit(
     params: Path<IdParam>,
     AuthUser(user_id): AuthUser,
 ) -> crate::Result<impl Responder> {
-    let dialogue = db::edit(&sqlite_pool, user_id, dialogue, params.id).await?;
+    let dialogue = db_thread(&sqlite_pool, move |conn| {
+        db::edit(conn, user_id, dialogue, params.id)
+    })
+    .await?;
 
     Ok(Json(dialogue))
 }
@@ -125,7 +141,5 @@ pub async fn delete(
     params: Path<IdParam>,
     AuthUser(user_id): AuthUser,
 ) -> crate::Result<impl Responder> {
-    db::delete(&sqlite_pool, user_id, params.id).await?;
-
-    Ok(Json(true))
+    decks::delete(sqlite_pool, user_id, params.id).await
 }

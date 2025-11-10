@@ -17,8 +17,8 @@
 
 use std::cmp;
 
+use crate::db::DbError;
 use crate::db::sqlite::{self, FromRow};
-use crate::db::{DbError, SqlitePool, db};
 use crate::interop::Key;
 use crate::interop::uploader::UserUploadedImage;
 
@@ -32,7 +32,7 @@ impl FromRow for UserUploadedImage {
     }
 }
 
-fn get_recent_conn(
+pub(crate) fn get_recent(
     conn: &rusqlite::Connection,
     user_id: Key,
     at_least: u8,
@@ -51,18 +51,7 @@ fn get_recent_conn(
     )
 }
 
-pub(crate) async fn get_recent(
-    sqlite_pool: &SqlitePool,
-    user_id: Key,
-    at_least: u8,
-) -> crate::Result<Vec<UserUploadedImage>> {
-    db(sqlite_pool, move |conn| {
-        get_recent_conn(conn, user_id, at_least)
-    })
-    .await
-}
-
-fn get_image_count_conn(conn: &rusqlite::Connection, user_id: Key) -> Result<i32, DbError> {
+pub(crate) fn get_image_count(conn: &rusqlite::Connection, user_id: Key) -> Result<i32, DbError> {
     sqlite::one(
         &conn,
         "SELECT image_count
@@ -72,11 +61,7 @@ fn get_image_count_conn(conn: &rusqlite::Connection, user_id: Key) -> Result<i32
     )
 }
 
-pub(crate) async fn get_image_count(sqlite_pool: &SqlitePool, user_id: Key) -> crate::Result<i32> {
-    db(sqlite_pool, move |conn| get_image_count_conn(conn, user_id)).await
-}
-
-fn set_image_count_conn(
+pub(crate) fn set_image_count(
     conn: &rusqlite::Connection,
     user_id: Key,
     new_count: i32,
@@ -90,18 +75,7 @@ fn set_image_count_conn(
     )
 }
 
-pub(crate) async fn set_image_count(
-    sqlite_pool: &SqlitePool,
-    user_id: Key,
-    new_count: i32,
-) -> crate::Result<()> {
-    db(sqlite_pool, move |conn| {
-        set_image_count_conn(conn, user_id, new_count)
-    })
-    .await
-}
-
-fn add_image_entry_conn(
+pub(crate) fn add_image_entry(
     conn: &rusqlite::Connection,
     user_id: Key,
     filename: String,
@@ -112,15 +86,4 @@ fn add_image_entry_conn(
          VALUES (?1, ?2)",
         params![&user_id, &filename],
     )
-}
-
-pub(crate) async fn add_image_entry(
-    sqlite_pool: &SqlitePool,
-    user_id: Key,
-    filename: String,
-) -> crate::Result<()> {
-    db(sqlite_pool, move |conn| {
-        add_image_entry_conn(conn, user_id, filename)
-    })
-    .await
 }

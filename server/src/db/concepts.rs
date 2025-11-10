@@ -15,14 +15,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::db::decks;
 use crate::db::decks::DECKBASE_QUERY;
 use crate::db::notes as notes_db;
 use crate::db::sqlite::{self, FromRow};
-use crate::db::{DbError, SqlitePool, db};
+use crate::db::{DbError, decks};
 use crate::interop::Key;
 use crate::interop::concepts::Concept;
-use crate::interop::decks::{DeckKind, Pagination, ProtoSlimDeck, SlimDeck};
+use crate::interop::decks::{DeckKind, ProtoSlimDeck};
 use crate::interop::font::Font;
 use rusqlite::{Row, params};
 
@@ -47,7 +46,7 @@ impl FromRow for Concept {
     }
 }
 
-fn get_or_create_conn(
+pub(crate) fn get_or_create(
     conn: &mut rusqlite::Connection,
     user_id: Key,
     title: String,
@@ -75,145 +74,7 @@ fn get_or_create_conn(
     Ok(concept)
 }
 
-pub(crate) async fn get_or_create(
-    sqlite_pool: &SqlitePool,
-    user_id: Key,
-    title: String,
-) -> crate::Result<Concept> {
-    db(sqlite_pool, move |conn| {
-        get_or_create_conn(conn, user_id, title)
-    })
-    .await
-}
-
-fn recent_conn(
-    conn: &rusqlite::Connection,
-    user_id: Key,
-    offset: i32,
-    num_items: i32,
-) -> Result<Pagination<SlimDeck>, DbError> {
-    let stmt = "SELECT id, name, kind, created_at, graph_terminator, insignia, font, impact
-                FROM decks
-                WHERE user_id = ?1 AND kind = 'concept'
-                ORDER BY created_at DESC
-                LIMIT ?2
-                OFFSET ?3";
-
-    let items = sqlite::many(&conn, stmt, params![&user_id, &num_items, &offset])?;
-
-    let stmt = "SELECT count(*) FROM decks where user_id=?1 AND kind='concept';";
-    let total_items = sqlite::one(&conn, stmt, params![user_id])?;
-
-    let res = Pagination::<SlimDeck> { items, total_items };
-
-    Ok(res)
-}
-
-pub(crate) async fn recent(
-    sqlite_pool: &SqlitePool,
-    user_id: Key,
-    offset: i32,
-    num_items: i32,
-) -> crate::Result<Pagination<SlimDeck>> {
-    db(sqlite_pool, move |conn| {
-        recent_conn(conn, user_id, offset, num_items)
-    })
-    .await
-}
-
-fn orphans_conn(
-    conn: &rusqlite::Connection,
-    user_id: Key,
-    offset: i32,
-    num_items: i32,
-) -> Result<Pagination<SlimDeck>, DbError> {
-    let stmt = "SELECT id, name, kind, created_at, graph_terminator, insignia, font, impact
-                FROM decks
-                WHERE id NOT IN (SELECT deck_id
-                                 FROM refs
-                                 GROUP BY deck_id)
-                AND id NOT IN (SELECT n.deck_id
-                               FROM notes n INNER JOIN refs r ON n.id = r.note_id
-                               GROUP BY n.deck_id)
-                AND kind = 'concept'
-                AND user_id = ?1
-                ORDER BY created_at DESC
-                LIMIT ?2
-                OFFSET ?3";
-
-    let items = sqlite::many(&conn, stmt, params![&user_id, &num_items, &offset])?;
-
-    let stmt = "SELECT count(*)
-                FROM decks
-                WHERE id NOT IN (SELECT deck_id
-                                 FROM refs
-                                 GROUP BY deck_id)
-                AND id NOT IN (SELECT n.deck_id
-                               FROM notes n INNER JOIN refs r ON n.id = r.note_id
-                               GROUP BY n.deck_id)
-                AND kind = 'concept'
-                AND user_id = ?1";
-    let total_items = sqlite::one(&conn, stmt, params![user_id])?;
-
-    let res = Pagination::<SlimDeck> { items, total_items };
-
-    Ok(res)
-}
-
-pub(crate) async fn orphans(
-    sqlite_pool: &SqlitePool,
-    user_id: Key,
-    offset: i32,
-    num_items: i32,
-) -> crate::Result<Pagination<SlimDeck>> {
-    db(sqlite_pool, move |conn| {
-        orphans_conn(conn, user_id, offset, num_items)
-    })
-    .await
-}
-
-fn unnoted_conn(
-    conn: &rusqlite::Connection,
-    user_id: Key,
-    offset: i32,
-    num_items: i32,
-) -> Result<Pagination<SlimDeck>, DbError> {
-    let stmt = "SELECT d.id, d.name, d.kind, d.created_at, d.graph_terminator, d.insignia, d.font, d.impact
-                FROM decks d LEFT JOIN notes n ON (d.id = n.deck_id AND n.kind != 4)
-                WHERE n.deck_id IS NULL
-                AND d.kind='concept'
-                AND d.user_id=?1
-                ORDER BY d.created_at DESC
-                LIMIT ?2
-                OFFSET ?3";
-    let items = sqlite::many(&conn, stmt, params![&user_id, &num_items, &offset])?;
-
-    let stmt = "SELECT count(*)
-                FROM decks d LEFT JOIN notes n ON (d.id = n.deck_id AND n.kind != 4)
-                WHERE n.deck_id IS NULL
-                AND d.kind='concept'
-                AND d.user_id=?1";
-
-    let total_items = sqlite::one(&conn, stmt, params![user_id])?;
-
-    let res = Pagination::<SlimDeck> { items, total_items };
-
-    Ok(res)
-}
-
-pub(crate) async fn unnoted(
-    sqlite_pool: &SqlitePool,
-    user_id: Key,
-    offset: i32,
-    num_items: i32,
-) -> crate::Result<Pagination<SlimDeck>> {
-    db(sqlite_pool, move |conn| {
-        unnoted_conn(conn, user_id, offset, num_items)
-    })
-    .await
-}
-
-fn all_conn(conn: &rusqlite::Connection, user_id: Key) -> Result<Vec<Concept>, DbError> {
+pub(crate) fn all(conn: &rusqlite::Connection, user_id: Key) -> Result<Vec<Concept>, DbError> {
     let stmt = "SELECT id, name, created_at, graph_terminator, insignia, font, impact
                 FROM decks
                 WHERE user_id = ?1 AND kind = 'concept'
@@ -222,11 +83,7 @@ fn all_conn(conn: &rusqlite::Connection, user_id: Key) -> Result<Vec<Concept>, D
     sqlite::many(&conn, stmt, params![&user_id])
 }
 
-pub(crate) async fn all(sqlite_pool: &SqlitePool, user_id: Key) -> crate::Result<Vec<Concept>> {
-    db(sqlite_pool, move |conn| all_conn(conn, user_id)).await
-}
-
-fn convert_conn(
+pub(crate) fn convert(
     conn: &rusqlite::Connection,
     user_id: Key,
     concept_id: Key,
@@ -255,20 +112,7 @@ fn convert_conn(
     Ok(concept)
 }
 
-// convert this concept into an idea
-//
-pub(crate) async fn convert(
-    sqlite_pool: &SqlitePool,
-    user_id: Key,
-    concept_id: Key,
-) -> crate::Result<Option<Concept>> {
-    db(sqlite_pool, move |conn| {
-        convert_conn(conn, user_id, concept_id)
-    })
-    .await
-}
-
-fn get_conn(
+pub(crate) fn get(
     conn: &rusqlite::Connection,
     user_id: Key,
     concept_id: Key,
@@ -288,15 +132,7 @@ fn get_conn(
     Ok(concept)
 }
 
-pub(crate) async fn get(
-    sqlite_pool: &SqlitePool,
-    user_id: Key,
-    concept_id: Key,
-) -> crate::Result<Option<Concept>> {
-    db(sqlite_pool, move |conn| get_conn(conn, user_id, concept_id)).await
-}
-
-fn edit_conn(
+pub(crate) fn edit(
     conn: &mut rusqlite::Connection,
     user_id: Key,
     concept: ProtoSlimDeck,
@@ -324,24 +160,4 @@ fn edit_conn(
     concept.arrivals = notes_db::arrivals_for_deck(conn, concept_id)?;
 
     Ok(concept)
-}
-
-pub(crate) async fn edit(
-    sqlite_pool: &SqlitePool,
-    user_id: Key,
-    concept: ProtoSlimDeck,
-    concept_id: Key,
-) -> crate::Result<Concept> {
-    db(sqlite_pool, move |conn| {
-        edit_conn(conn, user_id, concept, concept_id)
-    })
-    .await
-}
-
-pub(crate) async fn delete(
-    sqlite_pool: &SqlitePool,
-    user_id: Key,
-    deck_id: Key,
-) -> crate::Result<()> {
-    decks::delete(sqlite_pool, user_id, deck_id).await
 }

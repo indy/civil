@@ -15,8 +15,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::db::SqlitePool;
 use crate::db::memorise as db;
+use crate::db::{SqlitePool, db_thread};
 use crate::handler::AuthUser;
 use crate::interop::IdParam;
 use crate::interop::memorise::{FlashCard, ProtoCard, ProtoRating};
@@ -29,7 +29,10 @@ pub async fn create_card(
     sqlite_pool: Data<SqlitePool>,
     AuthUser(user_id): AuthUser,
 ) -> crate::Result<impl Responder> {
-    let card = db::create_card(&sqlite_pool, card, user_id).await?;
+    let card = db_thread(&sqlite_pool, move |conn| {
+        db::create_card(conn, card, user_id)
+    })
+    .await?;
 
     Ok(Json(card))
 }
@@ -45,10 +48,13 @@ pub async fn card_rated(
     let rating = rating.rating;
 
     if (0..=5).contains(&rating) {
-        let mut card = db::get_card_full_fat(&sqlite_pool, user_id, params.id).await?;
-        card = sqlite_update_easiness_factor(card, rating)?;
+        let mut card = db_thread(&sqlite_pool, move |conn| {
+            db::get_card_full_fat(conn, user_id, params.id)
+        })
+        .await?;
 
-        db::card_rated(&sqlite_pool, card, rating).await?;
+        card = sqlite_update_easiness_factor(card, rating)?;
+        db_thread(&sqlite_pool, move |conn| db::card_rated(conn, card, rating)).await?;
 
         Ok(Json(true))
     } else {
@@ -62,7 +68,10 @@ pub async fn edit(
     params: Path<IdParam>,
     AuthUser(user_id): AuthUser,
 ) -> crate::Result<impl Responder> {
-    let flashcard = db::edit_flashcard(&sqlite_pool, user_id, flashcard, params.id).await?;
+    let flashcard = db_thread(&sqlite_pool, move |conn| {
+        db::edit_flashcard(conn, user_id, flashcard, params.id)
+    })
+    .await?;
 
     Ok(Json(flashcard))
 }
@@ -72,7 +81,10 @@ pub async fn delete(
     params: Path<IdParam>,
     AuthUser(user_id): AuthUser,
 ) -> crate::Result<impl Responder> {
-    db::delete_flashcard(&sqlite_pool, user_id, params.id).await?;
+    db_thread(&sqlite_pool, move |conn| {
+        db::delete_flashcard(conn, user_id, params.id)
+    })
+    .await?;
 
     Ok(Json(true))
 }
@@ -136,16 +148,22 @@ pub async fn get_cards(
     sqlite_pool: Data<SqlitePool>,
     AuthUser(user_id): AuthUser,
 ) -> crate::Result<impl Responder> {
-    let db_cards = db::get_cards(&sqlite_pool, user_id, Utc::now().naive_utc()).await?;
+    let cards = db_thread(&sqlite_pool, move |conn| {
+        db::get_cards(conn, user_id, Utc::now().naive_utc())
+    })
+    .await?;
 
-    Ok(Json(db_cards))
+    Ok(Json(cards))
 }
 
 pub async fn get_practice_card(
     sqlite_pool: Data<SqlitePool>,
     AuthUser(user_id): AuthUser,
 ) -> crate::Result<impl Responder> {
-    let db_card = db::get_practice_card(&sqlite_pool, user_id).await?;
+    let cards = db_thread(&sqlite_pool, move |conn| {
+        db::get_practice_card(conn, user_id)
+    })
+    .await?;
 
-    Ok(Json(db_card))
+    Ok(Json(cards))
 }

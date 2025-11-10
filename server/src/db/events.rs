@@ -15,10 +15,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+use crate::db::DbError;
 use crate::db::decks::{self, DeckBase, DeckBaseOrigin};
 use crate::db::notes as notes_db;
 use crate::db::sqlite::{self, FromRow};
-use crate::db::{DbError, SqlitePool, db};
 use crate::interop::Key;
 use crate::interop::decks::{DeckKind, SlimDeck};
 use crate::interop::events::{Event, ProtoEvent};
@@ -119,7 +119,7 @@ impl FromRow for Event {
     }
 }
 
-fn get_or_create_conn(
+pub(crate) fn get_or_create(
     conn: &mut rusqlite::Connection,
     user_id: Key,
     title: String,
@@ -170,18 +170,7 @@ fn get_or_create_conn(
     Ok(event)
 }
 
-pub(crate) async fn get_or_create(
-    sqlite_pool: &SqlitePool,
-    user_id: Key,
-    title: String,
-) -> crate::Result<Event> {
-    db(sqlite_pool, move |conn| {
-        get_or_create_conn(conn, user_id, title)
-    })
-    .await
-}
-
-fn all_conn(conn: &rusqlite::Connection, user_id: Key) -> Result<Vec<SlimDeck>, DbError> {
+pub(crate) fn all(conn: &rusqlite::Connection, user_id: Key) -> Result<Vec<SlimDeck>, DbError> {
     // todo: sort this by the event date in event_extras
     let stmt = "SELECT id, name, kind, created_at, graph_terminator, insignia, font, impact
                 FROM decks
@@ -191,11 +180,7 @@ fn all_conn(conn: &rusqlite::Connection, user_id: Key) -> Result<Vec<SlimDeck>, 
     sqlite::many(&conn, stmt, params![&user_id])
 }
 
-pub(crate) async fn all(sqlite_pool: &SqlitePool, user_id: Key) -> crate::Result<Vec<SlimDeck>> {
-    db(sqlite_pool, move |conn| all_conn(conn, user_id)).await
-}
-
-fn get_conn(
+pub(crate) fn get(
     conn: &rusqlite::Connection,
     user_id: Key,
     event_id: Key,
@@ -224,15 +209,7 @@ fn get_conn(
     Ok(event)
 }
 
-pub(crate) async fn get(
-    sqlite_pool: &SqlitePool,
-    user_id: Key,
-    event_id: Key,
-) -> crate::Result<Option<Event>> {
-    db(sqlite_pool, move |conn| get_conn(conn, user_id, event_id)).await
-}
-
-fn edit_conn(
+pub(crate) fn edit(
     conn: &mut rusqlite::Connection,
     user_id: Key,
     event: ProtoEvent,
@@ -287,24 +264,4 @@ fn edit_conn(
     event.arrivals = notes_db::arrivals_for_deck(conn, event_id)?;
 
     Ok(event)
-}
-
-pub(crate) async fn edit(
-    sqlite_pool: &SqlitePool,
-    user_id: Key,
-    event: ProtoEvent,
-    event_id: Key,
-) -> crate::Result<Event> {
-    db(sqlite_pool, move |conn| {
-        edit_conn(conn, user_id, event, event_id)
-    })
-    .await
-}
-
-pub(crate) async fn delete(
-    sqlite_pool: &SqlitePool,
-    user_id: Key,
-    deck_id: Key,
-) -> crate::Result<()> {
-    decks::delete(sqlite_pool, user_id, deck_id).await
 }

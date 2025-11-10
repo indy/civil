@@ -16,7 +16,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::db::sqlite::{self, FromRow};
-use crate::db::{DbError, SqlitePool, db};
+use crate::db::{DbError, SqlitePool};
 use crate::interop::Key;
 use crate::interop::users::{LoginCredentials, Registration, User, UserId};
 use rusqlite::{Row, params};
@@ -69,7 +69,7 @@ impl FromRow for (Key, String, User) {
     }
 }
 
-fn login_conn(
+pub(crate) fn login(
     conn: &rusqlite::Connection,
     login_credentials: LoginCredentials,
 ) -> Result<(Key, String, User), DbError> {
@@ -85,14 +85,7 @@ fn login_conn(
     )
 }
 
-pub(crate) async fn login(
-    sqlite_pool: &SqlitePool,
-    login_credentials: LoginCredentials,
-) -> crate::Result<(Key, String, User)> {
-    db(sqlite_pool, move |conn| login_conn(conn, login_credentials)).await
-}
-
-fn create_conn(
+pub(crate) fn create(
     conn: &rusqlite::Connection,
     registration: Registration,
     hash: String,
@@ -115,18 +108,7 @@ fn create_conn(
     )
 }
 
-pub(crate) async fn create(
-    sqlite_pool: &SqlitePool,
-    registration: Registration,
-    hash: String,
-) -> crate::Result<(Key, User)> {
-    db(sqlite_pool, move |conn| {
-        create_conn(conn, registration, hash)
-    })
-    .await
-}
-
-fn get_conn(conn: &rusqlite::Connection, user_id: Key) -> Result<Option<User>, DbError> {
+pub(crate) fn get(conn: &rusqlite::Connection, user_id: Key) -> Result<Option<User>, DbError> {
     let stmt = "select email, username, ui_config_json
                 from users
                 where id = ?1
@@ -135,11 +117,7 @@ fn get_conn(conn: &rusqlite::Connection, user_id: Key) -> Result<Option<User>, D
     sqlite::one_optional(&conn, stmt, params![user_id])
 }
 
-pub(crate) async fn get(sqlite_pool: &SqlitePool, user_id: Key) -> crate::Result<Option<User>> {
-    db(sqlite_pool, move |conn| get_conn(conn, user_id)).await
-}
-
-fn edit_ui_config_conn(
+pub(crate) fn edit_ui_config(
     conn: &rusqlite::Connection,
     user_id: Key,
     ui_config_json: String,
@@ -155,17 +133,6 @@ fn edit_ui_config_conn(
     )?;
 
     Ok(true)
-}
-
-pub(crate) async fn edit_ui_config(
-    sqlite_pool: &SqlitePool,
-    user_id: Key,
-    ui_config_json: String,
-) -> crate::Result<bool> {
-    db(sqlite_pool, move |conn| {
-        edit_ui_config_conn(conn, user_id, ui_config_json)
-    })
-    .await
 }
 
 impl FromRow for UserId {

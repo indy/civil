@@ -15,8 +15,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::db::SqlitePool;
 use crate::db::points as db;
+use crate::db::{SqlitePool, db_thread};
 use crate::handler::AuthUser;
 use crate::interop::points as interop;
 use actix_web::Responder;
@@ -35,7 +35,13 @@ pub async fn get_points(
 ) -> crate::Result<impl Responder> {
     let lower = params.lower;
     let upper = params.upper;
-    let points = db::all_points_within_interval(&sqlite_pool, user_id, lower, upper).await?;
+
+    let points = db_thread(&sqlite_pool, move |conn| {
+        db::all_points_within_interval(conn, user_id, lower, upper)
+    })
+    .await?;
+
+    // let points = db::all_points_within_interval(&sqlite_pool, user_id, lower, upper).await?;
 
     Ok(Json(interop::PointsWithinYears {
         lower_year: lower,
