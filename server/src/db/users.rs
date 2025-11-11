@@ -72,9 +72,9 @@ impl FromRow for (Key, String, User) {
 pub(crate) fn login(
     conn: &rusqlite::Connection,
     login_credentials: LoginCredentials,
-) -> Result<(Key, String, User), DbError> {
+) -> Result<Option<(Key, String, User)>, DbError> {
     let email = login_credentials.email.trim();
-    sqlite::one(
+    sqlite::one_optional(
         &conn,
         r#"
            select id, email, username, password, ui_config_json

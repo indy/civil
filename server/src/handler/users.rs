@@ -36,8 +36,15 @@ pub async fn login(
     session: actix_session::Session,
 ) -> crate::Result<impl Responder> {
     let pw: String = login.password.clone();
-    let (id, password, mut user) =
-        db_thread(&sqlite_pool, move |conn| db::login(conn, login)).await?;
+    let maybe_user = db_thread(&sqlite_pool, move |conn| db::login(conn, login)).await?;
+    let (id, password, mut user) = match maybe_user {
+        Some(record) => record,
+        None => {
+            info!("login denied: unknown email");
+            session.clear();
+            return Err(Error::Authenticating);
+        }
+    };
 
     // compare hashed password of matched_user with the given LoginCredentials
     let is_valid_password = verify_encoded(&password, pw.as_bytes())?;
