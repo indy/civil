@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use actix_web::{HttpResponse, ResponseError};
+use actix_web::{HttpResponse, ResponseError, http::StatusCode};
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
@@ -76,10 +76,18 @@ pub enum Error {
 }
 
 impl ResponseError for Error {
-    fn error_response(&self) -> HttpResponse {
-        match *self {
-            Error::NotFound => HttpResponse::NotFound().finish(),
-            _ => HttpResponse::InternalServerError().finish(),
+    fn status_code(&self) -> StatusCode {
+        match self {
+            Error::NotFound => StatusCode::NOT_FOUND,
+            Error::Authenticating => StatusCode::UNAUTHORIZED,
+            Error::Registration | Error::BadUpload => StatusCode::BAD_REQUEST,
+            Error::TooManyFound => StatusCode::CONFLICT,
+            Error::ExternalServerError => StatusCode::BAD_GATEWAY,
+            _ => StatusCode::INTERNAL_SERVER_ERROR,
         }
+    }
+
+    fn error_response(&self) -> HttpResponse {
+        HttpResponse::build(self.status_code()).finish()
     }
 }
