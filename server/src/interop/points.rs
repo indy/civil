@@ -18,8 +18,7 @@
 use crate::interop::Key;
 use crate::interop::decks::DeckKind;
 use crate::interop::font::Font;
-
-use rusqlite::types::{FromSql, FromSqlError, FromSqlResult, ValueRef};
+use rusqlite::types::{FromSql, FromSqlError, FromSqlResult, ToSql, ToSqlOutput, ValueRef};
 
 #[derive(
     Copy, Clone, Debug, PartialEq, Eq, serde_repr::Serialize_repr, serde_repr::Deserialize_repr,
@@ -81,6 +80,17 @@ impl FromSql for PointKind {
         }
     }
 }
+
+impl ToSql for PointKind {
+    fn to_sql(&self) -> rusqlite::Result<ToSqlOutput<'_>> {
+        Ok(ToSqlOutput::from(match self {
+            &PointKind::Point => "point",
+            &PointKind::PointBegin => "point_begin",
+            &PointKind::PointEnd => "point_end",
+        }))
+    }
+}
+
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 #[serde(rename_all = "camelCase")]

@@ -82,7 +82,7 @@ pub(crate) fn update_references(
             named_params! {
                 ":changed_id": changed.id,
                 ":note_id": note_id,
-                ":ref_kind": changed.ref_kind.to_string(),
+                ":ref_kind": changed.ref_kind,
                 ":annotation": changed.annotation
             },
         )?;
@@ -101,7 +101,7 @@ pub(crate) fn update_references(
             named_params! {
                 ":note_id": note_id,
                 ":deck_id": added.id,
-                ":kind": added.ref_kind.to_string(),
+                ":kind": added.ref_kind,
                 ":annotation": added.annotation
             },
         )?;
@@ -127,7 +127,7 @@ pub(crate) fn update_references(
             named_params! {
                 ":note_id": note_id,
                 ":deck_id": deck.id,
-                ":kind": created.ref_kind.to_string(),
+                ":kind": created.ref_kind,
                 ":annotation": created.annotation
             },
         )?;

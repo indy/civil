@@ -135,6 +135,12 @@ impl FromSql for RefKind {
     }
 }
 
+impl ToSql for RefKind {
+    fn to_sql(&self) -> rusqlite::Result<ToSqlOutput<'_>> {
+        Ok(ToSqlOutput::from(self.to_string()))
+    }
+}
+
 // links to decks on the side of notes
 //
 #[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]

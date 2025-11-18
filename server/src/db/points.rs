@@ -231,7 +231,7 @@ pub(crate) fn create(
         named_params!{
             ":deck_id": deck_id,
             ":title": point.title,
-            ":kind": point.kind.to_string(),
+            ":kind": point.kind,
             ":location_textual": point.location_textual,
             ":longitude": point.longitude,
             ":latitude": point.latitude,
