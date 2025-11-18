@@ -147,7 +147,7 @@ pub(crate) fn get_or_create(
                  RETURNING location_textual, longitude, latitude, location_fuzz,
                            date_textual, exact_realdate, lower_realdate,
                            upper_realdate, date_fuzz",
-            named_params! {":deck_id": deck.id, ":title": title, ":kind": point_kind, ":font": i32::from(default_font)},
+            named_params! {":deck_id": deck.id, ":title": title, ":kind": point_kind, ":font": default_font},
         )?,
         DeckBaseOrigin::PreExisting => sqlite::one(
             &tx,

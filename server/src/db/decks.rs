@@ -308,7 +308,7 @@ pub(crate) fn deckbase_create(
             ":name": name,
             ":graph_terminator": graph_terminator,
             ":insignia": insignia,
-            ":font": i32::from(font),
+            ":font": font,
             ":impact": impact
         },
     )?;
@@ -353,7 +353,7 @@ pub(crate) fn deckbase_edit(
             ":name": name,
             ":graph_terminator": graph_terminator,
             ":insignia": insignia,
-            ":font": i32::from(font),
+            ":font": font,
             ":impact": impact
         },
     )
@@ -481,7 +481,7 @@ pub(crate) fn overwrite_deck_font(
         "UPDATE decks
          SET font = :font
          WHERE user_id = :user_id AND id = :id AND font <> :font",
-        named_params! {":user_id": user_id, ":id": deck_id, ":font": i32::from(new_font)},
+        named_params! {":user_id": user_id, ":id": deck_id, ":font": new_font},
     )
 }
 

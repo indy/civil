@@ -404,8 +404,8 @@ pub(crate) fn create_common(
         named_params! {
             ":user_id": user_id,
             ":deck_id": deck_id,
-            ":font": i32::from(font),
-            ":kind": i32::from(kind),
+            ":font": font,
+            ":kind": kind,
             ":point_id": point_id,
             ":content": content,
             ":prev_note_id": prev_note_id
@@ -565,7 +565,7 @@ pub fn edit_note(
     sqlite::zero(
         &conn,
         stmt,
-        named_params! {":user_id": user_id, ":note_id": note_id, ":content": note.content, ":font": i32::from(note.font)},
+        named_params! {":user_id": user_id, ":note_id": note_id, ":content": note.content, ":font": note.font},
     )?;
 
     let stmt = "SELECT   n.id,
@@ -639,8 +639,8 @@ pub(crate) fn replace_note_fonts(
         named_params! {
             ":user_id": user_id,
             ":deck_id": deck_id,
-            ":original_font": i32::from(original_font),
-            ":new_font": i32::from(new_font)
+            ":original_font": original_font,
+            ":new_font": new_font
         },
     )
 }
@@ -658,6 +658,6 @@ pub(crate) fn overwrite_note_fonts(
     sqlite::zero(
         conn,
         stmt,
-        named_params! {":user_id": user_id, ":deck_id": deck_id, ":font": i32::from(new_font)},
+        named_params! {":user_id": user_id, ":deck_id": deck_id, ":font": new_font},
     )
 }

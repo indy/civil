@@ -90,12 +90,11 @@ pub(crate) fn get_or_create(
     let attribution = &quote.attribution;
     let content = format!(":quote({}::{})", text, attribution);
 
-    let kind = i32::from(NoteKind::Note);
     sqlite::zero(
         &tx,
         "INSERT INTO notes(user_id, deck_id, kind, content)
                   VALUES (:user_id, :deck_id, :kind, :content)",
-        named_params! {":user_id": user_id, ":deck_id": deck.id, ":kind": kind, ":content": content},
+        named_params! {":user_id": user_id, ":deck_id": deck.id, ":kind": NoteKind::Note, ":content": content},
     )?;
 
     tx.commit()?;

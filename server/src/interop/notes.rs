@@ -19,8 +19,7 @@ use crate::interop::Key;
 use crate::interop::decks::Ref;
 use crate::interop::font::Font;
 use crate::interop::memorise::FlashCard;
-
-use rusqlite::types::{FromSql, FromSqlError, FromSqlResult, ValueRef};
+use rusqlite::types::{FromSql, FromSqlError, FromSqlResult, ToSql, ToSqlOutput, ValueRef};
 
 #[derive(
     Copy, Clone, Debug, PartialEq, Eq, serde_repr::Serialize_repr, serde_repr::Deserialize_repr,
@@ -54,6 +53,12 @@ impl FromSql for NoteKind {
             4 => Ok(NoteKind::NoteDeckMeta),
             _ => Err(FromSqlError::OutOfRange(i)),
         }
+    }
+}
+
+impl ToSql for NoteKind {
+    fn to_sql(&self) -> rusqlite::Result<ToSqlOutput<'_>> {
+        Ok(ToSqlOutput::from(i32::from(*self)))
     }
 }
 
