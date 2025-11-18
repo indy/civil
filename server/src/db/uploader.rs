@@ -22,7 +22,7 @@ use crate::db::sqlite::{self, FromRow};
 use crate::interop::Key;
 use crate::interop::uploader::UserUploadedImage;
 
-use rusqlite::{Row, params};
+use rusqlite::{Row, named_params};
 
 impl FromRow for UserUploadedImage {
     fn from_row(row: &Row) -> rusqlite::Result<UserUploadedImage> {
@@ -44,10 +44,10 @@ pub(crate) fn get_recent(
         &conn,
         "SELECT filename
          FROM images
-         WHERE user_id = ?1
+         WHERE user_id = :user_id
          ORDER BY id DESC
-         LIMIT ?2",
-        params![&user_id, &limit],
+         LIMIT :limit",
+        named_params! {":user_id": user_id, ":limit": limit},
     )
 }
 
@@ -56,8 +56,8 @@ pub(crate) fn get_image_count(conn: &rusqlite::Connection, user_id: Key) -> Resu
         &conn,
         "SELECT image_count
          FROM users
-         WHERE id = ?1",
-        params![&user_id],
+         WHERE id = :user_id",
+        named_params! {":user_id": user_id},
     )
 }
 
@@ -69,9 +69,9 @@ pub(crate) fn set_image_count(
     sqlite::zero(
         &conn,
         "UPDATE users
-         SET image_count = ?2
-         WHERE id = ?1",
-        params![&user_id, &new_count],
+         SET image_count = :image_count
+         WHERE id = :user_id",
+        named_params! {":user_id": user_id, ":image_count": new_count},
     )
 }
 
@@ -83,7 +83,7 @@ pub(crate) fn add_image_entry(
     sqlite::zero(
         &conn,
         "INSERT INTO images(user_id, filename)
-         VALUES (?1, ?2)",
-        params![&user_id, &filename],
+         VALUES (:user_id, :filename)",
+        named_params! {":user_id": user_id, ":filename": filename},
     )
 }

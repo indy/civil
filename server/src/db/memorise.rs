@@ -20,9 +20,9 @@ use crate::db::sqlite::{self, FromRow};
 use crate::interop::Key;
 use crate::interop::decks::SlimDeck;
 use crate::interop::memorise::{Card, CardUpcomingReview, FlashCard, ProtoCard};
-
 use chrono::Utc;
-use rusqlite::{Row, params};
+use rusqlite::{Row, named_params};
+
 #[allow(unused_imports)]
 use tracing::info;
 
@@ -86,8 +86,8 @@ pub(crate) fn all_flashcards_for_deck(
         "SELECT c.id, c.note_id, c.prompt, c.next_test_date,
                 c.easiness_factor, c.interval, c.repetition
          FROM cards c, decks d, notes n
-         WHERE d.id=?1 AND n.deck_id = d.id AND c.note_id = n.id",
-        params![&deck_id],
+         WHERE d.id = :deck_id AND n.deck_id = d.id AND c.note_id = n.id",
+        named_params! {":deck_id": deck_id},
     )
 }
 
@@ -100,8 +100,8 @@ pub(crate) fn all_flashcards_for_note(
         "SELECT c.id, c.note_id, c.prompt, c.next_test_date,
                 c.easiness_factor, c.interval, c.repetition
          FROM cards c, notes n
-         WHERE n.id=?1 AND c.note_id = n.id",
-        params![&note_id],
+         WHERE n.id = :note_id AND c.note_id = n.id",
+        named_params! {":note_id": note_id},
     )
 }
 
@@ -117,8 +117,8 @@ pub(crate) fn all_flashcards_for_deck_arrivals(
                   FULL JOIN notes n on r.note_id = n.id
                   FULL JOIN decks owner_deck on n.deck_id = owner_deck.id
                   INNER JOIN cards c on c.note_id = n.id
-         WHERE    r.deck_id = ?1",
-        params![&deck_id],
+         WHERE    r.deck_id = :deck_id",
+        named_params! {":deck_id": deck_id},
     )
 }
 
@@ -142,13 +142,13 @@ pub(crate) fn all_flashcards_for_deck_additional_query(
               LEFT JOIN decks d ON d.id = n.deck_id
               LEFT JOIN dialogue_messages dm ON dm.note_id = n.id
               INNER JOIN cards c on c.note_id = n.id
-         WHERE notes_fts match ?2
-               AND d.user_id = ?1
-               AND d.id <> ?3
+         WHERE notes_fts match :sane_name
+               AND d.user_id = :user_id
+               AND d.id <> :deck_id
                AND (dm.role IS null OR dm.role <> 'system')
          ORDER BY rank ASC
          LIMIT 100",
-        params![&user_id, &sane_name, &deck_id],
+        named_params! {":user_id": user_id, ":sane_name": sane_name, ":deck_id": deck_id},
     )
 }
 
@@ -167,12 +167,12 @@ pub(crate) fn all_flashcards_for_search_query(
               LEFT JOIN decks d ON d.id = n.deck_id
               LEFT JOIN dialogue_messages dm ON dm.note_id = n.id
               INNER JOIN cards c on c.note_id = n.id
-         WHERE notes_fts match ?2
-               AND d.user_id = ?1
+         WHERE notes_fts match :query
+               AND d.user_id = :user_id
                AND (dm.role IS null OR dm.role <> 'system')
          ORDER BY rank ASC
          LIMIT 100",
-        params![&user_id, &query],
+        named_params! {":user_id": user_id, ":query": query},
     )
 }
 
@@ -193,17 +193,17 @@ pub(crate) fn create_card(
     let flashcard = sqlite::one(
         &tx,
         "INSERT INTO cards(user_id, note_id, prompt, next_test_date, easiness_factor, interval, repetition)
-         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)
+         VALUES (:user_id, :note_id, :prompt, :next_test_date, :easiness_factor, :interval, :repetition)
          RETURNING id, note_id, prompt, next_test_date, easiness_factor, interval, repetition",
-        params![
-            &user_id,
-            &card.note_id,
-            &card.prompt,
-            &next_test_date,
-            &easiness_factor,
-            &interval,
-            &repetition
-        ],
+        named_params!{
+            ":user_id": user_id,
+            ":note_id": card.note_id,
+            ":prompt": card.prompt,
+            ":next_test_date": next_test_date,
+            ":easiness_factor": easiness_factor,
+            ":interval": interval,
+            ":repetition": repetition
+        },
     )?;
 
     tx.commit()?;
@@ -222,8 +222,8 @@ pub(crate) fn get_card_full_fat(
         &conn,
         "SELECT id, note_id, prompt, next_test_date, easiness_factor, interval, repetition
          FROM cards
-         WHERE user_id=?1 and id=?2",
-        params![&user_id, &card_id],
+         WHERE user_id = :user_id and id = :card_id",
+        named_params! {":user_id": user_id, ":card_id": card_id},
     )
 }
 
@@ -239,22 +239,22 @@ pub(crate) fn card_rated(
     sqlite::zero(
         &tx,
         "UPDATE cards
-         SET next_test_date = ?2, easiness_factor = ?3, interval = ?4, repetition = ?5
-         WHERE id = ?1",
-        params![
-            &card.id,
-            &card.next_test_date,
-            &card.easiness_factor,
-            &card.interval,
-            &card.repetition,
-        ],
+         SET next_test_date = :next_test_date, easiness_factor = :easiness_factor, interval = :interval, repetition = :repetition
+         WHERE id = :card_id",
+        named_params!{
+            ":card_id": card.id,
+            ":next_test_date": card.next_test_date,
+            ":easiness_factor": card.easiness_factor,
+            ":interval": card.interval,
+            ":repetition": card.repetition,
+        },
     )?;
 
     sqlite::zero(
         &tx,
         "INSERT INTO card_ratings(card_id, rating)
-         VALUES (?1, ?2)",
-        params![&card.id, &rating],
+         VALUES (:card_id, :rating)",
+        named_params! {":card_id": card.id, ":rating": rating},
     )?;
 
     tx.commit()?;
@@ -271,10 +271,10 @@ pub(crate) fn edit_flashcard(
     sqlite::one(
         &conn,
         "UPDATE cards
-         SET prompt = ?3
-         WHERE id = ?2 and user_id = ?1
+         SET prompt = :prompt
+         WHERE id = :card_id and user_id = :user_id
          RETURNING id, note_id, prompt, next_test_date, easiness_factor, interval, repetition",
-        params![&user_id, &flashcard_id, &flashcard.prompt],
+        named_params! {":user_id": user_id, ":card_id": flashcard_id, ":prompt": flashcard.prompt},
     )
 }
 
@@ -287,14 +287,14 @@ pub(crate) fn delete_flashcard(
 
     sqlite::zero(
         &tx,
-        "DELETE FROM card_ratings WHERE card_id = ?1",
-        params![&flashcard_id],
+        "DELETE FROM card_ratings WHERE card_id = :card_id",
+        named_params! {":card_id": flashcard_id},
     )?;
 
     sqlite::zero(
         &tx,
-        "DELETE FROM cards WHERE id = ?1 AND user_id = ?2",
-        params![&flashcard_id, &user_id],
+        "DELETE FROM cards WHERE id = :card_id AND user_id = :user_id",
+        named_params! {":card_id": flashcard_id, ":user_id": user_id},
     )?;
 
     tx.commit()?;
@@ -315,9 +315,9 @@ pub(crate) fn get_cards(
                 d.name, d.kind, d.created_at, d.graph_terminator,
                 d.insignia, d.font, d.impact
          FROM cards c, decks d, notes n
-         WHERE d.id = n.deck_id AND n.id = c.note_id AND c.user_id = ?1
-               AND c.next_test_date < ?2",
-        params![&user_id, &due],
+         WHERE d.id = n.deck_id AND n.id = c.note_id AND c.user_id = :user_id
+               AND c.next_test_date < :next_test_date",
+        named_params! {":user_id": user_id, ":next_test_date": due},
     )
 }
 
@@ -333,10 +333,10 @@ pub(crate) fn get_practice_card(
                 d.name, d.kind, d.created_at, d.graph_terminator,
                 d.insignia, d.font, d.impact
          FROM cards c, decks d, notes n
-         WHERE d.id = n.deck_id AND n.id = c.note_id and c.user_id = ?1
+         WHERE d.id = n.deck_id AND n.id = c.note_id and c.user_id = :user_id
          ORDER BY random()
          LIMIT 1",
-        params![&user_id],
+        named_params! {":user_id": user_id},
     )
 }
 
@@ -352,16 +352,16 @@ pub(crate) fn get_cards_upcoming_review(
         &tx,
         "SELECT count(*) as review_count
          FROM cards
-         WHERE user_id = ?1 and next_test_date < ?2",
-        params![&user_id, &due],
+         WHERE user_id = :user_id and next_test_date < :next_test_date",
+        named_params! {":user_id": user_id, ":next_test_date": due},
     )?;
 
     let num_cards: i32 = sqlite::one(
         &tx,
         "SELECT count(*) as review_count
          FROM cards
-         WHERE user_id = ?1",
-        params![&user_id],
+         WHERE user_id = :user_id",
+        named_params! {":user_id": user_id},
     )?;
 
     let earliest_review_date: Option<chrono::NaiveDateTime> = if num_cards > 0 {
@@ -369,9 +369,9 @@ pub(crate) fn get_cards_upcoming_review(
             &tx,
             "SELECT MIN(next_test_date) as earliest_review_date
              FROM cards
-             WHERE user_id = ?1
+             WHERE user_id = :user_id
              GROUP BY user_id",
-            params![&user_id],
+            named_params! {":user_id": user_id},
         )?)
     } else {
         None

@@ -24,7 +24,7 @@ use crate::interop::Key;
 use crate::interop::decks::{DeckKind, ProtoSlimDeck};
 use crate::interop::font::Font;
 use crate::interop::timelines::Timeline;
-use rusqlite::{Row, params};
+use rusqlite::{Row, named_params};
 
 impl FromRow for Timeline {
     fn from_row(row: &Row) -> rusqlite::Result<Timeline> {
@@ -76,10 +76,14 @@ pub(crate) fn get_or_create(
 pub(crate) fn all(conn: &rusqlite::Connection, user_id: Key) -> Result<Vec<Timeline>, DbError> {
     let stmt = "SELECT id, name, created_at, graph_terminator, insignia, font, impact
                 FROM decks
-                WHERE user_id = ?1 AND kind = 'timeline'
+                WHERE user_id = :user_id AND kind = :deck_kind
                 ORDER BY created_at DESC";
 
-    sqlite::many(&conn, stmt, params![&user_id])
+    sqlite::many(
+        &conn,
+        stmt,
+        named_params! {":user_id": user_id, ":deck_kind": DeckKind::Timeline},
+    )
 }
 
 pub(crate) fn get(
@@ -90,7 +94,7 @@ pub(crate) fn get(
     let mut timeline: Option<Timeline> = sqlite::one_optional(
         &conn,
         decks::DECKBASE_QUERY,
-        params![user_id, timeline_id, DeckKind::Timeline.to_string()],
+        named_params! {":user_id": user_id, ":deck_id": timeline_id, ":deck_kind": DeckKind::Timeline},
     )?;
 
     if let Some(ref mut tl) = timeline {

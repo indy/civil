@@ -30,7 +30,7 @@ use crate::interop::dialogues::{Dialogue, ProtoDialogue};
 use crate::interop::font::Font;
 use crate::interop::notes::NoteKind;
 
-use rusqlite::{Row, params};
+use rusqlite::{Row, named_params};
 #[allow(unused_imports)]
 use tracing::{error, info};
 
@@ -120,10 +120,14 @@ impl FromRow for interop::AiKind {
 pub(crate) fn all(conn: &rusqlite::Connection, user_id: Key) -> Result<Vec<SlimDeck>, DbError> {
     let stmt = "SELECT id, name, kind, created_at, graph_terminator, insignia, font, impact
                 FROM decks
-                WHERE user_id = ?1 AND kind = 'dialogue'
+                WHERE user_id = :user_id AND kind = :deck_kind
                 ORDER BY created_at DESC";
 
-    sqlite::many(&conn, stmt, params![&user_id])
+    sqlite::many(
+        &conn,
+        stmt,
+        named_params! {":user_id": user_id, ":deck_kind": DeckKind::Dialogue},
+    )
 }
 
 pub(crate) fn get(
@@ -135,12 +139,12 @@ pub(crate) fn get(
                        decks.graph_terminator, decks.insignia, decks.font, decks.impact,
                        dialogue_extras.ai_kind
                 FROM decks LEFT JOIN dialogue_extras ON dialogue_extras.deck_id = decks.id
-                WHERE decks.user_id = ?1 AND decks.id = ?2 AND decks.kind = ?3";
+                WHERE decks.user_id = :user_id AND decks.id = :deck_id AND decks.kind = :deck_kind";
 
     let mut dialogue: Option<Dialogue> = sqlite::one_optional(
         &conn,
         stmt,
-        params![user_id, dialogue_id, DeckKind::Dialogue.to_string()],
+        named_params! {":user_id": user_id, ":deck_id": dialogue_id, ":deck_kind": DeckKind::Dialogue},
     )?;
 
     if let Some(ref mut i) = dialogue {
@@ -162,10 +166,14 @@ fn get_original_chat_messages(
                 FROM dialogue_messages AS msg
                      LEFT JOIN notes ON notes.id = msg.note_id
                      LEFT JOIN decks ON decks.id = notes.deck_id
-                WHERE decks.user_id = ?1 AND decks.id = ?2
+                WHERE decks.user_id = :user_id AND decks.id = :deck_id
                 ORDER BY msg.note_id";
 
-    sqlite::many(conn, stmt, params![&user_id, &dialogue_id])
+    sqlite::many(
+        conn,
+        stmt,
+        named_params! {":user_id": user_id, ":deck_id": dialogue_id},
+    )
 }
 
 impl FromRow for DialogueExtra {
@@ -198,9 +206,10 @@ pub(crate) fn edit(
 
     let sql_query: &str = "SELECT deck_id, ai_kind
                            FROM dialogue_extras
-                           WHERE deck_id = ?1";
+                           WHERE deck_id = :deck_id";
 
-    let dialogue_extras: DialogueExtra = sqlite::one(&tx, sql_query, params![&dialogue_id])?;
+    let dialogue_extras: DialogueExtra =
+        sqlite::one(&tx, sql_query, named_params! {":deck_id": dialogue_id})?;
 
     let mut dialogue: interop::Dialogue = (edited_deck, dialogue_extras).try_into()?;
     dialogue.messages = get_original_chat_messages(&tx, user_id, dialogue_id)?;
@@ -234,9 +243,9 @@ pub(crate) fn create(
     let dialogue_extras: DialogueExtra = sqlite::one(
         &tx,
         "INSERT INTO dialogue_extras(deck_id, ai_kind)
-         VALUES (?1, ?2)
+         VALUES (:deck_id, :ai_kind)
          RETURNING deck_id, ai_kind",
-        params![&deck.id, &proto_dialogue.ai_kind.to_string()],
+        named_params! {":deck_id": deck.id, ":ai_kind": proto_dialogue.ai_kind.to_string()},
     )?;
 
     let mut new_prev: Option<Key> = None;
@@ -320,12 +329,12 @@ fn create_chat_message(
     sqlite::zero(
         conn,
         "INSERT INTO dialogue_messages(role, content, note_id)
-             VALUES (?1, ?2, ?3)",
-        params![
-            &chat_message.role.to_string(),
-            &chat_message.content,
-            new_note.id
-        ],
+             VALUES (:role, :content, :note_id)",
+        named_params! {
+            ":role": chat_message.role.to_string(),
+            ":content": chat_message.content,
+            ":note_id": new_note.id
+        },
     )?;
 
     Ok(new_note.id)
@@ -341,14 +350,17 @@ pub(crate) fn get_chat_history(
                      LEFT JOIN notes ON notes.id = dm.note_id
                      LEFT JOIN decks ON decks.id = notes.deck_id
                 WHERE
-                      decks.user_id=?1 AND decks.id = ?2
+                      decks.user_id=:user_id AND decks.id = :deck_id
                 ORDER BY dm.id";
 
-    let messages: Vec<openai_interface::ChatMessage> =
-        sqlite::many(&conn, stmt, params![&user_id, &deck_id])?;
+    let messages: Vec<openai_interface::ChatMessage> = sqlite::many(
+        &conn,
+        stmt,
+        named_params! {":user_id": user_id, ":deck_id": deck_id},
+    )?;
 
-    let stmt = "SELECT ai_kind FROM dialogue_extras WHERE deck_id = ?1";
-    let ai_kind = sqlite::one(&conn, stmt, params![&deck_id])?;
+    let stmt = "SELECT ai_kind FROM dialogue_extras WHERE deck_id = :deck_id";
+    let ai_kind = sqlite::one(&conn, stmt, named_params! {":deck_id": deck_id})?;
 
     Ok((ai_kind, messages))
 }

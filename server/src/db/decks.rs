@@ -21,7 +21,7 @@ use crate::db::sqlite::{self, FromRow};
 use crate::interop::Key;
 use crate::interop::decks::{DeckKind, Hit, Pagination, SlimDeck};
 use crate::interop::font::Font;
-use rusqlite::{Connection, Row, named_params, params};
+use rusqlite::{Connection, Row, named_params};
 
 #[allow(unused_imports)]
 use tracing::{info, warn};
@@ -29,7 +29,7 @@ use tracing::{info, warn};
 pub(crate) const DECKBASE_QUERY: &str =
     "SELECT id, name, kind, created_at, graph_terminator, insignia, font, impact
      FROM decks
-     WHERE user_id = ?1 AND id = ?2 AND kind = ?3";
+     WHERE user_id = :user_id AND id = :deck_id AND kind = :deck_kind";
 
 pub(crate) enum DeckBaseOrigin {
     Created,
@@ -100,12 +100,19 @@ pub(crate) fn recently_visited_any(
 ) -> Result<Vec<SlimDeck>, DbError> {
     let stmt = "SELECT decks.id, decks.name, decks.kind, decks.created_at, decks.graph_terminator, decks.insignia, decks.font, decks.impact, max(hits.created_at) as most_recent_visit
                 FROM hits INNER JOIN decks ON decks.id = hits.deck_id
-                WHERE decks.user_id = ?1
+                WHERE decks.user_id = :user_id
                 GROUP BY hits.deck_id
                 ORDER BY most_recent_visit DESC
-                LIMIT ?2";
+                LIMIT :limit";
 
-    sqlite::many(&conn, stmt, params![&user_id, &num])
+    sqlite::many(
+        &conn,
+        stmt,
+        named_params! {
+            ":user_id": user_id,
+            ":limit": num
+        },
+    )
 }
 
 pub(crate) fn recently_visited(
@@ -116,12 +123,20 @@ pub(crate) fn recently_visited(
 ) -> Result<Vec<SlimDeck>, DbError> {
     let stmt = "SELECT decks.id, decks.name, decks.kind, decks.created_at, decks.graph_terminator, decks.insignia, decks.font, decks.impact, max(hits.created_at) as most_recent_visit
                 FROM hits INNER JOIN decks ON decks.id = hits.deck_id
-                WHERE decks.user_id = ?1 AND decks.kind=?2
+                WHERE decks.user_id = :user_id AND decks.kind= :deck_kind
                 GROUP BY hits.deck_id
                 ORDER BY most_recent_visit DESC
-                LIMIT ?3";
+                LIMIT :limit";
 
-    sqlite::many(&conn, stmt, params![&user_id, &deck_kind.to_string(), &num])
+    sqlite::many(
+        &conn,
+        stmt,
+        named_params! {
+            ":user_id": user_id,
+            ":deck_kind": deck_kind,
+            ":limit": num
+        },
+    )
 }
 
 fn num_decks_for_deck_kind(
@@ -129,9 +144,16 @@ fn num_decks_for_deck_kind(
     user_id: Key,
     deck_kind: DeckKind,
 ) -> Result<i32, DbError> {
-    let stmt = "SELECT count(*) FROM decks where user_id=?1 AND kind=?2;";
+    let stmt = "SELECT count(*) FROM decks where user_id = :user_id AND kind = :deck_kind;";
 
-    sqlite::one(&conn, stmt, params![user_id, &deck_kind.to_string()])
+    sqlite::one(
+        &conn,
+        stmt,
+        named_params! {
+            ":user_id": user_id,
+            ":deck_kind": deck_kind,
+        },
+    )
 }
 
 pub(crate) fn pagination(
@@ -143,15 +165,20 @@ pub(crate) fn pagination(
 ) -> Result<Pagination<SlimDeck>, DbError> {
     let stmt = "SELECT id, name, kind, created_at, graph_terminator, insignia, font, impact
                 FROM decks
-                WHERE user_id = ?1 AND kind = ?2
+                WHERE user_id = :user_id AND kind = :deck_kind
                 ORDER BY created_at DESC
-                LIMIT ?3
-                OFFSET ?4";
+                LIMIT :limit
+                OFFSET :offset";
 
     let items = sqlite::many(
         &conn,
         stmt,
-        params![&user_id, &deck_kind.to_string(), &num_items, &offset],
+        named_params! {
+            ":user_id": user_id,
+            ":deck_kind": deck_kind,
+            ":limit": num_items,
+            ":offset": offset
+        },
     )?;
 
     let total_items = num_decks_for_deck_kind(conn, user_id, deck_kind)?;
@@ -170,16 +197,21 @@ pub(crate) fn pagination_events_chronologically(
 ) -> Result<Pagination<SlimDeck>, DbError> {
     let stmt = "SELECT d.id, d.name, d.kind, d.created_at, d.graph_terminator, d.insignia, d.font, d.impact
                 FROM decks as d LEFT JOIN points AS p ON p.deck_id = d.id
-                WHERE d.user_id = ?1 AND d.kind = ?2
+                WHERE d.user_id = :user_id AND d.kind = :deck_kind
                 ORDER BY (p.exact_realdate IS NOT NULL OR p.lower_realdate IS NOT NULL OR p.upper_realdate IS NOT NULL),
                 COALESCE(p.exact_realdate, p.lower_realdate, p.upper_realdate) DESC
-                LIMIT ?3
-                OFFSET ?4";
+                LIMIT :limit
+                OFFSET :offset";
 
     let items = sqlite::many(
         &conn,
         stmt,
-        params![&user_id, &deck_kind.to_string(), &num_items, &offset],
+        named_params! {
+            ":user_id": user_id,
+            ":deck_kind": deck_kind,
+            ":limit": num_items,
+            ":offset": offset
+        },
     )?;
 
     let total_items = num_decks_for_deck_kind(conn, user_id, deck_kind)?;
@@ -228,13 +260,13 @@ pub(crate) fn deckbase_get_or_create(
 }
 
 pub(crate) fn hit(conn: &Connection, deck_id: Key) -> Result<(), DbError> {
-    let stmt = "INSERT INTO hits(deck_id) VALUES (?1)";
-    sqlite::zero(conn, stmt, params![&deck_id])
+    let stmt = "INSERT INTO hits(deck_id) VALUES (:deck_id)";
+    sqlite::zero(conn, stmt, named_params! {":deck_id": deck_id})
 }
 
 pub(crate) fn get_hits(conn: &rusqlite::Connection, deck_id: Key) -> Result<Vec<Hit>, DbError> {
-    let stmt = "SELECT created_at FROM hits WHERE deck_id = ?1 ORDER BY created_at DESC;";
-    sqlite::many(&conn, stmt, params![&deck_id])
+    let stmt = "SELECT created_at FROM hits WHERE deck_id = :deck_id ORDER BY created_at DESC;";
+    sqlite::many(conn, stmt, named_params! {":deck_id": deck_id})
 }
 
 fn deckbase_get_by_name(
@@ -245,8 +277,12 @@ fn deckbase_get_by_name(
 ) -> Result<DeckBase, DbError> {
     let stmt = "SELECT id, name, kind, created_at, graph_terminator, insignia, font, impact
                 FROM DECKS
-                WHERE user_id = ?1 AND name = ?2 AND kind = ?3";
-    sqlite::one(conn, stmt, params![&user_id, &name, &kind.to_string()])
+                WHERE user_id = :user_id AND name = :name AND kind = :deck_kind";
+    sqlite::one(
+        conn,
+        stmt,
+        named_params! {":user_id": user_id, ":name": name, ":deck_kind": kind},
+    )
 }
 
 pub(crate) fn deckbase_create(
@@ -260,21 +296,21 @@ pub(crate) fn deckbase_create(
     impact: i32,
 ) -> Result<DeckBase, DbError> {
     let stmt = "INSERT INTO decks(user_id, kind, name, graph_terminator, insignia, font, impact)
-                VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)
+                VALUES (:user_id, :deck_kind, :name, :graph_terminator, :insignia, :font, :impact)
                 RETURNING id, name, kind, created_at, graph_terminator, insignia, font, impact";
 
     let deckbase: DeckBase = sqlite::one(
         tx,
         stmt,
-        params![
-            &user_id,
-            &kind.to_string(),
-            name,
-            graph_terminator,
-            &insignia,
-            &i32::from(font),
-            impact
-        ],
+        named_params! {
+            ":user_id": user_id,
+            ":deck_kind": kind,
+            ":name": name,
+            ":graph_terminator": graph_terminator,
+            ":insignia": insignia,
+            ":font": i32::from(font),
+            ":impact": impact
+        },
     )?;
 
     // create the mandatory NoteKind::NoteDeckMeta
@@ -303,22 +339,23 @@ pub(crate) fn deckbase_edit(
     }
 
     let stmt = "UPDATE decks
-                SET name = ?4, graph_terminator = ?5, insignia = ?6, font = ?7, impact = ?8
-                WHERE user_id = ?1 AND id = ?2 AND kind = ?3
+                SET name = :name, graph_terminator = :graph_terminator, insignia = :insignia, font = :font, impact = :impact
+                WHERE user_id = :user_id AND id = :deck_id AND kind = :deck_kind
                 RETURNING id, name, kind, created_at, graph_terminator, insignia, font, impact";
+
     sqlite::one(
         tx,
         stmt,
-        params![
-            &user_id,
-            &deck_id,
-            &kind.to_string(),
-            name,
-            graph_terminator,
-            insignia,
-            &i32::from(font),
-            impact
-        ],
+        named_params! {
+            ":user_id": user_id,
+            ":deck_id": deck_id,
+            ":deck_kind": kind,
+            ":name": name,
+            ":graph_terminator": graph_terminator,
+            ":insignia": insignia,
+            ":font": i32::from(font),
+            ":impact": impact
+        },
     )
 }
 
@@ -332,28 +369,28 @@ pub(crate) fn insignia_filter(
 ) -> Result<Pagination<SlimDeck>, DbError> {
     let stmt = "SELECT id, name, kind, created_at, graph_terminator, insignia, font, impact
                 FROM decks
-                WHERE user_id = ?1 AND insignia & ?2 AND kind = ?3
+                WHERE user_id = :user_id AND insignia & :insignia AND kind = :deck_kind
                 ORDER BY created_at DESC
-                LIMIT ?4
-                OFFSET ?5";
+                LIMIT :limit
+                OFFSET :offset";
 
     let items = sqlite::many(
         &conn,
         stmt,
-        params![
-            &user_id,
-            &insignia,
-            &deck_kind.to_string(),
-            &num_items,
-            &offset
-        ],
+        named_params! {
+            ":user_id": user_id,
+            ":insignia": insignia,
+            ":deck_kind": deck_kind,
+            ":limit": num_items,
+            ":offset": offset
+        },
     )?;
 
-    let stmt = "SELECT count(*) FROM decks where user_id=?1 AND insignia & ?2 AND kind=?3;";
+    let stmt = "SELECT count(*) FROM decks where user_id = :user_id AND insignia & :insignia AND kind = :deck_kind;";
     let total_items = sqlite::one(
         &conn,
         stmt,
-        params![user_id, &insignia, &deck_kind.to_string()],
+        named_params! {":user_id": user_id, ":insignia": insignia, ":deck_kind": deck_kind},
     )?;
 
     let res = Pagination::<SlimDeck> { items, total_items };
@@ -370,19 +407,23 @@ pub(crate) fn insignia_filter_any(
 ) -> Result<Pagination<SlimDeck>, DbError> {
     let stmt = "SELECT id, name, kind, created_at, graph_terminator, insignia, font, impact
                 FROM decks
-                WHERE user_id = ?1 AND insignia & ?2
+                WHERE user_id = :user_id AND insignia & :insignia
                 ORDER BY created_at DESC
-                LIMIT ?3
-                OFFSET ?4";
+                LIMIT :limit
+                OFFSET :offset";
 
     let items = sqlite::many(
         &conn,
         stmt,
-        params![&user_id, &insignia, &num_items, &offset],
+        named_params! {":user_id": user_id, ":insignia": insignia, ":limit": num_items, ":offset": offset},
     )?;
 
-    let stmt = "SELECT count(*) FROM decks where user_id=?1 AND insignia & ?2;";
-    let total_items = sqlite::one(&conn, stmt, params![user_id, &insignia])?;
+    let stmt = "SELECT count(*) FROM decks where user_id = :user_id AND insignia & :insignia;";
+    let total_items = sqlite::one(
+        &conn,
+        stmt,
+        named_params! {":user_id": user_id, ":insignia": insignia},
+    )?;
 
     let res = Pagination::<SlimDeck> { items, total_items };
 
@@ -398,13 +439,15 @@ pub(crate) fn recent(
 
     let stmt = "SELECT id, name, kind, created_at, graph_terminator, insignia, font, impact
                 FROM decks
-                WHERE user_id = ?1 AND kind = '$deck_kind'
+                WHERE user_id = :user_id AND kind = :deck_kind
                 ORDER BY created_at DESC
-                LIMIT $limit";
-    let stmt = stmt.replace("$deck_kind", &deck_kind.to_string());
-    let stmt = stmt.replace("$limit", &limit.to_string());
+                LIMIT :limit";
 
-    sqlite::many(&conn, &stmt, params![&user_id])
+    sqlite::many(
+        &conn,
+        &stmt,
+        named_params! {":user_id": user_id, ":deck_kind": deck_kind, ":limit": limit},
+    )
 }
 
 // delete anything that's represented as a deck (article, person, idea, timeline, quote, dialogue)
@@ -412,8 +455,8 @@ pub(crate) fn recent(
 pub(crate) fn delete(conn: &Connection, user_id: Key, id: Key) -> Result<(), DbError> {
     sqlite::zero(
         &conn,
-        "DELETE FROM decks WHERE id = ?2 and user_id = ?1",
-        params![&user_id, &id],
+        "DELETE FROM decks WHERE id = :id and user_id = :user_id",
+        named_params! {":user_id": user_id, ":id": id},
     )?;
 
     Ok(())
@@ -422,8 +465,8 @@ pub(crate) fn delete(conn: &Connection, user_id: Key, id: Key) -> Result<(), DbE
 fn get_font_of_deck(conn: &Connection, deck_id: Key) -> Result<Font, DbError> {
     sqlite::one(
         conn,
-        "SELECT font FROM decks WHERE id = ?1",
-        params![&deck_id],
+        "SELECT font FROM decks WHERE id = :id",
+        named_params! {":id": deck_id},
     )
 }
 
@@ -436,9 +479,9 @@ pub(crate) fn overwrite_deck_font(
     sqlite::zero(
         conn,
         "UPDATE decks
-         SET font = ?3
-         WHERE user_id = ?1 AND id = ?2 AND font <> ?3",
-        params![&user_id, &deck_id, &i32::from(new_font)],
+         SET font = :font
+         WHERE user_id = :user_id AND id = :id AND font <> :font",
+        named_params! {":user_id": user_id, ":id": deck_id, ":font": i32::from(new_font)},
     )
 }
 
@@ -452,8 +495,8 @@ pub(crate) fn paginated_unnoted(
     let stmt = "SELECT d.id, d.name, d.kind, d.created_at, d.graph_terminator, d.insignia, d.font, d.impact
                 FROM decks d LEFT JOIN notes n ON (d.id = n.deck_id AND n.kind != 4)
                 WHERE n.deck_id IS NULL
-                AND d.kind=:kind
-                AND d.user_id=:user_id
+                AND d.kind = :kind
+                AND d.user_id = :user_id
                 ORDER BY d.created_at DESC
                 LIMIT :limit
                 OFFSET :offset";
@@ -461,7 +504,7 @@ pub(crate) fn paginated_unnoted(
         &conn,
         stmt,
         named_params! {
-            ":kind": deck_kind.to_string(),
+            ":kind": deck_kind,
             ":user_id": user_id,
             ":limit": num_items,
             ":offset": offset,
@@ -471,14 +514,14 @@ pub(crate) fn paginated_unnoted(
     let stmt = "SELECT count(*)
                 FROM decks d LEFT JOIN notes n ON (d.id = n.deck_id AND n.kind != 4)
                 WHERE n.deck_id IS NULL
-                AND d.kind=:kind
-                AND d.user_id=:user_id";
+                AND d.kind = :kind
+                AND d.user_id = :user_id";
     let total_items = sqlite::one(
         &conn,
         stmt,
         named_params! {
             ":user_id": user_id,
-            ":kind": deck_kind.to_string(),
+            ":kind": deck_kind,
         },
     )?;
 
@@ -505,20 +548,20 @@ pub(crate) fn paginated_recents(
         &conn,
         stmt,
         named_params! {
-            ":kind": deck_kind.to_string(),
+            ":kind": deck_kind,
             ":user_id": user_id,
             ":limit": num_items,
             ":offset": offset,
         },
     )?;
 
-    let stmt = "SELECT count(*) FROM decks where user_id=:user_id AND kind=:kind;";
+    let stmt = "SELECT count(*) FROM decks where user_id = :user_id AND kind = :kind;";
     let total_items = sqlite::one(
         &conn,
         stmt,
         named_params! {
             ":user_id": user_id,
-            ":kind": deck_kind.to_string(),
+            ":kind": deck_kind,
         },
     )?;
 
@@ -552,7 +595,7 @@ pub(crate) fn paginated_orphans(
         &conn,
         stmt,
         named_params! {
-            ":kind": deck_kind.to_string(),
+            ":kind": deck_kind,
             ":user_id": user_id,
             ":limit": num_items,
             ":offset": offset
@@ -594,20 +637,21 @@ pub(crate) fn paginated_rated(
         &conn,
         stmt,
         named_params! {
-            ":kind": deck_kind.to_string(),
+            ":kind": deck_kind,
             ":user_id": user_id,
             ":limit": num_items,
             ":offset": offset,
         },
     )?;
 
-    let stmt = "SELECT count(*) FROM decks where user_id=:user_id AND kind=:kind AND impact > 0";
+    let stmt =
+        "SELECT count(*) FROM decks where user_id = :user_id AND kind = :kind AND impact > 0";
     let total_items = sqlite::one(
         &conn,
         stmt,
         named_params! {
             ":user_id": user_id,
-            ":kind": deck_kind.to_string(),
+            ":kind": deck_kind,
         },
     )?;
 

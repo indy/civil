@@ -24,7 +24,7 @@ use crate::interop::Key;
 use crate::interop::decks::{Arrival, DeckKind, Ref, SlimDeck};
 use crate::interop::notes::Note;
 use crate::interop::search::{SearchDeck, SearchResults};
-use rusqlite::{Connection, Row, params};
+use rusqlite::{Connection, Row, named_params};
 
 #[allow(unused_imports)]
 use tracing::{info, warn};
@@ -193,20 +193,28 @@ pub(crate) fn search_names_at_deck_level(
     let stmt = "select d.id, d.name, d.kind, d.created_at, d.graph_terminator, d.insignia, d.font, d.impact,
                        decks_fts.rank AS rank_sum, 1 as rank_count
                 from decks_fts left join decks d on d.id = decks_fts.rowid
-                where decks_fts match ?2
-                      and d.user_id = ?1
+                where decks_fts match :query
+                      and d.user_id = :user_id
                 group by d.id
                 order by rank_sum asc, length(d.name) asc
                 limit 20";
-    let mut results: Vec<SearchDeck> = sqlite::many(&conn, stmt, params![&user_id, &query])?;
+    let mut results: Vec<SearchDeck> = sqlite::many(
+        &conn,
+        stmt,
+        named_params! {":user_id": user_id, ":query": query},
+    )?;
 
     let stmt =
         "select id, name, kind, created_at, graph_terminator, insignia, font, impact, 0 as rank_sum, 1 as rank_count
                 from decks
-                where name like '%' || ?2 || '%'
-                and user_id = ?1
+                where name like '%' || :query || '%'
+                and user_id = :user_id
                 limit 20";
-    let res2: Vec<SearchDeck> = sqlite::many(&conn, stmt, params![&user_id, &query])?;
+    let res2: Vec<SearchDeck> = sqlite::many(
+        &conn,
+        stmt,
+        named_params! {":user_id": user_id, ":query": query},
+    )?;
 
     for r in res2 {
         if !contains(&results, r.deck.id) {
@@ -285,8 +293,8 @@ fn in_arrivals(searchdeck: &SearchDeck, arrivals: &[Arrival]) -> bool {
 fn get_name_of_deck(conn: &Connection, deck_id: Key) -> Result<String, DbError> {
     sqlite::one(
         conn,
-        "select name from decks where id = ?1",
-        params![&deck_id],
+        "select name from decks where id = :deck_id",
+        named_params! {":deck_id": deck_id},
     )
 }
 
@@ -429,12 +437,16 @@ fn search_query(
                     LEFT JOIN dialogue_messages dm ON dm.note_id = n.id
                     LEFT JOIN refs r on r.note_id = n.id
                     LEFT JOIN decks d2 on d2.id = r.deck_id
-               WHERE notes_fts match ?2
-                     AND d.user_id = ?1
+               WHERE notes_fts match :query
+                     AND d.user_id = :user_id
                      AND (dm.role IS null OR dm.role <> 'system')
                ORDER BY rank ASC
                LIMIT 100";
-    sqlite::many(&conn, stmt, params![&user_id, &query])
+    sqlite::many(
+        &conn,
+        stmt,
+        named_params! {":user_id": user_id, ":query": query},
+    )
 }
 
 // only searching via notes for the moment, will have to add additional search queries that look in points, article_extras etc
@@ -465,14 +477,18 @@ fn search_deck_additional_query(
                     LEFT JOIN dialogue_messages dm ON dm.note_id = n.id
                     LEFT JOIN refs r on r.note_id = n.id
                     LEFT JOIN decks d2 on d2.id = r.deck_id
-               WHERE notes_fts match ?2
-                     AND d.user_id = ?1
-                     AND d.id <> ?3
+               WHERE notes_fts match :query
+                     AND d.user_id = :user_id
+                     AND d.id <> :deck_id
                      AND (dm.role IS null OR dm.role <> 'system')
                ORDER BY rank ASC
                LIMIT 100";
 
-    sqlite::many(&conn, stmt, params![&user_id, &sane_name, &deck_id])
+    sqlite::many(
+        &conn,
+        stmt,
+        named_params! {":user_id": user_id, ":query": sane_name, ":deck_id": deck_id},
+    )
 }
 
 fn search_at_deck_level_base(
@@ -486,22 +502,30 @@ fn search_at_deck_level_base(
     let stmt = "SELECT d.id, d.name, d.kind, d.created_at, d.graph_terminator, d.insignia, d.font, d.impact,
                 decks_fts.rank AS rank_sum, 1 AS rank_count
          FROM decks_fts LEFT JOIN decks d ON d.id = decks_fts.rowid
-         WHERE decks_fts MATCH ?2
-               AND d.user_id = ?1
+         WHERE decks_fts MATCH :query
+               AND d.user_id = :user_id
          GROUP BY d.id
          ORDER BY rank_sum ASC, length(d.name) ASC, d.created_at DESC
          LIMIT 30";
-    let mut results: Vec<SearchDeck> = sqlite::many(&conn, stmt, params![&user_id, &q])?;
+    let mut results: Vec<SearchDeck> = sqlite::many(
+        &conn,
+        stmt,
+        named_params! {":user_id": user_id, ":query": q},
+    )?;
 
     let stmt = "select d.id, d.name, d.kind, d.created_at, d.graph_terminator, d.insignia, d.font, d.impact,
                        article_extras_fts.rank AS rank_sum, 1 as rank_count
                 from article_extras_fts left join decks d on d.id = article_extras_fts.rowid
-                where article_extras_fts match ?2
-                      and d.user_id = ?1
+                where article_extras_fts match :query
+                      and d.user_id = :user_id
                 group by d.id
                 order by rank_sum asc, length(d.name) asc
                 limit 30";
-    let results_via_pub_ext: Vec<SearchDeck> = sqlite::many(&conn, stmt, params![&user_id, &q])?;
+    let results_via_pub_ext: Vec<SearchDeck> = sqlite::many(
+        &conn,
+        stmt,
+        named_params! {":user_id": user_id, ":query": q},
+    )?;
 
     let stmt = "select res.id, res.name, res.kind, res.created_at, res.graph_terminator, res.insignia, res.font, res.impact,
                        sum(res.rank) as rank_sum, count(res.rank) as rank_count
@@ -510,14 +534,18 @@ fn search_at_deck_level_base(
                       from points_fts
                            left join points n on n.id = points_fts.rowid
                            left join decks d on d.id = n.deck_id
-                      where points_fts match ?2
-                            and d.user_id = ?1
+                      where points_fts match :query
+                            and d.user_id = :user_id
                       group by d.id
                       order by rank asc) res
                 group by res.id, res.kind, res.name
                 order by sum(res.rank) asc, length(res.name) asc
                 limit 30";
-    let results_via_points: Vec<SearchDeck> = sqlite::many(&conn, stmt, params![&user_id, &q])?;
+    let results_via_points: Vec<SearchDeck> = sqlite::many(
+        &conn,
+        stmt,
+        named_params! {":user_id": user_id, ":query": q},
+    )?;
 
     for r in results_via_pub_ext {
         if !contains(&results, r.deck.id) {
@@ -533,15 +561,19 @@ fn search_at_deck_level_base(
                            left join notes n on n.id = notes_fts.rowid
                            left join decks d on d.id = n.deck_id
                            left join dialogue_messages dm on dm.note_id = n.id
-                      where notes_fts match ?2
-                            and d.user_id = ?1
+                      where notes_fts match :query
+                            and d.user_id = :user_id
                             and (dm.role is null or dm.role <> 'system')
                       group by d.id
                       order by rank asc) res
                 group by res.id, res.kind, res.name
                 order by sum(res.rank) asc, length(res.name) asc
                 limit 30";
-        let results_via_notes: Vec<SearchDeck> = sqlite::many(&conn, stmt, params![&user_id, &q])?;
+        let results_via_notes: Vec<SearchDeck> = sqlite::many(
+            &conn,
+            stmt,
+            named_params! {":user_id": user_id, ":query": q},
+        )?;
         for r in results_via_notes {
             if !contains(&results, r.deck.id) {
                 results.push(r);

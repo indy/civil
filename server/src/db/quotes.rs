@@ -24,8 +24,7 @@ use crate::interop::Key;
 use crate::interop::decks::DeckKind;
 use crate::interop::notes::NoteKind;
 use crate::interop::quotes::{ProtoQuote, Quote};
-
-use rusqlite::{Row, params};
+use rusqlite::{Row, named_params};
 
 #[allow(unused_imports)]
 use tracing::{error, info};
@@ -95,8 +94,8 @@ pub(crate) fn get_or_create(
     sqlite::zero(
         &tx,
         "INSERT INTO notes(user_id, deck_id, kind, content)
-                  VALUES (?1, ?2, ?3, ?4)",
-        params![&user_id, &deck.id, &kind, &content],
+                  VALUES (:user_id, :deck_id, :kind, :content)",
+        named_params! {":user_id": user_id, ":deck_id": deck.id, ":kind": kind, ":content": content},
     )?;
 
     tx.commit()?;
@@ -112,12 +111,15 @@ pub(crate) fn get_or_create(
 pub(crate) fn random(conn: &rusqlite::Connection, user_id: Key) -> Result<Option<Quote>, DbError> {
     let stmt = "SELECT id, name, kind, created_at, graph_terminator, insignia, font, impact
          FROM decks
-         WHERE user_id = ?1 and kind = ?2
+         WHERE user_id = :user_id and kind = :deck_kind
          ORDER BY random()
          LIMIT 1";
 
-    let mut quote: Option<Quote> =
-        sqlite::one_optional(&conn, stmt, params![user_id, DeckKind::Quote.to_string()])?;
+    let mut quote: Option<Quote> = sqlite::one_optional(
+        &conn,
+        stmt,
+        named_params! {":user_id": user_id, ":deck_kind": DeckKind::Quote},
+    )?;
 
     if let Some(ref mut i) = quote {
         i.notes = notes_db::notes_for_deck(conn, i.id)?;
@@ -136,7 +138,7 @@ pub(crate) fn get(
     let mut quote: Option<Quote> = sqlite::one_optional(
         &conn,
         DECKBASE_QUERY,
-        params![user_id, quote_id, DeckKind::Quote.to_string()],
+        named_params! {":user_id": user_id, ":deck_id": quote_id, ":deck_kind": DeckKind::Quote},
     )?;
 
     if let Some(ref mut i) = quote {
@@ -155,22 +157,26 @@ pub(crate) fn next(
 ) -> Result<Option<Quote>, DbError> {
     let stmt = "SELECT id, name, kind, created_at, graph_terminator, insignia, font, impact
          FROM decks
-         WHERE user_id = ?1 and id > ?2 and kind = ?3
+         WHERE user_id = :user_id and id > :deck_id and kind = :deck_kind
          ORDER BY id
          LIMIT 1";
     let mut quote: Option<Quote> = sqlite::one_optional(
         &conn,
         stmt,
-        params![user_id, quote_id, DeckKind::Quote.to_string()],
+        named_params! {":user_id": user_id, ":deck_id": quote_id, ":deck_kind": DeckKind::Quote},
     )?;
 
     if let None = quote {
         let stmt = "SELECT id, name, kind, created_at, graph_terminator, insignia, font, impact
                  FROM decks
-                 WHERE user_id = ?1 and kind = ?2
+                 WHERE user_id = :user_id and kind = :deck_kind
                  ORDER BY id
                  LIMIT 1";
-        quote = sqlite::one_optional(&conn, stmt, params![user_id, DeckKind::Quote.to_string()])?;
+        quote = sqlite::one_optional(
+            &conn,
+            stmt,
+            named_params! {":user_id": user_id, ":deck_kind": DeckKind::Quote},
+        )?;
     }
 
     if let Some(ref mut i) = quote {
@@ -189,22 +195,26 @@ pub(crate) fn prev(
 ) -> Result<Option<Quote>, DbError> {
     let stmt = "SELECT id, name, kind, created_at, graph_terminator, insignia, font, impact
          FROM decks
-         WHERE user_id = ?1 and id < ?2 and kind = ?3
+         WHERE user_id = :user_id and id < :deck_id and kind = :deck_kind
          ORDER BY id desc
          LIMIT 1";
     let mut quote: Option<Quote> = sqlite::one_optional(
         &conn,
         stmt,
-        params![user_id, quote_id, DeckKind::Quote.to_string()],
+        named_params! {":user_id": user_id, ":deck_id": quote_id, ":deck_kind": DeckKind::Quote},
     )?;
 
     if let None = quote {
         let stmt = "SELECT id, name, kind, created_at, graph_terminator, insignia, font, impact
                  FROM decks
-                 WHERE user_id = ?1 and kind = ?2
+                 WHERE user_id = :user_id and kind = :deck_kind
                  ORDER BY id desc
                  LIMIT 1";
-        quote = sqlite::one_optional(&conn, stmt, params![user_id, DeckKind::Quote.to_string()])?;
+        quote = sqlite::one_optional(
+            &conn,
+            stmt,
+            named_params! {":user_id": user_id, ":deck_kind": DeckKind::Quote},
+        )?;
     }
 
     if let Some(ref mut i) = quote {

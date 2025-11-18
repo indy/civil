@@ -23,8 +23,8 @@ use crate::interop::decks::Ref;
 use crate::interop::decks::{DeckKind, SlimDeck};
 use crate::interop::font::Font;
 use crate::interop::references::{ReferencesApplied, ReferencesDiff};
+use rusqlite::{Connection, Row, named_params};
 
-use rusqlite::{Connection, Row, params};
 #[allow(unused_imports)]
 use tracing::info;
 
@@ -56,16 +56,20 @@ pub(crate) fn update_references(
     info!("update_references");
     let tx = conn.transaction()?;
 
-    let stmt_refs_removed = "DELETE FROM refs WHERE note_id = ?1 AND deck_id = ?2";
+    let stmt_refs_removed = "DELETE FROM refs WHERE note_id = :note_id AND deck_id = :removed_id";
     for removed in &diff.references_removed {
         // this deck has been removed from the note by the user
         info!("deleting {}, {}", &note_id, &removed.id);
-        sqlite::zero(&tx, stmt_refs_removed, params![&note_id, &removed.id])?;
+        sqlite::zero(
+            &tx,
+            stmt_refs_removed,
+            named_params! {":note_id": note_id, ":removed_id": removed.id},
+        )?;
     }
 
     let stmt_refs_changed = "UPDATE refs
-                             SET  kind = ?3, annotation = ?4
-                             WHERE note_id = ?2 and deck_id = ?1";
+                             SET  kind = :ref_kind, annotation = :annotation
+                             WHERE note_id = :note_id and deck_id = :changed_id";
     for changed in &diff.references_changed {
         info!(
             "updating properties of an existing reference {} {}",
@@ -75,17 +79,17 @@ pub(crate) fn update_references(
         sqlite::zero(
             &tx,
             stmt_refs_changed,
-            params![
-                &changed.id,
-                &note_id,
-                &changed.ref_kind.to_string(),
-                &changed.annotation
-            ],
+            named_params! {
+                ":changed_id": changed.id,
+                ":note_id": note_id,
+                ":ref_kind": changed.ref_kind.to_string(),
+                ":annotation": changed.annotation
+            },
         )?;
     }
 
     let stmt_refs_added = "INSERT INTO refs(note_id, deck_id, kind, annotation)
-                           VALUES (?1, ?2, ?3, ?4)";
+                           VALUES (:note_id, :deck_id, :kind, :annotation)";
     for added in &diff.references_added {
         info!(
             "creating new edge to pre-existing deck {}, {}",
@@ -94,12 +98,12 @@ pub(crate) fn update_references(
         sqlite::zero(
             &tx,
             stmt_refs_added,
-            params![
-                &note_id,
-                &added.id,
-                &added.ref_kind.to_string(),
-                &added.annotation
-            ],
+            named_params! {
+                ":note_id": note_id,
+                ":deck_id": added.id,
+                ":kind": added.ref_kind.to_string(),
+                ":annotation": added.annotation
+            },
         )?;
     }
 
@@ -120,12 +124,12 @@ pub(crate) fn update_references(
         sqlite::zero(
             &tx,
             stmt_refs_added,
-            params![
-                &note_id,
-                &deck.id,
-                &created.ref_kind.to_string(),
-                &created.annotation
-            ],
+            named_params! {
+                ":note_id": note_id,
+                ":deck_id": deck.id,
+                ":kind": created.ref_kind.to_string(),
+                ":annotation": created.annotation
+            },
         )?;
     }
 
@@ -136,8 +140,8 @@ pub(crate) fn update_references(
                           d.id, d.name, d.kind as deck_kind, d.created_at,
                           d.graph_terminator, d.insignia, d.font, d.impact
          FROM refs r, decks d
-         WHERE r.note_id = ?1 AND d.id = r.deck_id";
-    let refs: Vec<Ref> = sqlite::many(&tx, stmt_all_decks, params![&note_id])?;
+         WHERE r.note_id = :note_id AND d.id = r.deck_id";
+    let refs: Vec<Ref> = sqlite::many(&tx, stmt_all_decks, named_params! {":note_id": note_id})?;
 
     let recents = decks_recently_referenced(&tx, user_id)?;
 
@@ -155,10 +159,10 @@ pub(crate) fn decks_recently_referenced(
          FROM (
               SELECT r.deck_id, d.name as title, d.kind, d.created_at, d.graph_terminator, d.insignia, d.font, d.impact
               FROM refs r, decks d
-              WHERE r.deck_id = d.id AND d.user_id = ?1
+              WHERE r.deck_id = d.id AND d.user_id = :user_id
               ORDER BY r.created_at DESC
               LIMIT 100) -- without this limit query returns incorrect results
          LIMIT 8";
 
-    sqlite::many(conn, stmt_recent_refs, params![&user_id])
+    sqlite::many(conn, stmt_recent_refs, named_params! {":user_id": user_id})
 }

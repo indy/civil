@@ -25,7 +25,7 @@ use crate::interop::graph::{ConnectivityData, Direction, Edge};
 use std::collections::HashMap;
 
 use rusqlite::types::{FromSql, FromSqlResult, ValueRef};
-use rusqlite::{Connection, Row, params};
+use rusqlite::{Connection, Row, named_params};
 
 #[allow(unused_imports)]
 use tracing::info;
@@ -135,8 +135,12 @@ pub(crate) fn get(
 ) -> Result<ConnectivityData, DbError> {
     let stmt = "SELECT id, name, kind, created_at, graph_terminator, insignia, font, impact
                 FROM decks
-                WHERE user_id = ?1 AND id = ?2";
-    let source_deck: SlimDeck = sqlite::one(conn, stmt, params![&user_id, &deck_id])?;
+                WHERE user_id = :user_id AND id = :deck_id";
+    let source_deck: SlimDeck = sqlite::one(
+        conn,
+        stmt,
+        named_params! {":user_id": user_id, ":deck_id": deck_id},
+    )?;
 
     let mut decks_map: HashMap<Key, SlimDeck> = HashMap::new();
     let mut edges_map: HashMap<(Key, Key, Direction), Edge> = HashMap::new();
@@ -177,17 +181,17 @@ fn neighbours(conn: &Connection, user_id: Key, deck_id: Key) -> Result<Vec<Conne
         conn,
         "SELECT 0, r.kind, d.id, d.name, d.kind, d.created_at, d.graph_terminator, d.insignia, d.font, d.impact
          FROM refs r, notes n, decks d
-         WHERE r.deck_id = ?2
+         WHERE r.deck_id = :deck_id
                AND n.id = r.note_id
                AND d.id = n.deck_id
-               AND d.user_id = ?1
+               AND d.user_id = :user_id
          UNION
          SELECT 1, r.kind, d.id, d.name, d.kind, d.created_at, d.graph_terminator, d.insignia, d.font, d.impact
          FROM notes n, refs r, decks d
-         WHERE n.deck_id = ?2
+         WHERE n.deck_id = :deck_id
                AND r.note_id = n.id
                AND d.id = r.deck_id
-               AND d.user_id = ?1",
-        params![&user_id, &deck_id],
+               AND d.user_id = :user_id",
+        named_params!{":user_id": user_id, ":deck_id": deck_id}
     )
 }

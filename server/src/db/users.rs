@@ -19,7 +19,7 @@ use crate::db::sqlite::{self, FromRow};
 use crate::db::{DbError, SqlitePool};
 use crate::interop::Key;
 use crate::interop::users::{LoginCredentials, Registration, User, UserId};
-use rusqlite::{Row, params};
+use rusqlite::{Row, named_params};
 use tracing::info;
 
 impl FromRow for User {
@@ -79,9 +79,9 @@ pub(crate) fn login(
         r#"
            select id, email, username, password, ui_config_json
            from users
-           where email = ?1
+           where email = :email
         "#,
-        params![email],
+        named_params! {":email": email},
     )
 }
 
@@ -96,25 +96,25 @@ pub(crate) fn create(
         &conn,
         r#"
            insert into users (email, username, password, ui_config_json)
-           values(?1, ?2, ?3, ?4)
+           values(:email, :username, :password, :ui_config_json)
            returning id, email, username, ui_config_json
         "#,
-        params![
-            registration.email,
-            registration.username,
-            hash,
-            registration.ui_config
-        ],
+        named_params! {
+            ":email": registration.email,
+            ":username": registration.username,
+            ":password": hash,
+            ":ui_config_json": registration.ui_config
+        },
     )
 }
 
 pub(crate) fn get(conn: &rusqlite::Connection, user_id: Key) -> Result<Option<User>, DbError> {
     let stmt = "select email, username, ui_config_json
                 from users
-                where id = ?1
+                where id = :user_id
                 limit 1";
 
-    sqlite::one_optional(&conn, stmt, params![user_id])
+    sqlite::one_optional(&conn, stmt, named_params! {":user_id": user_id})
 }
 
 pub(crate) fn edit_ui_config(
@@ -126,10 +126,10 @@ pub(crate) fn edit_ui_config(
         &conn,
         r#"
            update users
-           set ui_config_json = ?2
-           where id = ?1
+           set ui_config_json = :config
+           where id = :user_id
         "#,
-        params![user_id, ui_config_json],
+        named_params! {":user_id": user_id, ":config": ui_config_json},
     )?;
 
     Ok(true)
@@ -147,7 +147,7 @@ pub fn get_all_user_ids(sqlite_pool: &SqlitePool) -> crate::Result<Vec<UserId>> 
         &conn,
         "SELECT id
          FROM users",
-        [],
+        {},
     )
     .map_err(Into::into)
 }

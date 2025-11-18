@@ -21,10 +21,10 @@ use crate::db::notes as notes_db;
 use crate::db::sqlite::{self, FromRow};
 use crate::interop::Key;
 use crate::interop::decks::{DeckKind, SlimDeck};
-use crate::interop::predictions::{Prediction, ProtoPrediction};
 use crate::interop::font::Font;
+use crate::interop::predictions::{Prediction, ProtoPrediction};
 
-use rusqlite::{Row, params};
+use rusqlite::{Row, named_params};
 
 #[derive(Debug, Clone)]
 struct PredictionExtra {
@@ -143,11 +143,11 @@ pub(crate) fn get_or_create(
         DeckBaseOrigin::Created => sqlite::one(
             &tx,
             "INSERT INTO points(deck_id, title, kind, font)
-                 VALUES (?1, ?2, ?3, ?4)
+                 VALUES (:deck_id, :title, :kind, :font)
                  RETURNING location_textual, longitude, latitude, location_fuzz,
                            date_textual, exact_realdate, lower_realdate,
                            upper_realdate, date_fuzz",
-            params![&deck.id, title, &point_kind, &i32::from(default_font)],
+            named_params! {":deck_id": deck.id, ":title": title, ":kind": point_kind, ":font": i32::from(default_font)},
         )?,
         DeckBaseOrigin::PreExisting => sqlite::one(
             &tx,
@@ -155,8 +155,8 @@ pub(crate) fn get_or_create(
                         date(exact_realdate), date(lower_realdate), date(upper_realdate),
                         date_fuzz
                  FROM points
-                 WHERE deck_id=?1",
-            params![&deck.id],
+                 WHERE deck_id=:deck_id",
+            named_params! {":deck_id": deck.id},
         )?,
     };
 
@@ -174,10 +174,10 @@ pub(crate) fn all(conn: &rusqlite::Connection, user_id: Key) -> Result<Vec<SlimD
     // todo: sort this by the prediction date in prediction_extras
     let stmt = "SELECT id, name, kind, created_at, graph_terminator, insignia, font, impact
                 FROM decks
-                WHERE user_id = ?1 AND kind = 'prediction'
+                WHERE user_id = :user_id AND kind = 'prediction'
                 ORDER BY created_at DESC";
 
-    sqlite::many(&conn, stmt, params![&user_id])
+    sqlite::many(&conn, stmt, named_params! {":user_id": user_id})
 }
 
 pub(crate) fn get(
@@ -192,12 +192,12 @@ pub(crate) fn get(
                        date(points.lower_realdate), date(points.upper_realdate),
                        points.date_fuzz
                 FROM decks LEFT JOIN points ON points.deck_id = decks.id
-                WHERE user_id = ?1 AND decks.id = ?2 AND decks.kind = ?3";
+                WHERE user_id = :user_id AND decks.id = :deck_id AND decks.kind = :deck_kind";
 
     let mut prediction: Option<Prediction> = sqlite::one_optional(
         &conn,
         stmt,
-        params![user_id, prediction_id, DeckKind::Prediction.to_string()],
+        named_params! {":user_id": user_id, ":deck_id": prediction_id, ":deck_kind": DeckKind::Prediction},
     )?;
 
     if let Some(ref mut i) = prediction {
@@ -231,10 +231,10 @@ pub(crate) fn edit(
 
     let sql_query = "
              UPDATE points
-             SET location_textual = ?2, longitude = ?3, latitude = ?4, location_fuzz = ?5,
-                 date_textual = ?6, exact_realdate = julianday(?7), lower_realdate = julianday(?8),
-                 upper_realdate = julianday(?9), date_fuzz = ?10
-             WHERE deck_id = ?1
+             SET location_textual = :location_textual, longitude = :longitude, latitude = :latitude, location_fuzz = :location_fuzz,
+                 date_textual = :date_textual, exact_realdate = julianday(:exact_realdate), lower_realdate = julianday(:lower_realdate),
+                 upper_realdate = julianday(:upper_realdate), date_fuzz = :date_fuzz
+             WHERE deck_id = :deck_id
              RETURNING location_textual, longitude, latitude, location_fuzz, date_textual,
                        date(exact_realdate), date(lower_realdate), date(upper_realdate),
                        date_fuzz";
@@ -242,18 +242,18 @@ pub(crate) fn edit(
     let prediction_extras = sqlite::one(
         &tx,
         sql_query,
-        params![
-            &prediction_id,
-            &prediction.location_textual,
-            &prediction.longitude,
-            &prediction.latitude,
-            &prediction.location_fuzz,
-            &prediction.date_textual,
-            &prediction.exact_date,
-            &prediction.lower_date,
-            &prediction.upper_date,
-            &prediction.date_fuzz,
-        ],
+        named_params! {
+            ":deck_id": prediction_id,
+            ":location_textual": prediction.location_textual,
+            ":longitude": prediction.longitude,
+            ":latitude": prediction.latitude,
+            ":location_fuzz": prediction.location_fuzz,
+            ":date_textual": prediction.date_textual,
+            ":exact_date": prediction.exact_date,
+            ":lower_date": prediction.lower_date,
+            ":upper_date": prediction.upper_date,
+            ":date_fuzz": prediction.date_fuzz,
+        },
     )?;
 
     tx.commit()?;

@@ -17,7 +17,7 @@
 
 use crate::db::DbError;
 use crate::interop::Key;
-use rusqlite::{Connection, OptionalExtension, Params, Row, ToSql};
+use rusqlite::{Connection, OptionalExtension, Params, Row};
 
 #[allow(unused_imports)]
 use tracing::error;
@@ -56,7 +56,7 @@ impl FromRow for chrono::NaiveDateTime {
     }
 }
 
-pub(crate) fn zero(conn: &Connection, sql: &str, params: &[&dyn ToSql]) -> Result<(), DbError> {
+pub(crate) fn zero<P: Params>(conn: &Connection, sql: &str, params: P) -> Result<(), DbError> {
     match conn.execute(sql, params) {
         Ok(_) => Ok(()),
         Err(e) => {

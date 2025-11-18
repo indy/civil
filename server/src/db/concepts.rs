@@ -23,7 +23,7 @@ use crate::interop::Key;
 use crate::interop::concepts::Concept;
 use crate::interop::decks::{DeckKind, ProtoSlimDeck};
 use crate::interop::font::Font;
-use rusqlite::{Row, params};
+use rusqlite::{Row, named_params};
 
 #[allow(unused_imports)]
 use tracing::info;
@@ -31,14 +31,14 @@ use tracing::info;
 impl FromRow for Concept {
     fn from_row(row: &Row) -> rusqlite::Result<Concept> {
         Ok(Concept {
-            id: row.get(0)?,
-            title: row.get(1)?,
-            deck_kind: row.get(2)?,
-            created_at: row.get(3)?,
-            graph_terminator: row.get(4)?,
-            insignia: row.get(5)?,
-            font: row.get(6)?,
-            impact: row.get(7)?,
+            id: row.get("id")?,
+            title: row.get("name")?,
+            deck_kind: row.get("kind")?,
+            created_at: row.get("created_at")?,
+            graph_terminator: row.get("graph_terminator")?,
+            insignia: row.get("insignia")?,
+            font: row.get("font")?,
+            impact: row.get("impact")?,
 
             notes: vec![],
             arrivals: vec![],
@@ -77,10 +77,14 @@ pub(crate) fn get_or_create(
 pub(crate) fn all(conn: &rusqlite::Connection, user_id: Key) -> Result<Vec<Concept>, DbError> {
     let stmt = "SELECT id, name, created_at, graph_terminator, insignia, font, impact
                 FROM decks
-                WHERE user_id = ?1 AND kind = 'concept'
+                WHERE user_id = :user_id AND kind = :deck_kind
                 ORDER BY name";
 
-    sqlite::many(&conn, stmt, params![&user_id])
+    sqlite::many(
+        &conn,
+        stmt,
+        named_params! {":user_id": user_id, ":deck_kind": DeckKind::Concept},
+    )
 }
 
 pub(crate) fn convert(
@@ -91,7 +95,7 @@ pub(crate) fn convert(
     let mut concept: Option<Concept> = sqlite::one_optional(
         &conn,
         DECKBASE_QUERY,
-        params![user_id, concept_id, DeckKind::Concept.to_string()],
+        named_params! {":user_id": user_id, ":deck_id": concept_id, ":deck_kind": DeckKind::Concept},
     )?;
 
     if let Some(ref mut i) = concept {
@@ -101,12 +105,12 @@ pub(crate) fn convert(
 
     let target_kind = DeckKind::Idea;
     let stmt = "UPDATE decks
-                SET kind = ?3
-                WHERE user_id = ?1 AND id = ?2";
+                SET kind = :deck_kind
+                WHERE user_id = :user_id AND id = :deck_id";
     sqlite::zero(
         &conn,
         stmt,
-        params![&user_id, &concept_id, &target_kind.to_string()],
+        named_params! {":user_id": user_id, ":deck_id": concept_id, ":deck_kind": target_kind},
     )?;
 
     Ok(concept)
@@ -120,7 +124,7 @@ pub(crate) fn get(
     let mut concept: Option<Concept> = sqlite::one_optional(
         &conn,
         DECKBASE_QUERY,
-        params![user_id, concept_id, DeckKind::Concept.to_string()],
+        named_params! {":user_id": user_id, ":deck_id": concept_id, ":deck_kind": DeckKind::Concept},
     )?;
 
     if let Some(ref mut i) = concept {

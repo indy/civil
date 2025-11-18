@@ -23,7 +23,7 @@ use crate::interop::decks::{Arrival, Ref, SlimDeck};
 use crate::interop::font::Font;
 use crate::interop::memorise::FlashCard;
 use crate::interop::notes::{Note, NoteKind, PreviewNotes, ProtoNote};
-use rusqlite::{Connection, Row, params};
+use rusqlite::{Connection, Row, named_params};
 
 #[allow(unused_imports)]
 use tracing::{error, info, warn};
@@ -168,9 +168,10 @@ pub(crate) fn notes_for_deck(
                 FROM     notes n
                          FULL JOIN refs r on r.note_id = n.id
                          FULL JOIN decks d on r.deck_id = d.id
-                WHERE    n.deck_id = ?1
+                WHERE    n.deck_id = :deck_id
                 ORDER BY n.id";
-    let notes_and_refs: Vec<NoteAndRef> = sqlite::many(&conn, stmt, params!(&deck_id))?;
+    let notes_and_refs: Vec<NoteAndRef> =
+        sqlite::many(&conn, stmt, named_params! {":deck_id": deck_id})?;
 
     let mut notes = notes_from_notes_and_refs(notes_and_refs)?;
 
@@ -263,10 +264,10 @@ pub(crate) fn arrivals_for_deck(
                          FULL JOIN decks owner_deck on n.deck_id = owner_deck.id
                          FULL JOIN refs r2 on r2.note_id = n.id
                          FULL JOIN decks d3 on r2.deck_id = d3.id
-                WHERE    r.deck_id = ?1
+                WHERE    r.deck_id = :deck_id
                 ORDER BY owner_deck.id, n.id";
     let notes_and_refs_and_decks: Vec<NoteAndRefAndDeck> =
-        sqlite::many(&conn, stmt, params!(&deck_id))?;
+        sqlite::many(&conn, stmt, named_params! {":deck_id": deck_id})?;
 
     let mut arrivals = arrivals_from_notes_and_refs_and_decks(notes_and_refs_and_decks)?;
 
@@ -336,22 +337,26 @@ pub(crate) fn delete_note_properly(
 
     let stmt = "SELECT deck_id
                 FROM notes
-                WHERE id = ?1";
-    let deck_id: Key = sqlite::one(&tx, stmt, params![&note_id])?;
+                WHERE id = :note_id";
+    let deck_id: Key = sqlite::one(&tx, stmt, named_params! {":note_id": note_id})?;
 
     // point the next note to the previous note
     let stmt = "SELECT id
                 FROM notes
-                WHERE prev_note_id = ?1";
-    let next_ids: Vec<Key> = sqlite::many(&tx, stmt, params![&note_id])?;
+                WHERE prev_note_id = :note_id";
+    let next_ids: Vec<Key> = sqlite::many(&tx, stmt, named_params! {":note_id": note_id})?;
     if next_ids.len() == 1 {
         let next_id = next_ids[0];
 
         // correctly set the next note's prev_note_id
         let stmt = "SELECT prev_note_id
                     FROM notes
-                    WHERE id = ?1 AND user_id = ?2";
-        let prev_note_id: Option<Key> = sqlite::one(&tx, stmt, params![&note_id, &user_id])?;
+                    WHERE id = :note_id AND user_id = :user_id";
+        let prev_note_id: Option<Key> = sqlite::one(
+            &tx,
+            stmt,
+            named_params! {":user_id": user_id, ":note_id": note_id},
+        )?;
 
         if let Some(prev_note_id) = prev_note_id {
             // if there is a note that points to this note, change it to point to prev_note_id
@@ -365,13 +370,13 @@ pub(crate) fn delete_note_properly(
     // actually delete the note
     let stmt = "DELETE
                 FROM refs
-                WHERE note_id = ?1";
-    sqlite::zero(&tx, stmt, params![&note_id])?;
+                WHERE note_id = :note_id";
+    sqlite::zero(&tx, stmt, named_params! {":note_id": note_id})?;
 
     let stmt = "DELETE
                 FROM notes
-                WHERE id = ?1 AND user_id = ?2";
-    sqlite::zero(&tx, stmt, params![&note_id, &user_id])?;
+                WHERE id = :note_id AND user_id = :user_id";
+    sqlite::zero(&tx, stmt, named_params! {":note_id": note_id})?;
 
     tx.commit()?;
 
@@ -391,20 +396,20 @@ pub(crate) fn create_common(
     next_note_id: Option<Key>,
 ) -> Result<Note, DbError> {
     let stmt = "INSERT INTO notes(user_id, deck_id, font, kind, point_id, content, prev_note_id)
-                VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)
+                VALUES (:user_id, :deck_id, :font, :kind, :point_id, :content, :prev_note_id)
                 RETURNING id, content, kind, point_id, prev_note_id, font";
     let note: Note = sqlite::one(
         conn,
         stmt,
-        params![
-            &user_id,
-            &deck_id,
-            i32::from(font),
-            &i32::from(kind),
-            &point_id,
-            &content,
-            &prev_note_id
-        ],
+        named_params! {
+            ":user_id": user_id,
+            ":deck_id": deck_id,
+            ":font": i32::from(font),
+            ":kind": i32::from(kind),
+            ":point_id": point_id,
+            ":content": content,
+            ":prev_note_id": prev_note_id
+        },
     )?;
 
     if let Some(next_note_id) = next_note_id {
@@ -487,16 +492,20 @@ pub(crate) fn create_notes(
 
 fn update_prev_note_id(conn: &Connection, note_id: Key, prev_note_id: Key) -> Result<(), DbError> {
     let stmt = "UPDATE notes
-                SET prev_note_id = ?2
-                WHERE id = ?1";
-    sqlite::zero(conn, stmt, params![&note_id, &prev_note_id])
+                SET prev_note_id = :prev_note_id
+                WHERE id = :note_id";
+    sqlite::zero(
+        conn,
+        stmt,
+        named_params! {":note_id": note_id, ":prev_note_id": prev_note_id},
+    )
 }
 
 fn clear_prev_note_id(conn: &Connection, note_id: Key) -> Result<(), DbError> {
     let stmt = "UPDATE notes
                 SET prev_note_id = null
-                WHERE id = ?1";
-    sqlite::zero(conn, stmt, params![&note_id])
+                WHERE id = :note_id";
+    sqlite::zero(conn, stmt, named_params! {":note_id": note_id})
 }
 
 pub(crate) fn preview(
@@ -511,8 +520,12 @@ pub(crate) fn preview(
                        n.prev_note_id,
                        n.font
                 FROM notes n
-                WHERE n.point_id is null AND n.deck_id = ?1 AND n.user_id = ?2";
-    let notes = sqlite::many(&conn, stmt, params![&deck_id, &user_id])?;
+                WHERE n.point_id is null AND n.deck_id = :deck_id AND n.user_id = :user_id";
+    let notes = sqlite::many(
+        &conn,
+        stmt,
+        named_params! {":deck_id": deck_id, ":user_id": user_id},
+    )?;
 
     Ok(PreviewNotes { deck_id, notes })
 }
@@ -547,12 +560,12 @@ pub fn edit_note(
     note_id: Key,
 ) -> Result<Note, DbError> {
     let stmt = "UPDATE notes
-                SET content = ?3, font= ?4
-                WHERE id = ?2 AND user_id = ?1";
+                SET content = :content, font= :font
+                WHERE id = :note_id AND user_id = :user_id";
     sqlite::zero(
         &conn,
         stmt,
-        params![&user_id, &note_id, &note.content, &i32::from(note.font)],
+        named_params! {":user_id": user_id, ":note_id": note_id, ":content": note.content, ":font": i32::from(note.font)},
     )?;
 
     let stmt = "SELECT   n.id,
@@ -574,8 +587,9 @@ pub fn edit_note(
                 FROM     notes n
                          FULL JOIN refs r on r.note_id = n.id
                          FULL JOIN decks d on r.deck_id = d.id
-                WHERE    n.id = ?1";
-    let notes_and_refs: Vec<NoteAndRef> = sqlite::many(&conn, stmt, params!(&note_id))?;
+                WHERE    n.id = :note_id";
+    let notes_and_refs: Vec<NoteAndRef> =
+        sqlite::many(&conn, stmt, named_params! {":note_id": note_id})?;
 
     let mut notes = notes_from_notes_and_refs(notes_and_refs)?;
     let flashcards = memorise_db::all_flashcards_for_note(conn, note_id)?;
@@ -598,14 +612,14 @@ pub fn get_all_notes_in_db(sqlite_pool: &SqlitePool) -> crate::Result<Vec<Note>>
                        n.font
                 FROM   notes n
                 ORDER BY n.id";
-    sqlite::many(&conn, stmt, []).map_err(Into::into)
+    sqlite::many(&conn, stmt, {}).map_err(Into::into)
 }
 
 fn get_prev_note_id(conn: &rusqlite::Connection, id: Key) -> Result<Option<Key>, DbError> {
     let stmt = "SELECT prev_note_id
                 FROM   notes
-                WHERE  id=?1";
-    sqlite::one(&conn, stmt, &[&id])
+                WHERE  id = :note_id";
+    sqlite::one(&conn, stmt, named_params! {":note_id": id})
 }
 
 pub(crate) fn replace_note_fonts(
@@ -616,18 +630,18 @@ pub(crate) fn replace_note_fonts(
     new_font: Font,
 ) -> Result<(), DbError> {
     let stmt = "UPDATE notes
-                SET font = ?4
-                WHERE user_id = ?1 AND deck_id = ?2 AND font = ?3";
+                SET font = :new_font
+                WHERE user_id = :user_id AND deck_id = :deck_id AND font = :original_font";
 
     sqlite::zero(
         conn,
         stmt,
-        params![
-            &user_id,
-            &deck_id,
-            &i32::from(original_font),
-            &i32::from(new_font)
-        ],
+        named_params! {
+            ":user_id": user_id,
+            ":deck_id": deck_id,
+            ":original_font": i32::from(original_font),
+            ":new_font": i32::from(new_font)
+        },
     )
 }
 
@@ -638,12 +652,12 @@ pub(crate) fn overwrite_note_fonts(
     new_font: Font,
 ) -> Result<(), DbError> {
     let stmt = "UPDATE notes
-                SET font = ?3
-                WHERE user_id = ?1 AND deck_id = ?2 AND font <> ?3";
+                SET font = :font
+                WHERE user_id = :user_id AND deck_id = :deck_id AND font <> :font";
 
     sqlite::zero(
         conn,
         stmt,
-        params![&user_id, &deck_id, &i32::from(new_font)],
+        named_params! {":user_id": user_id, ":deck_id": deck_id, ":font": i32::from(new_font)},
     )
 }

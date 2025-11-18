@@ -21,7 +21,7 @@ use crate::interop::Key;
 use crate::interop::articles::{Article, ProtoArticle};
 use crate::interop::decks::DeckKind;
 use crate::interop::font::Font;
-use rusqlite::{Row, params};
+use rusqlite::{Row, named_params};
 
 use tracing::error;
 
@@ -88,10 +88,10 @@ pub(crate) fn all(conn: &rusqlite::Connection, user_id: Key) -> Result<Vec<Artic
                        article_extras.short_description,
                        article_extras.published_date
                 FROM decks LEFT JOIN article_extras ON article_extras.deck_id = decks.id
-                WHERE user_id = ?1 AND kind = 'article'
+                WHERE user_id = :user_id AND kind = 'article'
                 ORDER BY created_at DESC";
 
-    sqlite::many(&conn, stmt, params![&user_id])
+    sqlite::many(&conn, stmt, named_params! {":user_id": user_id})
 }
 
 pub(crate) fn get(
@@ -106,12 +106,12 @@ pub(crate) fn get(
                        article_extras.short_description,
                        article_extras.published_date
                 FROM decks LEFT JOIN article_extras ON article_extras.deck_id = decks.id
-                WHERE user_id = ?1 AND id = ?2 AND kind = ?3";
+                WHERE user_id = :user_id AND id = :deck_id AND kind = :deck_kind";
 
     let mut article: Option<Article> = sqlite::one_optional(
         &conn,
         stmt,
-        params![user_id, article_id, DeckKind::Article.to_string()],
+        named_params! {":user_id": user_id, ":deck_id": article_id, ":deck_kind": DeckKind::Article},
     )?;
 
     if let Some(ref mut a) = article {
@@ -156,8 +156,9 @@ pub(crate) fn edit(
 
     let stmt = "SELECT deck_id, source, author, short_description, published_date
                 FROM article_extras
-                WHERE deck_id = ?1";
-    let article_extras_exists: Vec<ArticleExtra> = sqlite::many(&tx, stmt, params![&article_id])?;
+                WHERE deck_id = :deck_id";
+    let article_extras_exists: Vec<ArticleExtra> =
+        sqlite::many(&tx, stmt, named_params! {":deck_id": article_id})?;
 
     const TWITTER_INSIGNIA_BIT: i32 = 1;
     const BOOK_INSIGNIA_BIT: i32 = 2;
@@ -178,13 +179,13 @@ pub(crate) fn edit(
     let sql_query: &str = match article_extras_exists.len() {
         0 => {
             "INSERT INTO article_extras(deck_id, source, author, short_description, published_date)
-              VALUES (?1, ?2, ?3, ?4, ?5, ?6)
+              VALUES (:deck_id, :source, :author, :short_description, :published_date)
               RETURNING deck_id, source, author, short_description, published_date"
         }
         1 => {
             "UPDATE article_extras
-              SET source = ?2, author = ?3, short_description = ?4, published_date = ?5
-              WHERE deck_id = ?1
+              SET source = :source, author = :author, short_description = :short_description, published_date = :published_date
+              WHERE deck_id = :deck_id
               RETURNING deck_id, source, author, short_description, published_date"
         }
         _ => {
@@ -201,13 +202,13 @@ pub(crate) fn edit(
     let article_extras = sqlite::one(
         &tx,
         sql_query,
-        params![
-            &article_id,
-            &article.source,
-            &article.author,
-            &article.short_description,
-            &article.published_date,
-        ],
+        named_params! {
+            ":deck_id": article_id,
+            ":source": article.source,
+            ":author": article.author,
+            ":short_description": article.short_description,
+            ":published_date": article.published_date,
+        },
     )?;
 
     tx.commit()?;
@@ -246,22 +247,22 @@ pub(crate) fn get_or_create(
         decks::DeckBaseOrigin::Created => sqlite::one(
             &tx,
             "INSERT INTO article_extras(deck_id, source, author, short_description, published_date)
-                 VALUES (?1, ?2, ?3, ?4, ?5)
+                 VALUES (:deck_id, :source, :author, :short_description, :published_date)
                  RETURNING deck_id, source, author, short_description, published_date",
-            params![
-                &deck.id,
-                &source,
-                &author,
-                &short_description,
-                &published_date
-            ],
+            named_params! {
+                ":deck_id": deck.id,
+                ":source": source,
+                ":author": author,
+                ":short_description": short_description,
+                ":published_date": published_date,
+            },
         )?,
         decks::DeckBaseOrigin::PreExisting => sqlite::one(
             &tx,
             "select deck_id, source, author, short_description, published_date
                  from article_extras
-                 where deck_id=?1",
-            params![&deck.id],
+                 where deck_id=:deck_id",
+            named_params! {":deck_id": deck.id},
         )?,
     };
 

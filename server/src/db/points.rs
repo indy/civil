@@ -19,8 +19,7 @@ use crate::db::DbError;
 use crate::db::sqlite::{self, FromRow};
 use crate::interop::Key;
 use crate::interop::points::{Point, PointKind, ProtoPoint};
-
-use rusqlite::{Row, params};
+use rusqlite::{Row, named_params};
 use std::fmt;
 
 #[allow(unused_imports)]
@@ -82,11 +81,11 @@ pub(crate) fn all(
                 coalesce(p.exact_realdate, p.lower_realdate) as sortdate
          from   decks d,
                 points p
-         where  d.user_id = ?1
-                and d.id = ?2
+         where  d.user_id = :user_id
+                and d.id = :deck_id
                 and p.deck_id = d.id
          order by sortdate",
-        params![&user_id, &deck_id],
+        named_params! {":user_id": user_id, ":deck_id": deck_id},
     )
 }
 
@@ -146,13 +145,13 @@ pub(crate) fn all_points_within_interval(
                 d.impact as deck_impact,
                 coalesce(p.exact_realdate, p.lower_realdate) as sortdate
          from   points p, decks d
-         where  date(coalesce(p.exact_realdate, p.upper_realdate)) >= ?2
-                and date(coalesce(p.exact_realdate, p.lower_realdate)) < ?3
+         where  date(coalesce(p.exact_realdate, p.upper_realdate)) >= :lower_year
+                and date(coalesce(p.exact_realdate, p.lower_realdate)) < :upper_year
                 and p.deck_id = d.id
                 and d.impact > 0
-                and d.user_id = ?1
+                and d.user_id = :user_id
          order by sortdate",
-        params![&user_id, &lower_year, &upper_year],
+        named_params! {":user_id": user_id, ":lower_year": lower_year, ":upper_year": upper_year},
     )
 }
 
@@ -182,8 +181,8 @@ pub(crate) fn all_points_during_life(
                 d.impact as deck_impact,
                 coalesce(p.exact_realdate, p.lower_realdate) as sortdate
          from   points p, decks d
-         where  d.id = ?2
-                and d.user_id = ?1
+         where  d.id = :deck_id
+                and d.user_id = :user_id
                 and p.deck_id = d.id
          union
          select p.id,
@@ -203,18 +202,18 @@ pub(crate) fn all_points_during_life(
          from   points p, decks d
          where  coalesce(p.exact_realdate, p.upper_realdate) >= (select coalesce(point_born.exact_realdate, point_born.lower_realdate) as born
                                                          from   points point_born
-                                                         where  point_born.deck_id = ?2
+                                                         where  point_born.deck_id = :deck_id
                                                                 and point_born.kind = 'point_begin')
                 and coalesce(p.exact_realdate, p.lower_realdate) <= coalesce((select coalesce(point_died.exact_realdate, point_died.upper_realdate) as died
                                                                       from   points point_died
-                                                                      where  point_died.deck_id = ?2
+                                                                      where  point_died.deck_id = :deck_id
                                                                              and point_died.kind = 'point_end'), CURRENT_DATE)
                 and p.deck_id = d.id
-                and d.id <> ?2
+                and d.id <> :deck_id
                 and d.impact > 0
-                and d.user_id = ?1
+                and d.user_id = :user_id
          order by sortdate",
-        params![&user_id, &deck_id],
+        named_params!{":user_id": user_id, ":deck_id": deck_id}
     )
 }
 
@@ -227,19 +226,20 @@ pub(crate) fn create(
         &conn,
         "INSERT INTO points(deck_id, title, kind, location_textual, longitude, latitude, location_fuzz,
                             date_textual, exact_realdate, lower_realdate, upper_realdate, date_fuzz)
-         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, julianday(?9), julianday(?10), julianday(?11), ?12)",
-        params![
-            &deck_id,
-            &point.title,
-            &point.kind.to_string(),
-            &point.location_textual,
-            &point.longitude,
-            &point.latitude,
-            &point.location_fuzz,
-            &point.date_textual,
-            &point.exact_date,
-            &point.lower_date,
-            &point.upper_date,
-            &point.date_fuzz,
-        ])
+         VALUES (:deck_id, :title, :kind, :location_textual, :longitude, :latitude, :location_fuzz,
+                            :date_textual, julianday(:exact_realdate), julianday(:lower_realdate), julianday(:upper_realdate), :date_fuzz)",
+        named_params!{
+            ":deck_id": deck_id,
+            ":title": point.title,
+            ":kind": point.kind.to_string(),
+            ":location_textual": point.location_textual,
+            ":longitude": point.longitude,
+            ":latitude": point.latitude,
+            ":location_fuzz": point.location_fuzz,
+            ":date_textual": point.date_textual,
+            ":exact_realdate": point.exact_date,
+            ":lower_realdate": point.lower_date,
+            ":upper_realdate": point.upper_date,
+            ":date_fuzz": point.date_fuzz,
+        })
 }

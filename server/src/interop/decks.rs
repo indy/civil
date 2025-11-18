@@ -18,7 +18,7 @@
 use crate::interop::Key;
 use crate::interop::font::Font;
 use crate::interop::notes::Note;
-use rusqlite::types::{FromSql, FromSqlError, FromSqlResult, ValueRef};
+use rusqlite::types::{FromSql, FromSqlError, FromSqlResult, ToSql, ToSqlOutput, ValueRef};
 use std::{fmt, str::FromStr};
 
 // isg note: update the db/stats.rs when adding a new DeckKind
@@ -84,6 +84,12 @@ impl FromSql for DeckKind {
     fn column_result(value: ValueRef<'_>) -> FromSqlResult<Self> {
         let s = value.as_str()?;
         s.parse().map_err(|_| FromSqlError::InvalidType)
+    }
+}
+
+impl ToSql for DeckKind {
+    fn to_sql(&self) -> rusqlite::Result<ToSqlOutput<'_>> {
+        Ok(ToSqlOutput::from(self.singular()))
     }
 }
 

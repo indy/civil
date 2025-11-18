@@ -20,8 +20,7 @@ use crate::db::sqlite::{self, FromRow};
 use crate::interop::Key;
 use crate::interop::bookmarks as interop;
 use crate::interop::decks::SlimDeck;
-
-use rusqlite::{Row, params};
+use rusqlite::{Row, named_params};
 
 #[allow(unused_imports)]
 use tracing::{error, info};
@@ -40,8 +39,12 @@ pub(crate) fn create_bookmark(
     user_id: Key,
     deck_id: Key,
 ) -> Result<(), DbError> {
-    let stmt = "INSERT INTO bookmarks(user_id, deck_id) VALUES (?1, ?2)";
-    sqlite::zero(&conn, stmt, params![&user_id, &deck_id])
+    let stmt = "INSERT INTO bookmarks(user_id, deck_id) VALUES (:user_id, :deck_id)";
+    sqlite::zero(
+        &conn,
+        stmt,
+        named_params! {":user_id": user_id, ":deck_id": deck_id},
+    )
 }
 
 pub(crate) fn create_multiple_bookmarks(
@@ -51,9 +54,13 @@ pub(crate) fn create_multiple_bookmarks(
 ) -> Result<(), DbError> {
     let tx = conn.transaction()?;
 
-    let stmt = "INSERT INTO bookmarks(user_id, deck_id) VALUES (?1, ?2)";
+    let stmt = "INSERT INTO bookmarks(user_id, deck_id) VALUES (:user_id, :deck_id)";
     for deck_id in deck_ids {
-        sqlite::zero(&tx, stmt, params![&user_id, &deck_id])?;
+        sqlite::zero(
+            &tx,
+            stmt,
+            named_params! {":user_id": user_id, ":deck_id": deck_id},
+        )?;
     }
 
     tx.commit()?;
@@ -67,8 +74,8 @@ pub(crate) fn get_bookmarks(
 ) -> Result<Vec<interop::Bookmark>, DbError> {
     let stmt = "select d.id, d.name, d.kind, d.created_at, d.graph_terminator, d.insignia, d.font, d.impact, b.id
                 from decks d, bookmarks b
-                where b.user_id = ?1 and b.deck_id = d.id";
-    sqlite::many(&conn, stmt, params![&user_id])
+                where b.user_id = :user_id and b.deck_id = d.id";
+    sqlite::many(&conn, stmt, named_params! {":user_id": user_id})
 }
 
 pub(crate) fn delete_bookmark(
@@ -76,6 +83,10 @@ pub(crate) fn delete_bookmark(
     user_id: Key,
     bookmark_id: Key,
 ) -> Result<(), DbError> {
-    let stmt = "DELETE FROM bookmarks WHERE user_id = ?1 and id = ?2";
-    sqlite::zero(&conn, stmt, params![&user_id, &bookmark_id])
+    let stmt = "DELETE FROM bookmarks WHERE user_id = :user_id and id = :bookmark_id";
+    sqlite::zero(
+        &conn,
+        stmt,
+        named_params! {":user_id": user_id, ":bookmark_id": bookmark_id},
+    )
 }

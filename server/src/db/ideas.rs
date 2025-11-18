@@ -23,7 +23,7 @@ use crate::interop::Key;
 use crate::interop::decks::{DeckKind, ProtoSlimDeck};
 use crate::interop::font::Font;
 use crate::interop::ideas::Idea;
-use rusqlite::{Row, params};
+use rusqlite::{Row, named_params};
 
 impl FromRow for Idea {
     fn from_row(row: &Row) -> rusqlite::Result<Idea> {
@@ -74,10 +74,14 @@ pub(crate) fn get_or_create(
 pub(crate) fn all(conn: &rusqlite::Connection, user_id: Key) -> Result<Vec<Idea>, DbError> {
     let stmt = "SELECT id, name, created_at, graph_terminator, insignia, font, impact
                 FROM decks
-                WHERE user_id = ?1 AND kind = 'idea'
+                WHERE user_id = :user_id AND kind = :deck_kind
                 ORDER BY name";
 
-    sqlite::many(&conn, stmt, params![&user_id])
+    sqlite::many(
+        &conn,
+        stmt,
+        named_params! {":user_id": user_id, ":deck_kind": DeckKind::Idea},
+    )
 }
 
 pub(crate) fn convert(
@@ -88,7 +92,7 @@ pub(crate) fn convert(
     let mut idea: Option<Idea> = sqlite::one_optional(
         &conn,
         DECKBASE_QUERY,
-        params![user_id, idea_id, DeckKind::Idea.to_string()],
+        named_params! {":user_id": user_id, ":deck_id": idea_id, ":deck_kind": DeckKind::Idea},
     )?;
 
     if let Some(ref mut i) = idea {
@@ -98,12 +102,12 @@ pub(crate) fn convert(
 
     let target_kind = DeckKind::Concept;
     let stmt = "UPDATE decks
-                SET kind = ?3
-                WHERE user_id = ?1 AND id = ?2";
+                SET kind = :deck_kind
+                WHERE user_id = :user_id AND id = :deck_id";
     sqlite::zero(
         &conn,
         stmt,
-        params![&user_id, &idea_id, &target_kind.to_string()],
+        named_params! {":user_id": user_id, ":deck_id": idea_id, ":deck_kind": target_kind},
     )?;
 
     Ok(idea)
@@ -117,7 +121,7 @@ pub(crate) fn get(
     let mut idea: Option<Idea> = sqlite::one_optional(
         &conn,
         DECKBASE_QUERY,
-        params![user_id, idea_id, DeckKind::Idea.to_string()],
+        named_params! {":user_id": user_id, ":deck_id": idea_id, ":deck_kind": DeckKind::Idea},
     )?;
 
     if let Some(ref mut i) = idea {
