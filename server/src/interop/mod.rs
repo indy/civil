@@ -29,6 +29,7 @@ pub mod memorise;
 pub mod notes;
 pub mod people;
 pub mod points;
+pub mod predictions;
 pub mod quotes;
 pub mod references;
 pub mod search;

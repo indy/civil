@@ -27,6 +27,7 @@ use crate::handler::interval;
 use crate::handler::memorise;
 use crate::handler::notes;
 use crate::handler::people;
+use crate::handler::predictions;
 use crate::handler::quotes;
 use crate::handler::search;
 use crate::handler::timelines;
@@ -173,6 +174,15 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
                 .route("/{id}", get().to(dialogues::get))
                 .route("/{id}", put().to(dialogues::edit))
                 .route("/{id}", delete().to(dialogues::delete)),
+        )
+        .service(
+            scope("/predictions")
+                .route("", post().to(predictions::create))
+                .route("", get().to(predictions::get_all))
+                .route("/pagination", get().to(predictions::pagination))
+                .route("/{id}", get().to(predictions::get))
+                .route("/{id}", put().to(predictions::edit))
+                .route("/{id}", delete().to(predictions::delete)),
         )
         .service(
             scope("/notes")

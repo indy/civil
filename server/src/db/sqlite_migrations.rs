@@ -139,6 +139,20 @@ CREATE TABLE IF NOT EXISTS dialogue_extras (
        FOREIGN KEY (deck_id) REFERENCES decks (id) ON DELETE CASCADE ON UPDATE NO ACTION
 );
 
+CREATE TABLE IF NOT EXISTS prediction_extras (
+       deck_id INTEGER NOT NULL,
+       parent_deck_id INTEGER NOT NULL,
+
+       status TEXT NOT NULL,
+       score INTEGER NOT NULL DEFAULT 0,
+
+       predicted_on DATE DEFAULT CURRENT_DATE,
+       evaluation_date DATE DEFAULT CURRENT_DATE,
+
+       FOREIGN KEY (deck_id) REFERENCES decks (id) ON DELETE CASCADE ON UPDATE NO ACTION,
+       FOREIGN KEY (parent_deck_id) REFERENCES decks (id) ON DELETE CASCADE ON UPDATE NO ACTION
+);
+
 CREATE TABLE IF NOT EXISTS dialogue_messages (
        id INTEGER PRIMARY KEY,
 
@@ -875,6 +889,22 @@ pub fn migration_check(db_name: &str) -> crate::Result<()> {
         M::up("DROP TABLE IF EXISTS quote_extras_fts;
                DROP TABLE IF EXISTS quote_extras;"),
 
+        ///////////////////
+        // user_version 29: prediction_extras table
+        ///////////////////
+        M::up("CREATE TABLE IF NOT EXISTS prediction_extras (
+                   deck_id INTEGER NOT NULL,
+                   parent_deck_id INTEGER NOT NULL,
+
+                   status TEXT NOT NULL,
+                   score INTEGER NOT NULL DEFAULT 0,
+
+                   predicted_on DATE DEFAULT CURRENT_DATE,
+                   evaluation_date DATE DEFAULT CURRENT_DATE,
+
+                   FOREIGN KEY (deck_id) REFERENCES decks (id) ON DELETE CASCADE ON UPDATE NO ACTION,
+                   FOREIGN KEY (parent_deck_id) REFERENCES decks (id) ON DELETE CASCADE ON UPDATE NO ACTION
+               );"),
     ]);
 
     let mut conn = Connection::open(db_name)?;

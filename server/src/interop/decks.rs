@@ -36,6 +36,7 @@ pub enum DeckKind {
     Dialogue,
     Event,
     Concept,
+    Prediction,
 }
 
 impl DeckKind {
@@ -49,6 +50,7 @@ impl DeckKind {
             DeckKind::Person => "person",
             DeckKind::Quote => "quote",
             DeckKind::Timeline => "timeline",
+            DeckKind::Prediction => "prediction",
         }
     }
 }
@@ -72,6 +74,7 @@ impl FromStr for DeckKind {
             "person" | "people" => Ok(DeckKind::Person),
             "quote" | "quotes" => Ok(DeckKind::Quote),
             "timeline" | "timelines" => Ok(DeckKind::Timeline),
+            "prediction" | "predictions" => Ok(DeckKind::Prediction),
             _ => Err(crate::Error::InvalidStringToDeckKindConversion),
         }
     }
