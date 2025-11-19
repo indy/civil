@@ -31,18 +31,18 @@ use tracing::info;
 impl FromRow for Ref {
     fn from_row(row: &Row) -> rusqlite::Result<Ref> {
         Ok(Ref {
-            note_id: row.get(0)?,
-            ref_kind: row.get(1)?,
-            annotation: row.get(2)?,
+            note_id: row.get("note_id")?,
+            ref_kind: row.get("ref_kind")?,
+            annotation: row.get("annotation")?,
 
-            id: row.get(3)?,
-            title: row.get(4)?,
-            deck_kind: row.get(5)?,
-            created_at: row.get(6)?,
-            graph_terminator: row.get(7)?,
-            insignia: row.get(8)?,
-            font: row.get(9)?,
-            impact: row.get(10)?,
+            id: row.get("id")?,
+            title: row.get("name")?,
+            deck_kind: row.get("deck_kind")?,
+            created_at: row.get("created_at")?,
+            graph_terminator: row.get("graph_terminator")?,
+            insignia: row.get("insignia")?,
+            font: row.get("font")?,
+            impact: row.get("impact")?,
         })
     }
 }
@@ -136,9 +136,9 @@ pub(crate) fn update_references(
     // return a list of [id, name, resource, kind, annotation] containing the complete set
     // of decks associated with this note.
     //
-    let stmt_all_decks = "SELECT r.note_id, r.kind as ref_kind, r.annotation,
-                          d.id, d.name, d.kind as deck_kind, d.created_at,
-                          d.graph_terminator, d.insignia, d.font, d.impact
+    let stmt_all_decks = "SELECT r.note_id as note_id, r.kind as ref_kind, r.annotation as annotation,
+                          d.id as id, d.name as name, d.kind as deck_kind, d.created_at as created_at,
+                          d.graph_terminator as graph_terminator, d.insignia as insignia, d.font as font, d.impact as impact
          FROM refs r, decks d
          WHERE r.note_id = :note_id AND d.id = r.deck_id";
     let refs: Vec<Ref> = sqlite::many(&tx, stmt_all_decks, named_params! {":note_id": note_id})?;
@@ -155,9 +155,9 @@ pub(crate) fn decks_recently_referenced(
     user_id: Key,
 ) -> Result<Vec<SlimDeck>, DbError> {
     let stmt_recent_refs = "
-         SELECT DISTINCT deck_id, title, kind, created_at, graph_terminator, insignia, font, impact
+         SELECT DISTINCT id, name, kind, created_at, graph_terminator, insignia, font, impact
          FROM (
-              SELECT r.deck_id, d.name as title, d.kind, d.created_at, d.graph_terminator, d.insignia, d.font, d.impact
+              SELECT d.id, d.name, d.kind, d.created_at, d.graph_terminator, d.insignia, d.font, d.impact
               FROM refs r, decks d
               WHERE r.deck_id = d.id AND d.user_id = :user_id
               ORDER BY r.created_at DESC

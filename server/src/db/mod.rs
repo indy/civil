@@ -28,6 +28,7 @@ pub mod notes;
 pub mod people;
 pub mod points;
 pub mod predictions;
+pub mod qry;
 pub mod quotes;
 pub mod references;
 pub mod search;

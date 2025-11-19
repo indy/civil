@@ -91,7 +91,6 @@ impl ToSql for PointKind {
     }
 }
 
-
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct PointsWithinYears {

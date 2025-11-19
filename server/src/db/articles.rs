@@ -15,6 +15,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+use crate::db::qry::Qry;
 use crate::db::sqlite::{self, FromRow};
 use crate::db::{DbError, decks, notes};
 use crate::interop::Key;
@@ -60,19 +61,19 @@ impl From<(decks::DeckBase, ArticleExtra)> for Article {
 impl FromRow for Article {
     fn from_row(row: &Row) -> rusqlite::Result<Article> {
         Ok(Article {
-            id: row.get(0)?,
-            title: row.get(1)?,
-            deck_kind: row.get(2)?,
-            created_at: row.get(3)?,
-            graph_terminator: row.get(4)?,
-            insignia: row.get(5)?,
-            font: row.get(6)?,
-            impact: row.get(7)?,
+            id: row.get("id")?,
+            title: row.get("name")?,
+            deck_kind: row.get("kind")?,
+            created_at: row.get("created_at")?,
+            graph_terminator: row.get("graph_terminator")?,
+            insignia: row.get("insignia")?,
+            font: row.get("font")?,
+            impact: row.get("impact")?,
 
-            source: row.get(8)?,
-            author: row.get(9)?,
-            short_description: row.get(10)?,
-            published_date: row.get(11)?,
+            source: row.get("source")?,
+            author: row.get("author")?,
+            short_description: row.get("short_description")?,
+            published_date: row.get("published_date")?,
 
             notes: vec![],
             arrivals: vec![],
@@ -80,18 +81,26 @@ impl FromRow for Article {
     }
 }
 
-pub(crate) fn all(conn: &rusqlite::Connection, user_id: Key) -> Result<Vec<Article>, DbError> {
-    let stmt = "SELECT decks.id, decks.name, decks.kind, decks.created_at,
-                       decks.graph_terminator, decks.insignia, decks.font, decks.impact,
-                       article_extras.source,
-                       article_extras.author,
-                       article_extras.short_description,
-                       article_extras.published_date
-                FROM decks LEFT JOIN article_extras ON article_extras.deck_id = decks.id
-                WHERE user_id = :user_id AND kind = 'article'
-                ORDER BY created_at DESC";
+fn build_query_partial() -> Qry {
+    Qry::select_decklike()
+        .comma(
+            "article_extras.source as source,
+               article_extras.author as author,
+               article_extras.short_description as short_description,
+               article_extras.published_date as published_date ",
+        )
+        .from_decklike()
+        .left_join("article_extras ON article_extras.deck_id = d.id ")
+}
 
-    sqlite::many(&conn, stmt, named_params! {":user_id": user_id})
+pub(crate) fn all(conn: &rusqlite::Connection, user_id: Key) -> Result<Vec<Article>, DbError> {
+    sqlite::many(
+        &conn,
+        &build_query_partial()
+            .where_decklike_but_no_deck_id()
+            .order_by("created_at DESC"),
+        named_params! {":user_id": user_id, ":deck_kind": DeckKind::Article},
+    )
 }
 
 pub(crate) fn get(
@@ -99,18 +108,9 @@ pub(crate) fn get(
     user_id: Key,
     article_id: Key,
 ) -> Result<Option<Article>, DbError> {
-    let stmt = "SELECT decks.id, decks.name, decks.kind, decks.created_at,
-                       decks.graph_terminator, decks.insignia, decks.font, decks.impact,
-                       article_extras.source,
-                       article_extras.author,
-                       article_extras.short_description,
-                       article_extras.published_date
-                FROM decks LEFT JOIN article_extras ON article_extras.deck_id = decks.id
-                WHERE user_id = :user_id AND id = :deck_id AND kind = :deck_kind";
-
     let mut article: Option<Article> = sqlite::one_optional(
         &conn,
-        stmt,
+        &build_query_partial().where_decklike(),
         named_params! {":user_id": user_id, ":deck_id": article_id, ":deck_kind": DeckKind::Article},
     )?;
 
@@ -126,10 +126,10 @@ pub(crate) fn get(
 impl FromRow for ArticleExtra {
     fn from_row(row: &Row) -> rusqlite::Result<ArticleExtra> {
         Ok(ArticleExtra {
-            source: row.get(1)?,
-            author: row.get(2)?,
-            short_description: row.get(3)?,
-            published_date: row.get(4)?,
+            source: row.get("source")?,
+            author: row.get("author")?,
+            short_description: row.get("short_description")?,
+            published_date: row.get("published_date")?,
         })
     }
 }

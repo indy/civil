@@ -56,16 +56,16 @@ impl FromSql for Direction {
 impl FromRow for Connectivity {
     fn from_row(row: &Row) -> rusqlite::Result<Connectivity> {
         Ok(Connectivity {
-            direction: row.get(0)?,
-            ref_kind: row.get(1)?,
-            deck_id: row.get(2)?,
-            title: row.get(3)?,
-            deck_kind: row.get(4)?,
-            created_at: row.get(5)?,
-            graph_terminator: row.get(6)?,
-            insignia: row.get(7)?,
-            font: row.get(8)?,
-            impact: row.get(9)?,
+            direction: row.get("direction")?,
+            ref_kind: row.get("ref_kind")?,
+            deck_id: row.get("deck_id")?,
+            title: row.get("name")?,
+            deck_kind: row.get("deck_kind")?,
+            created_at: row.get("created_at")?,
+            graph_terminator: row.get("graph_terminator")?,
+            insignia: row.get("insignia")?,
+            font: row.get("font")?,
+            impact: row.get("impact")?,
         })
     }
 }
@@ -179,14 +179,14 @@ fn neighbours(conn: &Connection, user_id: Key, deck_id: Key) -> Result<Vec<Conne
     //
     sqlite::many(
         conn,
-        "SELECT 0, r.kind, d.id, d.name, d.kind, d.created_at, d.graph_terminator, d.insignia, d.font, d.impact
+        "SELECT 0 as direction, r.kind as ref_kind, d.id as deck_id, d.name as name, d.kind as deck_kind, d.created_at as created_at, d.graph_terminator as graph_terminator, d.insignia as insignia, d.font as font, d.impact as impact
          FROM refs r, notes n, decks d
          WHERE r.deck_id = :deck_id
                AND n.id = r.note_id
                AND d.id = n.deck_id
                AND d.user_id = :user_id
          UNION
-         SELECT 1, r.kind, d.id, d.name, d.kind, d.created_at, d.graph_terminator, d.insignia, d.font, d.impact
+         SELECT 1 as direction, r.kind as ref_kind, d.id as deck_id, d.name as name, d.kind as deck_kind, d.created_at as created_at, d.graph_terminator as graph_terminator, d.insignia as insignia, d.font as font, d.impact as impact
          FROM notes n, refs r, decks d
          WHERE n.deck_id = :deck_id
                AND r.note_id = n.id

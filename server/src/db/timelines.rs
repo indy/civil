@@ -19,6 +19,7 @@ use crate::db::DbError;
 use crate::db::decks;
 use crate::db::notes as notes_db;
 use crate::db::points as points_db;
+use crate::db::qry::Qry;
 use crate::db::sqlite::{self, FromRow};
 use crate::interop::Key;
 use crate::interop::decks::{DeckKind, ProtoSlimDeck};
@@ -29,14 +30,15 @@ use rusqlite::{Row, named_params};
 impl FromRow for Timeline {
     fn from_row(row: &Row) -> rusqlite::Result<Timeline> {
         Ok(Timeline {
-            id: row.get(0)?,
-            title: row.get(1)?,
-            deck_kind: row.get(2)?,
-            created_at: row.get(3)?,
-            graph_terminator: row.get(4)?,
-            insignia: row.get(5)?,
-            font: row.get(6)?,
-            impact: row.get(7)?,
+            id: row.get("id")?,
+            title: row.get("name")?,
+            deck_kind: row.get("kind")?,
+            created_at: row.get("created_at")?,
+            graph_terminator: row.get("graph_terminator")?,
+            insignia: row.get("insignia")?,
+            font: row.get("font")?,
+            impact: row.get("impact")?,
+
             points: vec![],
             notes: vec![],
             arrivals: vec![],
@@ -74,14 +76,10 @@ pub(crate) fn get_or_create(
 
 // note that the order is different compared to ideas, concepts etc
 pub(crate) fn all(conn: &rusqlite::Connection, user_id: Key) -> Result<Vec<Timeline>, DbError> {
-    let stmt = "SELECT id, name, created_at, graph_terminator, insignia, font, impact
-                FROM decks
-                WHERE user_id = :user_id AND kind = :deck_kind
-                ORDER BY created_at DESC";
-
+    let stmt = Qry::query_decklike_all_ordered("d.created_at DESC");
     sqlite::many(
         &conn,
-        stmt,
+        &stmt,
         named_params! {":user_id": user_id, ":deck_kind": DeckKind::Timeline},
     )
 }
@@ -93,7 +91,7 @@ pub(crate) fn get(
 ) -> Result<Option<Timeline>, DbError> {
     let mut timeline: Option<Timeline> = sqlite::one_optional(
         &conn,
-        decks::DECKBASE_QUERY,
+        &Qry::query_decklike_generic(),
         named_params! {":user_id": user_id, ":deck_id": timeline_id, ":deck_kind": DeckKind::Timeline},
     )?;
 

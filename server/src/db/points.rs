@@ -38,22 +38,22 @@ impl fmt::Display for PointKind {
 impl FromRow for Point {
     fn from_row(row: &Row) -> rusqlite::Result<Point> {
         Ok(Point {
-            id: row.get(0)?,
-            kind: row.get(1)?,
-            title: row.get(2)?,
-            font: row.get(3)?,
+            id: row.get("id")?,
+            kind: row.get("kind")?,
+            title: row.get("title")?,
+            font: row.get("font")?,
 
-            location_textual: row.get(4)?,
+            location_textual: row.get("location_textual")?,
 
-            date_textual: row.get(5)?,
-            date: row.get(6)?,
+            date_textual: row.get("date_textual")?,
+            date: row.get("date")?,
 
-            deck_id: row.get(7)?,
-            deck_title: row.get(8)?,
-            deck_kind: row.get(9)?,
-            deck_insignia: row.get(10)?,
-            deck_font: row.get(11)?,
-            deck_impact: row.get(12)?,
+            deck_id: row.get("deck_id")?,
+            deck_title: row.get("deck_name")?,
+            deck_kind: row.get("deck_kind")?,
+            deck_insignia: row.get("deck_insignia")?,
+            deck_font: row.get("deck_font")?,
+            deck_impact: row.get("deck_impact")?,
         })
     }
 }
@@ -65,12 +65,12 @@ pub(crate) fn all(
 ) -> Result<Vec<Point>, DbError> {
     sqlite::many(
         &conn,
-        "select p.id,
-                p.kind,
-                p.title,
-                p.font,
-                p.location_textual,
-                p.date_textual,
+        "select p.id as id,
+                p.kind as kind,
+                p.title as title,
+                p.font as font,
+                p.location_textual as location_textual,
+                p.date_textual as date_textual,
                 coalesce(date(p.exact_realdate), date(p.lower_realdate)) as date,
                 d.id as deck_id,
                 d.name as deck_name,
@@ -130,12 +130,12 @@ pub(crate) fn all_points_within_interval(
 
     sqlite::many(
         &conn,
-        "select p.id,
-                p.kind,
-                p.title,
-                p.font,
-                p.location_textual,
-                p.date_textual,
+        "select p.id as id,
+                p.kind as kind,
+                p.title as title,
+                p.font as font,
+                p.location_textual as location_textual,
+                p.date_textual as date_textual,
                 coalesce(date(p.exact_realdate), date(p.lower_realdate)) as date,
                 d.id as deck_id,
                 d.name as deck_name,
@@ -166,12 +166,12 @@ pub(crate) fn all_points_during_life(
     //
     sqlite::many(
         &conn,
-        "select p.id,
-                p.kind,
-                p.title,
-                p.font,
-                p.location_textual,
-                p.date_textual,
+        "select p.id as id,
+                p.kind as kind,
+                p.title as title,
+                p.font as font,
+                p.location_textual as location_textual,
+                p.date_textual as date_textual,
                 coalesce(date(p.exact_realdate), date(p.lower_realdate)) as date,
                 d.id as deck_id,
                 d.name as deck_name,
@@ -185,12 +185,12 @@ pub(crate) fn all_points_during_life(
                 and d.user_id = :user_id
                 and p.deck_id = d.id
          union
-         select p.id,
-                p.kind,
-                p.title,
-                p.font,
-                p.location_textual,
-                p.date_textual,
+         select p.id as id,
+                p.kind as kind,
+                p.title as title,
+                p.font as font,
+                p.location_textual as location_textual,
+                p.date_textual as date_textual,
                 coalesce(date(p.exact_realdate), date(p.lower_realdate)) as date,
                 d.id as deck_id,
                 d.name as deck_name,

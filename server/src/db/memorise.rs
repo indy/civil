@@ -43,15 +43,15 @@ impl From<(FlashCard, SlimDeck)> for Card {
 impl FromRow for FlashCard {
     fn from_row(row: &Row) -> rusqlite::Result<FlashCard> {
         Ok(FlashCard {
-            id: row.get(0)?,
+            id: row.get("id")?,
 
-            note_id: row.get(1)?,
-            prompt: row.get(2)?,
-            next_test_date: row.get(3)?,
+            note_id: row.get("note_id")?,
+            prompt: row.get("prompt")?,
+            next_test_date: row.get("next_test_date")?,
 
-            easiness_factor: row.get(4)?,
-            interval: row.get(5)?,
-            repetition: row.get(6)?,
+            easiness_factor: row.get("easiness_factor")?,
+            interval: row.get("interval")?,
+            repetition: row.get("repetition")?,
         })
     }
 }
@@ -59,20 +59,20 @@ impl FromRow for FlashCard {
 impl FromRow for Card {
     fn from_row(row: &Row) -> rusqlite::Result<Card> {
         Ok(Card {
-            id: row.get(0)?,
-            note_id: row.get(1)?,
-            note_content: row.get(3)?,
+            id: row.get("id")?,
+            note_id: row.get("note_id")?,
+            note_content: row.get("note_content")?,
             deck_info: SlimDeck {
-                id: row.get(4)?,
-                title: row.get(5)?,
-                deck_kind: row.get(6)?,
-                created_at: row.get(7)?,
-                graph_terminator: row.get(8)?,
-                insignia: row.get(9)?,
-                font: row.get(10)?,
-                impact: row.get(11)?,
+                id: row.get("deck_id")?,
+                title: row.get("deck_name")?,
+                deck_kind: row.get("deck_kind")?,
+                created_at: row.get("deck_created_at")?,
+                graph_terminator: row.get("deck_graph_terminator")?,
+                insignia: row.get("deck_insignia")?,
+                font: row.get("deck_font")?,
+                impact: row.get("deck_impact")?,
             },
-            prompt: row.get(2)?,
+            prompt: row.get("prompt")?,
         })
     }
 }
@@ -83,8 +83,8 @@ pub(crate) fn all_flashcards_for_deck(
 ) -> Result<Vec<FlashCard>, DbError> {
     sqlite::many(
         &conn,
-        "SELECT c.id, c.note_id, c.prompt, c.next_test_date,
-                c.easiness_factor, c.interval, c.repetition
+        "SELECT c.id as id, c.note_id as note_id, c.prompt as prompt, c.next_test_date as next_test_date,
+                c.easiness_factor as easiness_factor, c.interval as interval, c.repetition as repetition
          FROM cards c, decks d, notes n
          WHERE d.id = :deck_id AND n.deck_id = d.id AND c.note_id = n.id",
         named_params! {":deck_id": deck_id},
@@ -97,8 +97,8 @@ pub(crate) fn all_flashcards_for_note(
 ) -> Result<Vec<FlashCard>, DbError> {
     sqlite::many(
         &conn,
-        "SELECT c.id, c.note_id, c.prompt, c.next_test_date,
-                c.easiness_factor, c.interval, c.repetition
+        "SELECT c.id as id, c.note_id as note_id, c.prompt as prompt, c.next_test_date as next_test_date,
+                c.easiness_factor as easiness_factor, c.interval as interval, c.repetition as repetition
          FROM cards c, notes n
          WHERE n.id = :note_id AND c.note_id = n.id",
         named_params! {":note_id": note_id},
@@ -111,8 +111,8 @@ pub(crate) fn all_flashcards_for_deck_arrivals(
 ) -> Result<Vec<FlashCard>, DbError> {
     sqlite::many(
         &conn,
-        "SELECT   c.id, c.note_id, c.prompt, c.next_test_date,
-                  c.easiness_factor, c.interval, c.repetition
+        "SELECT   c.id as id, c.note_id as note_id, c.prompt as prompt, c.next_test_date as next_test_date,
+                  c.easiness_factor as easiness_factor, c.interval as interval, c.repetition as repetition
          FROM     refs r
                   FULL JOIN notes n on r.note_id = n.id
                   FULL JOIN decks owner_deck on n.deck_id = owner_deck.id
@@ -134,9 +134,9 @@ pub(crate) fn all_flashcards_for_deck_additional_query(
 
     sqlite::many(
         &conn,
-        "SELECT c.id, c.note_id, c.prompt, c.next_test_date,
-                c.easiness_factor, c.interval, c.repetition,
-                notes_fts.rank AS rank
+        "SELECT c.id as id, c.note_id as note_id, c.prompt as prompt, c.next_test_date as next_test_date,
+                c.easiness_factor as easiness_factor, c.interval as interval, c.repetition as repetition,
+                notes_fts.rank as rank
          FROM notes_fts
               LEFT JOIN notes n ON n.id = notes_fts.rowid
               LEFT JOIN decks d ON d.id = n.deck_id
@@ -159,9 +159,9 @@ pub(crate) fn all_flashcards_for_search_query(
 ) -> Result<Vec<FlashCard>, DbError> {
     sqlite::many(
         &conn,
-        "SELECT c.id, c.note_id, c.prompt, c.next_test_date,
-                   c.easiness_factor, c.interval, c.repetition,
-                   notes_fts.rank AS rank
+        "SELECT c.id as id, c.note_id as note_id, c.prompt as prompt, c.next_test_date as next_test_date,
+                   c.easiness_factor as easiness_factor, c.interval as interval, c.repetition as repetition,
+                   notes_fts.rank as rank
          FROM notes_fts
               LEFT JOIN notes n ON n.id = notes_fts.rowid
               LEFT JOIN decks d ON d.id = n.deck_id
@@ -311,9 +311,9 @@ pub(crate) fn get_cards(
 
     sqlite::many(
         &conn,
-        "SELECT c.id, c.note_id, c.prompt, n.content, d.id,
-                d.name, d.kind, d.created_at, d.graph_terminator,
-                d.insignia, d.font, d.impact
+        "SELECT c.id as id, c.note_id as note_id, c.prompt as prompt, n.content as note_content, d.id as deck_id,
+                d.name as deck_name, d.kind as deck_kind, d.created_at as deck_created_at, d.graph_terminator as deck_graph_terminator,
+                d.insignia as deck_insignia, d.font as deck_font, d.impact as deck_impact
          FROM cards c, decks d, notes n
          WHERE d.id = n.deck_id AND n.id = c.note_id AND c.user_id = :user_id
                AND c.next_test_date < :next_test_date",
@@ -329,9 +329,9 @@ pub(crate) fn get_practice_card(
 
     sqlite::one(
         &conn,
-        "SELECT c.id, c.note_id, c.prompt, n.content, d.id,
-                d.name, d.kind, d.created_at, d.graph_terminator,
-                d.insignia, d.font, d.impact
+        "SELECT c.id as id, c.note_id as note_id, c.prompt as prompt, n.content as note_content, d.id as deck_id,
+                d.name as deck_name, d.kind as deck_kind, d.created_at as deck_created_at, d.graph_terminator as deck_graph_terminator,
+                d.insignia as deck_insignia, d.font as deck_font, d.impact as deck_impact
          FROM cards c, decks d, notes n
          WHERE d.id = n.deck_id AND n.id = c.note_id and c.user_id = :user_id
          ORDER BY random()

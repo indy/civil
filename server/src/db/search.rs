@@ -32,16 +32,16 @@ use tracing::{info, warn};
 impl FromRow for SearchDeck {
     fn from_row(row: &Row) -> rusqlite::Result<SearchDeck> {
         Ok(SearchDeck {
-            rank: row.get(8)?,
+            rank: row.get("rank_sum")?,
             deck: SlimDeck {
-                id: row.get(0)?,
-                title: row.get(1)?,
-                deck_kind: row.get(2)?,
-                created_at: row.get(3)?,
-                graph_terminator: row.get(4)?,
-                insignia: row.get(5)?,
-                font: row.get(6)?,
-                impact: row.get(7)?,
+                id: row.get("id")?,
+                title: row.get("name")?,
+                deck_kind: row.get("kind")?,
+                created_at: row.get("created_at")?,
+                graph_terminator: row.get("graph_terminator")?,
+                insignia: row.get("insignia")?,
+                font: row.get("font")?,
+                impact: row.get("impact")?,
             },
             notes: vec![],
         })
@@ -63,43 +63,43 @@ fn contains(searchdecks: &[SearchDeck], id: Key) -> bool {
 impl FromRow for SearchDeckNoteRef {
     fn from_row(row: &Row) -> rusqlite::Result<SearchDeckNoteRef> {
         let mut reference_maybe: Option<Ref> = None;
-        let reference_deck_id: Option<Key> = row.get(15)?;
+        let reference_deck_id: Option<Key> = row.get("ref_deck_id")?;
         if let Some(ref_deck_id) = reference_deck_id {
             reference_maybe = Some(Ref {
-                note_id: row.get(9)?,
-                ref_kind: row.get(16)?,
-                annotation: row.get(17)?,
+                note_id: row.get("note_id")?,
+                ref_kind: row.get("ref_kind")?,
+                annotation: row.get("ref_annotation")?,
 
                 id: ref_deck_id,
-                title: row.get(18)?,
-                deck_kind: row.get(19)?,
-                created_at: row.get(20)?,
-                graph_terminator: row.get(21)?,
-                insignia: row.get(22)?,
-                font: row.get(23)?,
-                impact: row.get(24)?,
+                title: row.get("d2_name")?,
+                deck_kind: row.get("d2_kind")?,
+                created_at: row.get("d2_created_at")?,
+                graph_terminator: row.get("d2_graph_terminator")?,
+                insignia: row.get("d2_insignia")?,
+                font: row.get("d2_font")?,
+                impact: row.get("d2_impact")?,
             })
         };
 
         Ok(SearchDeckNoteRef {
-            rank: row.get(0)?,
+            rank: row.get("rank")?,
             deck: SlimDeck {
-                id: row.get(1)?,
-                title: row.get(2)?,
-                deck_kind: row.get(3)?,
-                created_at: row.get(4)?,
-                graph_terminator: row.get(5)?,
-                insignia: row.get(6)?,
-                font: row.get(7)?,
-                impact: row.get(8)?,
+                id: row.get("deck_id")?,
+                title: row.get("deck_name")?,
+                deck_kind: row.get("deck_kind")?,
+                created_at: row.get("deck_created_at")?,
+                graph_terminator: row.get("deck_graph_terminator")?,
+                insignia: row.get("deck_insignia")?,
+                font: row.get("deck_font")?,
+                impact: row.get("deck_impact")?,
             },
             note: Note {
-                id: row.get(9)?,
-                prev_note_id: row.get(10)?,
-                kind: row.get(11)?,
-                content: row.get(12)?,
-                point_id: row.get(13)?,
-                font: row.get(14)?,
+                id: row.get("note_id")?,
+                prev_note_id: row.get("prev_note_id")?,
+                kind: row.get("note_kind")?,
+                content: row.get("content")?,
+                point_id: row.get("point_id")?,
+                font: row.get("note_font")?,
                 refs: vec![],
                 flashcards: vec![],
             },
@@ -190,7 +190,7 @@ pub(crate) fn search_names_at_deck_level(
     user_id: Key,
     query: String,
 ) -> Result<Vec<SearchDeck>, DbError> {
-    let stmt = "select d.id, d.name, d.kind, d.created_at, d.graph_terminator, d.insignia, d.font, d.impact,
+    let stmt = "select d.id as id, d.name as name, d.kind as kind, d.created_at as created_at, d.graph_terminator as graph_terminator, d.insignia as insignia, d.font as font, d.impact as impact,
                        decks_fts.rank AS rank_sum, 1 as rank_count
                 from decks_fts left join decks d on d.id = decks_fts.rowid
                 where decks_fts match :query
@@ -425,12 +425,14 @@ fn search_query(
     query: String,
 ) -> Result<Vec<SearchDeckNoteRef>, DbError> {
     let stmt = "SELECT notes_fts.rank AS rank,
-                       d.id, d.name, d.kind, d.created_at, d.graph_terminator, d.insignia, d.font, d.impact,
-                       n.id, n.prev_note_id, n.kind,
+                       d.id as deck_id, d.name as deck_name, d.kind as deck_kind, d.created_at as deck_created_at, d.graph_terminator as deck_graph_terminator, d.insignia as deck_insignia, d.font as deck_font, d.impact as deck_impact,
+                       n.id as note_id, n.prev_note_id as prev_note_id, n.kind as note_kind,
                        highlight(notes_fts, 0, ':searched(', ')') as content,
-                       n.point_id, n.font,
-                       r.deck_id, r.kind, r.annotation, d2.name, d2.kind, d2.created_at,
-                       d2.graph_terminator, d2.insignia, d2.font, d2.impact
+                       n.point_id as point_id, n.font as note_font,
+                       r.deck_id as ref_deck_id, r.kind as ref_kind, r.annotation as ref_annotation,
+
+                       d2.name as d2_name, d2.kind as d2_kind, d2.created_at as d2_created_at,
+                       d2.graph_terminator as d2_graph_terminator, d2.insignia as d2_insignia, d2.font as d2_font, d2.impact as d2_impact
                FROM notes_fts
                     LEFT JOIN notes n ON n.id = notes_fts.rowid
                     LEFT JOIN decks d ON d.id = n.deck_id
@@ -465,12 +467,14 @@ fn search_deck_additional_query(
     }
 
     let stmt = "SELECT notes_fts.rank AS rank,
-                       d.id, d.name, d.kind, d.created_at, d.graph_terminator, d.insignia, d.font, d.impact,
-                       n.id, n.prev_note_id, n.kind,
+                       d.id as deck_id, d.name as deck_name, d.kind as deck_kind, d.created_at as deck_created_at, d.graph_terminator as deck_graph_terminator, d.insignia as deck_insignia, d.font as deck_font, d.impact as deck_impact,
+                       n.id as note_id, n.prev_note_id as prev_note_id, n.kind as note_kind,
                        highlight(notes_fts, 0, ':searched(', ')') as content,
-                       n.point_id, n.font,
-                       r.deck_id, r.kind, r.annotation, d2.name, d2.kind,
-                       d2.created_at, d2.graph_terminator, d2.insignia, d2.font, d2.impact
+                       n.point_id as point_id, n.font as note_font,
+                       r.deck_id as ref_deck_id, r.kind as ref_kind, r.annotation as ref_annotation,
+
+                       d2.name as d2_name, d2.kind as d2_kind, d2.created_at as d2_created_at,
+                       d2.graph_terminator as d2_graph_terminator, d2.insignia as d2_insignia, d2.font as d2_font, d2.impact as d2_impact
                FROM notes_fts
                     LEFT JOIN notes n ON n.id = notes_fts.rowid
                     LEFT JOIN decks d ON d.id = n.deck_id
@@ -499,7 +503,7 @@ fn search_at_deck_level_base(
 ) -> Result<Vec<SearchDeck>, DbError> {
     let q = query;
 
-    let stmt = "SELECT d.id, d.name, d.kind, d.created_at, d.graph_terminator, d.insignia, d.font, d.impact,
+    let stmt = "SELECT d.id as id, d.name as name, d.kind as kind, d.created_at as created_at, d.graph_terminator as graph_terminator, d.insignia as insignia, d.font as font, d.impact as impact,
                 decks_fts.rank AS rank_sum, 1 AS rank_count
          FROM decks_fts LEFT JOIN decks d ON d.id = decks_fts.rowid
          WHERE decks_fts MATCH :query
@@ -513,7 +517,7 @@ fn search_at_deck_level_base(
         named_params! {":user_id": user_id, ":query": q},
     )?;
 
-    let stmt = "select d.id, d.name, d.kind, d.created_at, d.graph_terminator, d.insignia, d.font, d.impact,
+    let stmt = "select d.id as id, d.name as name, d.kind as kind, d.created_at as created_at, d.graph_terminator as graph_terminator, d.insignia as insignia, d.font as font, d.impact as impact,
                        article_extras_fts.rank AS rank_sum, 1 as rank_count
                 from article_extras_fts left join decks d on d.id = article_extras_fts.rowid
                 where article_extras_fts match :query
@@ -527,7 +531,7 @@ fn search_at_deck_level_base(
         named_params! {":user_id": user_id, ":query": q},
     )?;
 
-    let stmt = "select res.id, res.name, res.kind, res.created_at, res.graph_terminator, res.insignia, res.font, res.impact,
+    let stmt = "select res.id as id, res.name as name, res.kind as kind, res.created_at as created_at, res.graph_terminator as graph_terminator, res.insignia as insignia, res.font as font, res.impact as impact,
                        sum(res.rank) as rank_sum, count(res.rank) as rank_count
                 from (select d.id, d.name, d.kind, d.created_at, d.graph_terminator, d.insignia, d.font,
                              d.impact, points_fts.rank AS rank
@@ -554,7 +558,7 @@ fn search_at_deck_level_base(
     }
 
     if !ignore_notes {
-        let stmt = "select res.id, res.name, res.kind, res.created_at, res.graph_terminator, res.insignia, res.font, res.impact,
+        let stmt = "select res.id as id, res.name as name, res.kind as kind, res.created_at as created_at, res.graph_terminator as graph_terminator, res.insignia as insignia, res.font as font, res.impact as impact,
                            sum(res.rank) as rank_sum, count(res.rank) as rank_count
                 from (select d.id, d.name, d.kind, d.created_at, d.graph_terminator, d.insignia, d.font, d.impact, notes_fts.rank AS rank
                       from notes_fts

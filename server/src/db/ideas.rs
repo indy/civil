@@ -15,8 +15,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::db::decks::DECKBASE_QUERY;
 use crate::db::notes as notes_db;
+use crate::db::qry::Qry;
 use crate::db::sqlite::{self, FromRow};
 use crate::db::{DbError, decks};
 use crate::interop::Key;
@@ -28,14 +28,14 @@ use rusqlite::{Row, named_params};
 impl FromRow for Idea {
     fn from_row(row: &Row) -> rusqlite::Result<Idea> {
         Ok(Idea {
-            id: row.get(0)?,
-            title: row.get(1)?,
-            deck_kind: row.get(2)?,
-            created_at: row.get(3)?,
-            graph_terminator: row.get(4)?,
-            insignia: row.get(5)?,
-            font: row.get(6)?,
-            impact: row.get(7)?,
+            id: row.get("id")?,
+            title: row.get("name")?,
+            deck_kind: row.get("kind")?,
+            created_at: row.get("created_at")?,
+            graph_terminator: row.get("graph_terminator")?,
+            insignia: row.get("insignia")?,
+            font: row.get("font")?,
+            impact: row.get("impact")?,
 
             notes: vec![],
             arrivals: vec![],
@@ -72,14 +72,10 @@ pub(crate) fn get_or_create(
 }
 
 pub(crate) fn all(conn: &rusqlite::Connection, user_id: Key) -> Result<Vec<Idea>, DbError> {
-    let stmt = "SELECT id, name, created_at, graph_terminator, insignia, font, impact
-                FROM decks
-                WHERE user_id = :user_id AND kind = :deck_kind
-                ORDER BY name";
-
+    let stmt = Qry::query_decklike_all_ordered("d.name");
     sqlite::many(
         &conn,
-        stmt,
+        &stmt,
         named_params! {":user_id": user_id, ":deck_kind": DeckKind::Idea},
     )
 }
@@ -91,7 +87,7 @@ pub(crate) fn convert(
 ) -> Result<Option<Idea>, DbError> {
     let mut idea: Option<Idea> = sqlite::one_optional(
         &conn,
-        DECKBASE_QUERY,
+        &Qry::query_decklike_generic(),
         named_params! {":user_id": user_id, ":deck_id": idea_id, ":deck_kind": DeckKind::Idea},
     )?;
 
@@ -120,7 +116,7 @@ pub(crate) fn get(
 ) -> Result<Option<Idea>, DbError> {
     let mut idea: Option<Idea> = sqlite::one_optional(
         &conn,
-        DECKBASE_QUERY,
+        &Qry::query_decklike_generic(),
         named_params! {":user_id": user_id, ":deck_id": idea_id, ":deck_kind": DeckKind::Idea},
     )?;
 

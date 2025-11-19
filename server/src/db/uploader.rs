@@ -27,7 +27,7 @@ use rusqlite::{Row, named_params};
 impl FromRow for UserUploadedImage {
     fn from_row(row: &Row) -> rusqlite::Result<UserUploadedImage> {
         Ok(UserUploadedImage {
-            filename: row.get(0)?,
+            filename: row.get("filename")?,
         })
     }
 }

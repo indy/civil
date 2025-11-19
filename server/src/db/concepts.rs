@@ -15,8 +15,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::db::decks::DECKBASE_QUERY;
 use crate::db::notes as notes_db;
+use crate::db::qry::Qry;
 use crate::db::sqlite::{self, FromRow};
 use crate::db::{DbError, decks};
 use crate::interop::Key;
@@ -75,14 +75,10 @@ pub(crate) fn get_or_create(
 }
 
 pub(crate) fn all(conn: &rusqlite::Connection, user_id: Key) -> Result<Vec<Concept>, DbError> {
-    let stmt = "SELECT id, name, created_at, graph_terminator, insignia, font, impact
-                FROM decks
-                WHERE user_id = :user_id AND kind = :deck_kind
-                ORDER BY name";
-
+    let stmt = Qry::query_decklike_all_ordered("d.name");
     sqlite::many(
         &conn,
-        stmt,
+        &stmt,
         named_params! {":user_id": user_id, ":deck_kind": DeckKind::Concept},
     )
 }
@@ -94,7 +90,7 @@ pub(crate) fn convert(
 ) -> Result<Option<Concept>, DbError> {
     let mut concept: Option<Concept> = sqlite::one_optional(
         &conn,
-        DECKBASE_QUERY,
+        &Qry::query_decklike_generic(),
         named_params! {":user_id": user_id, ":deck_id": concept_id, ":deck_kind": DeckKind::Concept},
     )?;
 
@@ -123,7 +119,7 @@ pub(crate) fn get(
 ) -> Result<Option<Concept>, DbError> {
     let mut concept: Option<Concept> = sqlite::one_optional(
         &conn,
-        DECKBASE_QUERY,
+        &Qry::query_decklike_generic(),
         named_params! {":user_id": user_id, ":deck_id": concept_id, ":deck_kind": DeckKind::Concept},
     )?;
 

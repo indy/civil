@@ -22,6 +22,7 @@ use crate::db::DbError;
 use crate::db::decks;
 use crate::db::notes as notes_db;
 use crate::db::notes as db_notes;
+use crate::db::qry::Qry;
 use crate::db::sqlite::{self, FromRow};
 use crate::interop::Key;
 use crate::interop::decks::{DeckKind, SlimDeck};
@@ -69,19 +70,19 @@ impl TryFrom<(decks::DeckBase, DialogueExtra)> for interop::Dialogue {
 impl FromRow for interop::Dialogue {
     fn from_row(row: &Row) -> rusqlite::Result<interop::Dialogue> {
         Ok(interop::Dialogue {
-            id: row.get(0)?,
-            title: row.get(1)?,
-            deck_kind: row.get(2)?,
-            created_at: row.get(3)?,
-            graph_terminator: row.get(4)?,
-            insignia: row.get(5)?,
-            font: row.get(6)?,
-            impact: row.get(7)?,
+            id: row.get("id")?,
+            title: row.get("name")?,
+            deck_kind: row.get("kind")?,
+            created_at: row.get("created_at")?,
+            graph_terminator: row.get("graph_terminator")?,
+            insignia: row.get("insignia")?,
+            font: row.get("font")?,
+            impact: row.get("impact")?,
 
             notes: vec![],
             arrivals: vec![],
 
-            ai_kind: row.get(8)?,
+            ai_kind: row.get("ai_kind")?,
             messages: vec![],
         })
     }
@@ -91,12 +92,12 @@ impl FromRow for interop::Dialogue {
 
 impl FromRow for openai_interface::ChatMessage {
     fn from_row(row: &Row) -> rusqlite::Result<openai_interface::ChatMessage> {
-        let r: String = row.get(1)?;
+        let r: String = row.get("role")?;
         match openai_interface::Role::from_str(&r) {
             Ok(role) => Ok(openai_interface::ChatMessage {
-                note_id: row.get(0)?,
+                note_id: row.get("note_id")?,
                 role,
-                content: row.get(2)?,
+                content: row.get("content")?,
             }),
             Err(_) => Err(rusqlite::Error::FromSqlConversionFailure(
                 1, // column index
@@ -112,20 +113,16 @@ impl FromRow for openai_interface::ChatMessage {
 
 impl FromRow for interop::AiKind {
     fn from_row(row: &Row) -> rusqlite::Result<interop::AiKind> {
-        let k = row.get(0)?;
+        let k = row.get("ai_kind")?;
         Ok(k)
     }
 }
 
 pub(crate) fn all(conn: &rusqlite::Connection, user_id: Key) -> Result<Vec<SlimDeck>, DbError> {
-    let stmt = "SELECT id, name, kind, created_at, graph_terminator, insignia, font, impact
-                FROM decks
-                WHERE user_id = :user_id AND kind = :deck_kind
-                ORDER BY created_at DESC";
-
+    let stmt = Qry::query_decklike_all_ordered("d.created_at DESC");
     sqlite::many(
         &conn,
-        stmt,
+        &stmt,
         named_params! {":user_id": user_id, ":deck_kind": DeckKind::Dialogue},
     )
 }
@@ -135,15 +132,13 @@ pub(crate) fn get(
     user_id: Key,
     dialogue_id: Key,
 ) -> Result<Option<Dialogue>, DbError> {
-    let stmt = "SELECT decks.id, decks.name, decks.kind, decks.created_at,
-                       decks.graph_terminator, decks.insignia, decks.font, decks.impact,
-                       dialogue_extras.ai_kind
-                FROM decks LEFT JOIN dialogue_extras ON dialogue_extras.deck_id = decks.id
-                WHERE decks.user_id = :user_id AND decks.id = :deck_id AND decks.kind = :deck_kind";
-
     let mut dialogue: Option<Dialogue> = sqlite::one_optional(
         &conn,
-        stmt,
+        &Qry::select_decklike()
+            .comma("dialogue_extras.ai_kind as ai_kind")
+            .from_decklike()
+            .left_join("dialogue_extras ON dialogue_extras.deck_id = d.id")
+            .where_decklike(),
         named_params! {":user_id": user_id, ":deck_id": dialogue_id, ":deck_kind": DeckKind::Dialogue},
     )?;
 
@@ -162,7 +157,7 @@ fn get_original_chat_messages(
     user_id: Key,
     dialogue_id: Key,
 ) -> Result<Vec<openai_interface::ChatMessage>, DbError> {
-    let stmt = "SELECT msg.note_id, msg.role, msg.content
+    let stmt = "SELECT msg.note_id as note_id, msg.role as role, msg.content as content
                 FROM dialogue_messages AS msg
                      LEFT JOIN notes ON notes.id = msg.note_id
                      LEFT JOIN decks ON decks.id = notes.deck_id
@@ -345,7 +340,7 @@ pub(crate) fn get_chat_history(
     user_id: Key,
     deck_id: Key,
 ) -> Result<(interop::AiKind, Vec<openai_interface::ChatMessage>), DbError> {
-    let stmt = "SELECT notes.id, dm.role, dm.content
+    let stmt = "SELECT notes.id as note_id, dm.role as role, dm.content as content
                 FROM dialogue_messages AS dm
                      LEFT JOIN notes ON notes.id = dm.note_id
                      LEFT JOIN decks ON decks.id = notes.deck_id

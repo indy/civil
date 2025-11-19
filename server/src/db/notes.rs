@@ -31,12 +31,13 @@ use tracing::{error, info, warn};
 impl FromRow for Note {
     fn from_row(row: &Row) -> rusqlite::Result<Note> {
         Ok(Note {
-            id: row.get(0)?,
-            prev_note_id: row.get(4)?,
-            kind: row.get(2)?,
-            content: row.get(1)?,
-            point_id: row.get(3)?,
-            font: row.get(5)?,
+            id: row.get("id")?,
+            prev_note_id: row.get("prev_note_id")?,
+            kind: row.get("kind")?,
+            content: row.get("content")?,
+            point_id: row.get("point_id")?,
+            font: row.get("font")?,
+
             refs: vec![],
             flashcards: vec![],
         })
@@ -66,28 +67,29 @@ impl FromRow for NoteAndRef {
         let reference_deck_id: Option<Key> = row.get(8)?;
         if let Some(ref_deck_id) = reference_deck_id {
             reference_maybe = Some(Ref {
-                note_id: row.get(0)?,
-                ref_kind: row.get(6)?,
-                annotation: row.get(7)?,
+                note_id: row.get("note_id")?,
+                ref_kind: row.get("ref_kind")?,
+                annotation: row.get("ref_annotation")?,
                 id: ref_deck_id,
-                title: row.get(9)?,
-                deck_kind: row.get(10)?,
-                created_at: row.get(11)?,
-                graph_terminator: row.get(12)?,
-                insignia: row.get(13)?,
-                font: row.get(14)?,
-                impact: row.get(15)?,
+                title: row.get("deck_name")?,
+                deck_kind: row.get("deck_kind")?,
+                created_at: row.get("deck_created_at")?,
+                graph_terminator: row.get("deck_graph_terminator")?,
+                insignia: row.get("deck_insignia")?,
+                font: row.get("deck_font")?,
+                impact: row.get("deck_impact")?,
             })
         };
 
         Ok(NoteAndRef {
             note: Note {
-                id: row.get(0)?,
-                prev_note_id: row.get(1)?,
-                kind: row.get(2)?,
-                content: row.get(3)?,
-                point_id: row.get(4)?,
-                font: row.get(5)?,
+                id: row.get("note_id")?,
+                prev_note_id: row.get("prev_note_id")?,
+                kind: row.get("note_kind")?,
+                content: row.get("note_content")?,
+                point_id: row.get("note_point_id")?,
+                font: row.get("note_font")?,
+
                 refs: vec![],
                 flashcards: vec![],
             },
@@ -102,42 +104,43 @@ impl FromRow for NoteAndRefAndDeck {
         let reference_deck_id: Option<Key> = row.get(8)?;
         if let Some(ref_deck_id) = reference_deck_id {
             reference_maybe = Some(Ref {
-                note_id: row.get(0)?,
-                ref_kind: row.get(6)?,
-                annotation: row.get(7)?,
+                note_id: row.get("note_id")?,
+                ref_kind: row.get("ref_kind")?,
+                annotation: row.get("ref_annotation")?,
 
                 id: ref_deck_id,
-                title: row.get(9)?,
-                deck_kind: row.get(10)?,
-                created_at: row.get(11)?,
-                graph_terminator: row.get(12)?,
-                insignia: row.get(13)?,
-                font: row.get(14)?,
-                impact: row.get(15)?,
+                title: row.get("deck_name")?,
+                deck_kind: row.get("deck_kind")?,
+                created_at: row.get("deck_created_at")?,
+                graph_terminator: row.get("deck_graph_terminator")?,
+                insignia: row.get("deck_insignia")?,
+                font: row.get("deck_font")?,
+                impact: row.get("deck_impact")?,
             })
         };
 
         Ok(NoteAndRefAndDeck {
             note: Note {
-                id: row.get(0)?,
-                prev_note_id: row.get(1)?,
-                kind: row.get(2)?,
-                content: row.get(3)?,
-                point_id: row.get(4)?,
-                font: row.get(5)?,
+                id: row.get("note_id")?,
+                prev_note_id: row.get("prev_note_id")?,
+                kind: row.get("note_kind")?,
+                content: row.get("note_content")?,
+                point_id: row.get("note_point_id")?,
+                font: row.get("note_font")?,
+
                 refs: vec![],
                 flashcards: vec![],
             },
             reference_maybe,
             deck: SlimDeck {
-                id: row.get(16)?,
-                title: row.get(17)?,
-                deck_kind: row.get(18)?,
-                created_at: row.get(19)?,
-                graph_terminator: row.get(20)?,
-                insignia: row.get(21)?,
-                font: row.get(22)?,
-                impact: row.get(23)?,
+                id: row.get("owner_deck_id")?,
+                title: row.get("owner_deck_name")?,
+                deck_kind: row.get("owner_deck_kind")?,
+                created_at: row.get("owner_deck_created_at")?,
+                graph_terminator: row.get("owner_deck_graph_terminator")?,
+                insignia: row.get("owner_deck_insignia")?,
+                font: row.get("owner_deck_font")?,
+                impact: row.get("owner_deck_impact")?,
             },
         })
     }
@@ -149,22 +152,22 @@ pub(crate) fn notes_for_deck(
     conn: &rusqlite::Connection,
     deck_id: Key,
 ) -> Result<Vec<Note>, DbError> {
-    let stmt = "SELECT   n.id,
-                         n.prev_note_id,
-                         n.kind,
-                         n.content,
-                         n.point_id,
-                         n.font,
+    let stmt = "SELECT   n.id as note_id,
+                         n.prev_note_id as prev_note_id,
+                         n.kind as note_kind,
+                         n.content as note_content,
+                         n.point_id as note_point_id,
+                         n.font as note_font,
                          r.kind as ref_kind,
-                         r.annotation,
-                         d.id,
-                         d.name,
+                         r.annotation as ref_annotation,
+                         d.id as deck_id,
+                         d.name as deck_name,
                          d.kind as deck_kind,
-                         d.created_at,
-                         d.graph_terminator,
-                         d.insignia,
-                         d.font,
-                         d.impact
+                         d.created_at as deck_created_at,
+                         d.graph_terminator as deck_graph_terminator,
+                         d.insignia as deck_insignia,
+                         d.font as deck_font,
+                         d.impact as deck_impact
                 FROM     notes n
                          FULL JOIN refs r on r.note_id = n.id
                          FULL JOIN decks d on r.deck_id = d.id
@@ -235,30 +238,30 @@ pub(crate) fn arrivals_for_deck(
     conn: &rusqlite::Connection,
     deck_id: Key,
 ) -> Result<Vec<Arrival>, DbError> {
-    let stmt = "SELECT   n.id,
-                         n.prev_note_id,
-                         n.kind,
-                         n.content,
-                         n.point_id,
-                         n.font,
+    let stmt = "SELECT   n.id as note_id,
+                         n.prev_note_id as prev_note_id,
+                         n.kind as note_kind,
+                         n.content as note_content,
+                         n.point_id as note_point_id,
+                         n.font as note_font,
                          r2.kind as ref_kind,
-                         r2.annotation,
-                         d3.id,
-                         d3.name,
+                         r2.annotation as ref_annotation,
+                         d3.id as deck_id,
+                         d3.name as deck_name,
                          d3.kind as deck_kind,
-                         d3.created_at,
-                         d3.graph_terminator,
-                         d3.insignia,
-                         d3.font,
-                         d3.impact,
-                         owner_deck.id,
-                         owner_deck.name,
-                         owner_deck.kind as deck_kind,
-                         owner_deck.created_at,
-                         owner_deck.graph_terminator,
-                         owner_deck.insignia,
-                         owner_deck.font,
-                         owner_deck.impact
+                         d3.created_at as deck_created_at,
+                         d3.graph_terminator as deck_graph_terminator,
+                         d3.insignia as deck_insignia,
+                         d3.font as deck_font,
+                         d3.impact as deck_impact,
+                         owner_deck.id as owner_deck_id,
+                         owner_deck.name as owner_deck_name,
+                         owner_deck.kind as owner_deck_kind,
+                         owner_deck.created_at as owner_deck_created_at,
+                         owner_deck.graph_terminator as owner_deck_graph_terminator,
+                         owner_deck.insignia as owner_deck_insignia,
+                         owner_deck.font as owner_deck_font,
+                         owner_deck.impact as owner_deck_impact
                 FROM     refs r
                          FULL JOIN notes n on r.note_id = n.id
                          FULL JOIN decks owner_deck on n.deck_id = owner_deck.id
@@ -513,12 +516,12 @@ pub(crate) fn preview(
     user_id: Key,
     deck_id: Key,
 ) -> Result<PreviewNotes, DbError> {
-    let stmt = "SELECT n.id,
-                       n.content,
-                       n.kind,
-                       n.point_id,
-                       n.prev_note_id,
-                       n.font
+    let stmt = "SELECT n.id as id,
+                       n.content as content,
+                       n.kind as kind,
+                       n.point_id as point_id,
+                       n.prev_note_id as prev_note_id,
+                       n.font as font
                 FROM notes n
                 WHERE n.point_id is null AND n.deck_id = :deck_id AND n.user_id = :user_id";
     let notes = sqlite::many(
@@ -568,22 +571,22 @@ pub fn edit_note(
         named_params! {":user_id": user_id, ":note_id": note_id, ":content": note.content, ":font": note.font},
     )?;
 
-    let stmt = "SELECT   n.id,
-                         n.prev_note_id,
-                         n.kind,
-                         n.content,
-                         n.point_id,
-                         n.font,
+    let stmt = "SELECT   n.id as note_id,
+                         n.prev_note_id as prev_note_id,
+                         n.kind as note_kind,
+                         n.content as note_content,
+                         n.point_id as note_point_id,
+                         n.font as note_font,
                          r.kind as ref_kind,
-                         r.annotation,
-                         d.id,
-                         d.name,
+                         r.annotation as ref_annotation,
+                         d.id as deck_id,
+                         d.name as deck_name,
                          d.kind as deck_kind,
-                         d.created_at,
-                         d.graph_terminator,
-                         d.insignia,
-                         d.font,
-                         d.impact
+                         d.created_at as deck_created_at,
+                         d.graph_terminator as deck_graph_terminator,
+                         d.insignia as deck_insignia,
+                         d.font as deck_font,
+                         d.impact as deck_impact
                 FROM     notes n
                          FULL JOIN refs r on r.note_id = n.id
                          FULL JOIN decks d on r.deck_id = d.id
@@ -604,12 +607,12 @@ pub fn edit_note(
 
 pub fn get_all_notes_in_db(sqlite_pool: &SqlitePool) -> crate::Result<Vec<Note>> {
     let conn = sqlite_pool.get()?;
-    let stmt = "SELECT n.id,
-                       n.content,
-                       n.kind,
-                       n.point_id,
-                       n.prev_note_id,
-                       n.font
+    let stmt = "SELECT n.id as id,
+                       n.content as content,
+                       n.kind as kind,
+                       n.point_id as point_id,
+                       n.prev_note_id as prev_note_id,
+                       n.font as font
                 FROM   notes n
                 ORDER BY n.id";
     sqlite::many(&conn, stmt, {}).map_err(Into::into)

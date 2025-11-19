@@ -25,10 +25,10 @@ use tracing::info;
 impl FromRow for User {
     fn from_row(row: &Row) -> rusqlite::Result<User> {
         Ok(User {
-            username: row.get(1)?,
-            email: row.get(0)?,
+            username: row.get("username")?,
+            email: row.get("email")?,
             admin: None,
-            ui_config_json: row.get(2)?,
+            ui_config_json: row.get("ui_config_json")?,
         })
     }
 }
@@ -36,15 +36,15 @@ impl FromRow for User {
 // used by create
 impl FromRow for (Key, User) {
     fn from_row(row: &Row) -> rusqlite::Result<(Key, User)> {
-        let id: Key = row.get(0)?;
+        let id: Key = row.get("id")?;
 
         Ok((
             id,
             User {
-                username: row.get(2)?,
-                email: row.get(1)?,
+                username: row.get("username")?,
+                email: row.get("email")?,
                 admin: None,
-                ui_config_json: row.get(3)?,
+                ui_config_json: row.get("ui_config_json")?,
             },
         ))
     }
@@ -53,17 +53,17 @@ impl FromRow for (Key, User) {
 // used by login
 impl FromRow for (Key, String, User) {
     fn from_row(row: &Row) -> rusqlite::Result<(Key, String, User)> {
-        let id: Key = row.get(0)?;
-        let password: String = row.get(3)?;
+        let id: Key = row.get("id")?;
+        let password: String = row.get("password")?;
 
         Ok((
             id,
             password,
             User {
-                username: row.get(2)?,
-                email: row.get(1)?,
+                username: row.get("username")?,
+                email: row.get("email")?,
                 admin: None,
-                ui_config_json: row.get(4)?,
+                ui_config_json: row.get("ui_config_json")?,
             },
         ))
     }
@@ -137,7 +137,7 @@ pub(crate) fn edit_ui_config(
 
 impl FromRow for UserId {
     fn from_row(row: &Row) -> rusqlite::Result<UserId> {
-        Ok(UserId { id: row.get(0)? })
+        Ok(UserId { id: row.get("id")? })
     }
 }
 

@@ -16,6 +16,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::db::DbError;
+use crate::db::qry::Qry;
 use crate::db::sqlite::{self, FromRow};
 use crate::interop::Key;
 use crate::interop::bookmarks as interop;
@@ -28,7 +29,7 @@ use tracing::{error, info};
 impl FromRow for interop::Bookmark {
     fn from_row(row: &Row) -> rusqlite::Result<interop::Bookmark> {
         let deck: SlimDeck = FromRow::from_row(row)?; // NOTE: if SlimDeck's FromRow trait is changed then so should this
-        let id = row.get(8)?;
+        let id = row.get("bookmark_id")?;
 
         Ok(interop::Bookmark { id, deck })
     }
@@ -72,10 +73,15 @@ pub(crate) fn get_bookmarks(
     conn: &rusqlite::Connection,
     user_id: Key,
 ) -> Result<Vec<interop::Bookmark>, DbError> {
-    let stmt = "select d.id, d.name, d.kind, d.created_at, d.graph_terminator, d.insignia, d.font, d.impact, b.id
-                from decks d, bookmarks b
-                where b.user_id = :user_id and b.deck_id = d.id";
-    sqlite::many(&conn, stmt, named_params! {":user_id": user_id})
+    sqlite::many(
+        &conn,
+        &Qry::select_decklike()
+            .comma("b.id as bookmark_id")
+            .from_decklike()
+            .join("bookmarks b ON b.deck_id = d.id")
+            .where_clause("b.user_id = :user_id"),
+        named_params! {":user_id": user_id},
+    )
 }
 
 pub(crate) fn delete_bookmark(

@@ -17,6 +17,7 @@
 
 use crate::db::DbError;
 use crate::db::notes;
+use crate::db::qry::Qry;
 use crate::db::sqlite::{self, FromRow};
 use crate::interop::Key;
 use crate::interop::decks::{DeckKind, Hit, Pagination, SlimDeck};
@@ -25,11 +26,6 @@ use rusqlite::{Connection, Row, named_params};
 
 #[allow(unused_imports)]
 use tracing::{info, warn};
-
-pub(crate) const DECKBASE_QUERY: &str =
-    "SELECT id, name, kind, created_at, graph_terminator, insignia, font, impact
-     FROM decks
-     WHERE user_id = :user_id AND id = :deck_id AND kind = :deck_kind";
 
 pub(crate) enum DeckBaseOrigin {
     Created,
@@ -51,14 +47,14 @@ pub struct DeckBase {
 impl FromRow for SlimDeck {
     fn from_row(row: &Row) -> rusqlite::Result<SlimDeck> {
         Ok(SlimDeck {
-            id: row.get(0)?,
-            title: row.get(1)?,
-            deck_kind: row.get(2)?,
-            created_at: row.get(3)?,
-            graph_terminator: row.get(4)?,
-            insignia: row.get(5)?,
-            font: row.get(6)?,
-            impact: row.get(7)?,
+            id: row.get("id")?,
+            title: row.get("name")?,
+            deck_kind: row.get("kind")?,
+            created_at: row.get("created_at")?,
+            graph_terminator: row.get("graph_terminator")?,
+            insignia: row.get("insignia")?,
+            font: row.get("font")?,
+            impact: row.get("impact")?,
         })
     }
 }
@@ -66,14 +62,14 @@ impl FromRow for SlimDeck {
 impl FromRow for DeckBase {
     fn from_row(row: &Row) -> rusqlite::Result<DeckBase> {
         Ok(DeckBase {
-            id: row.get(0)?,
-            title: row.get(1)?,
-            deck_kind: row.get(2)?,
-            created_at: row.get(3)?,
-            graph_terminator: row.get(4)?,
-            insignia: row.get(5)?,
-            font: row.get(6)?,
-            impact: row.get(7)?,
+            id: row.get("id")?,
+            title: row.get("name")?,
+            deck_kind: row.get("kind")?,
+            created_at: row.get("created_at")?,
+            graph_terminator: row.get("graph_terminator")?,
+            insignia: row.get("insignia")?,
+            font: row.get("font")?,
+            impact: row.get("impact")?,
         })
     }
 }
@@ -81,14 +77,14 @@ impl FromRow for DeckBase {
 impl FromRow for Hit {
     fn from_row(row: &Row) -> rusqlite::Result<Hit> {
         Ok(Hit {
-            created_at: row.get(0)?,
+            created_at: row.get("created_at")?,
         })
     }
 }
 
 impl FromRow for Font {
     fn from_row(row: &Row) -> rusqlite::Result<Font> {
-        let font = row.get(0)?;
+        let font = row.get("font")?;
         Ok(font)
     }
 }
@@ -98,16 +94,15 @@ pub(crate) fn recently_visited_any(
     user_id: Key,
     num: i32,
 ) -> Result<Vec<SlimDeck>, DbError> {
-    let stmt = "SELECT decks.id, decks.name, decks.kind, decks.created_at, decks.graph_terminator, decks.insignia, decks.font, decks.impact, max(hits.created_at) as most_recent_visit
-                FROM hits INNER JOIN decks ON decks.id = hits.deck_id
-                WHERE decks.user_id = :user_id
-                GROUP BY hits.deck_id
-                ORDER BY most_recent_visit DESC
-                LIMIT :limit";
-
     sqlite::many(
         &conn,
-        stmt,
+        &Qry::select_decklike()
+            .comma("max(hits.created_at) as most_recent_visit")
+            .from("hits INNER JOIN decks as d ON d.id = hits.deck_id")
+            .where_clause("d.user_id = :user_id")
+            .group_by("hits.deck_id")
+            .order_by("most_recent_visit DESC")
+            .limit(),
         named_params! {
             ":user_id": user_id,
             ":limit": num
@@ -121,16 +116,15 @@ pub(crate) fn recently_visited(
     deck_kind: DeckKind,
     num: i32,
 ) -> Result<Vec<SlimDeck>, DbError> {
-    let stmt = "SELECT decks.id, decks.name, decks.kind, decks.created_at, decks.graph_terminator, decks.insignia, decks.font, decks.impact, max(hits.created_at) as most_recent_visit
-                FROM hits INNER JOIN decks ON decks.id = hits.deck_id
-                WHERE decks.user_id = :user_id AND decks.kind= :deck_kind
-                GROUP BY hits.deck_id
-                ORDER BY most_recent_visit DESC
-                LIMIT :limit";
-
     sqlite::many(
         &conn,
-        stmt,
+        &Qry::select_decklike()
+            .comma("max(hits.created_at) as most_recent_visit")
+            .from("hits INNER JOIN decks as d ON d.id = hits.deck_id")
+            .where_clause("d.user_id = :user_id AND d.kind= :deck_kind")
+            .group_by("hits.deck_id")
+            .order_by("most_recent_visit DESC")
+            .limit(),
         named_params! {
             ":user_id": user_id,
             ":deck_kind": deck_kind,
@@ -144,11 +138,9 @@ fn num_decks_for_deck_kind(
     user_id: Key,
     deck_kind: DeckKind,
 ) -> Result<i32, DbError> {
-    let stmt = "SELECT count(*) FROM decks where user_id = :user_id AND kind = :deck_kind;";
-
     sqlite::one(
         &conn,
-        stmt,
+        &Qry::query_count_decklike(),
         named_params! {
             ":user_id": user_id,
             ":deck_kind": deck_kind,
@@ -163,16 +155,14 @@ pub(crate) fn pagination(
     offset: i32,
     num_items: i32,
 ) -> Result<Pagination<SlimDeck>, DbError> {
-    let stmt = "SELECT id, name, kind, created_at, graph_terminator, insignia, font, impact
-                FROM decks
-                WHERE user_id = :user_id AND kind = :deck_kind
-                ORDER BY created_at DESC
-                LIMIT :limit
-                OFFSET :offset";
-
     let items = sqlite::many(
         &conn,
-        stmt,
+        &Qry::select_decklike()
+            .from_decklike()
+            .where_decklike_but_no_deck_id()
+            .order_by("d.created_at DESC")
+            .limit()
+            .offset(),
         named_params! {
             ":user_id": user_id,
             ":deck_kind": deck_kind,
@@ -195,17 +185,16 @@ pub(crate) fn pagination_events_chronologically(
     offset: i32,
     num_items: i32,
 ) -> Result<Pagination<SlimDeck>, DbError> {
-    let stmt = "SELECT d.id, d.name, d.kind, d.created_at, d.graph_terminator, d.insignia, d.font, d.impact
-                FROM decks as d LEFT JOIN points AS p ON p.deck_id = d.id
-                WHERE d.user_id = :user_id AND d.kind = :deck_kind
-                ORDER BY (p.exact_realdate IS NOT NULL OR p.lower_realdate IS NOT NULL OR p.upper_realdate IS NOT NULL),
-                COALESCE(p.exact_realdate, p.lower_realdate, p.upper_realdate) DESC
-                LIMIT :limit
-                OFFSET :offset";
-
     let items = sqlite::many(
         &conn,
-        stmt,
+        &Qry::select_decklike()
+            .from_decklike()
+            .left_join("points AS p ON p.deck_id = d.id")
+            .where_decklike_but_no_deck_id()
+            .order_by("(p.exact_realdate IS NOT NULL OR p.lower_realdate IS NOT NULL OR p.upper_realdate IS NOT NULL),
+                COALESCE(p.exact_realdate, p.lower_realdate, p.upper_realdate) DESC")
+        .limit()
+        .offset(),
         named_params! {
             ":user_id": user_id,
             ":deck_kind": deck_kind,
@@ -275,12 +264,12 @@ fn deckbase_get_by_name(
     kind: DeckKind,
     name: &str,
 ) -> Result<DeckBase, DbError> {
-    let stmt = "SELECT id, name, kind, created_at, graph_terminator, insignia, font, impact
-                FROM DECKS
-                WHERE user_id = :user_id AND name = :name AND kind = :deck_kind";
     sqlite::one(
         conn,
-        stmt,
+        &Qry::select_decklike()
+            .from_decklike()
+            .where_decklike_but_no_deck_id()
+            .and("d.name = :name"),
         named_params! {":user_id": user_id, ":name": name, ":deck_kind": kind},
     )
 }
@@ -367,16 +356,15 @@ pub(crate) fn insignia_filter(
     offset: i32,
     num_items: i32,
 ) -> Result<Pagination<SlimDeck>, DbError> {
-    let stmt = "SELECT id, name, kind, created_at, graph_terminator, insignia, font, impact
-                FROM decks
-                WHERE user_id = :user_id AND insignia & :insignia AND kind = :deck_kind
-                ORDER BY created_at DESC
-                LIMIT :limit
-                OFFSET :offset";
-
     let items = sqlite::many(
         &conn,
-        stmt,
+        &Qry::select_decklike()
+            .from_decklike()
+            .where_decklike_but_no_deck_id()
+            .and("d.insignia & :insignia")
+            .order_by("d.created_at DESC")
+            .limit()
+            .offset(),
         named_params! {
             ":user_id": user_id,
             ":insignia": insignia,
@@ -386,10 +374,9 @@ pub(crate) fn insignia_filter(
         },
     )?;
 
-    let stmt = "SELECT count(*) FROM decks where user_id = :user_id AND insignia & :insignia AND kind = :deck_kind;";
     let total_items = sqlite::one(
         &conn,
-        stmt,
+        &Qry::query_count_decklike().and("d.insignia & :insignia"),
         named_params! {":user_id": user_id, ":insignia": insignia, ":deck_kind": deck_kind},
     )?;
 
@@ -405,23 +392,20 @@ pub(crate) fn insignia_filter_any(
     offset: i32,
     num_items: i32,
 ) -> Result<Pagination<SlimDeck>, DbError> {
-    let stmt = "SELECT id, name, kind, created_at, graph_terminator, insignia, font, impact
-                FROM decks
-                WHERE user_id = :user_id AND insignia & :insignia
-                ORDER BY created_at DESC
-                LIMIT :limit
-                OFFSET :offset";
-
     let items = sqlite::many(
         &conn,
-        stmt,
+        &Qry::select_decklike()
+            .from_decklike()
+            .where_clause("user_id = :user_id AND d.insignia & :insignia")
+            .order_by("d.created_at DESC")
+            .limit()
+            .offset(),
         named_params! {":user_id": user_id, ":insignia": insignia, ":limit": num_items, ":offset": offset},
     )?;
 
-    let stmt = "SELECT count(*) FROM decks where user_id = :user_id AND insignia & :insignia;";
     let total_items = sqlite::one(
         &conn,
-        stmt,
+        &Qry::select_count().from_decklike().where_clause("d.user_id = :user_id AND d.insignia & :insignia;"),
         named_params! {":user_id": user_id, ":insignia": insignia},
     )?;
 
@@ -435,18 +419,14 @@ pub(crate) fn recent(
     user_id: Key,
     deck_kind: DeckKind,
 ) -> Result<Vec<SlimDeck>, DbError> {
-    let limit: i32 = 10;
-
-    let stmt = "SELECT id, name, kind, created_at, graph_terminator, insignia, font, impact
-                FROM decks
-                WHERE user_id = :user_id AND kind = :deck_kind
-                ORDER BY created_at DESC
-                LIMIT :limit";
-
     sqlite::many(
         &conn,
-        &stmt,
-        named_params! {":user_id": user_id, ":deck_kind": deck_kind, ":limit": limit},
+        &Qry::select_decklike()
+            .from_decklike()
+            .where_decklike_but_no_deck_id()
+            .order_by("d.created_at DESC")
+            .limit(),
+        named_params! {":user_id": user_id, ":deck_kind": deck_kind, ":limit": 10},
     )
 }
 
@@ -492,36 +472,34 @@ pub(crate) fn paginated_unnoted(
     offset: i32,
     num_items: i32,
 ) -> Result<Pagination<SlimDeck>, DbError> {
-    let stmt = "SELECT d.id, d.name, d.kind, d.created_at, d.graph_terminator, d.insignia, d.font, d.impact
-                FROM decks d LEFT JOIN notes n ON (d.id = n.deck_id AND n.kind != 4)
-                WHERE n.deck_id IS NULL
-                AND d.kind = :kind
-                AND d.user_id = :user_id
-                ORDER BY d.created_at DESC
-                LIMIT :limit
-                OFFSET :offset";
     let items = sqlite::many(
         &conn,
-        stmt,
+        &Qry::select_decklike()
+            .from_decklike()
+            .left_join("notes n ON (d.id = n.deck_id AND n.kind != 4)")
+            .where_decklike_but_no_deck_id()
+            .and("n.deck_id IS NULL")
+            .order_by("d.created_at DESC")
+            .limit()
+            .offset(),
         named_params! {
-            ":kind": deck_kind,
             ":user_id": user_id,
+            ":deck_kind": deck_kind,
             ":limit": num_items,
             ":offset": offset,
         },
     )?;
 
-    let stmt = "SELECT count(*)
-                FROM decks d LEFT JOIN notes n ON (d.id = n.deck_id AND n.kind != 4)
-                WHERE n.deck_id IS NULL
-                AND d.kind = :kind
-                AND d.user_id = :user_id";
     let total_items = sqlite::one(
         &conn,
-        stmt,
+        &Qry::select_count()
+            .from_decklike()
+            .left_join("notes n ON (d.id = n.deck_id AND n.kind != 4)")
+            .where_decklike_but_no_deck_id()
+            .and("n.deck_id IS NULL"),
         named_params! {
             ":user_id": user_id,
-            ":kind": deck_kind,
+            ":deck_kind": deck_kind,
         },
     )?;
 
@@ -537,31 +515,28 @@ pub(crate) fn paginated_recents(
     offset: i32,
     num_items: i32,
 ) -> Result<Pagination<SlimDeck>, DbError> {
-    let stmt = "SELECT id, name, kind, created_at, graph_terminator, insignia, font, impact
-                FROM decks
-                WHERE user_id = :user_id AND kind = :kind
-                ORDER BY created_at DESC
-                LIMIT :limit
-                OFFSET :offset";
-
     let items = sqlite::many(
         &conn,
-        stmt,
+        &Qry::select_decklike()
+            .from_decklike()
+            .where_decklike_but_no_deck_id()
+            .order_by("d.created_at DESC")
+            .limit()
+            .offset(),
         named_params! {
-            ":kind": deck_kind,
+            ":deck_kind": deck_kind,
             ":user_id": user_id,
             ":limit": num_items,
             ":offset": offset,
         },
     )?;
 
-    let stmt = "SELECT count(*) FROM decks where user_id = :user_id AND kind = :kind;";
     let total_items = sqlite::one(
         &conn,
-        stmt,
+        &Qry::query_count_decklike(),
         named_params! {
             ":user_id": user_id,
-            ":kind": deck_kind,
+            ":deck_kind": deck_kind,
         },
     )?;
 
@@ -577,42 +552,35 @@ pub(crate) fn paginated_orphans(
     offset: i32,
     num_items: i32,
 ) -> Result<Pagination<SlimDeck>, DbError> {
-    let stmt = "SELECT id, name, kind, created_at, graph_terminator, insignia, font, impact
-                FROM decks
-                WHERE id NOT IN (SELECT deck_id
-                                 FROM refs
-                                 GROUP BY deck_id)
-                AND id NOT IN (SELECT n.deck_id
-                               FROM notes n INNER JOIN refs r ON n.id = r.note_id
-                               GROUP BY n.deck_id)
-                AND kind = :kind
-                AND user_id = :user_id
-                ORDER BY created_at DESC
-                LIMIT :limit
-                OFFSET :offset";
-
     let items = sqlite::many(
         &conn,
-        stmt,
+        &Qry::select_decklike()
+            .from_decklike()
+            .where_decklike_but_no_deck_id()
+            .and("d.id NOT IN (SELECT deck_id FROM refs GROUP BY deck_id)")
+            .and("d.id NOT IN (SELECT n.deck_id FROM notes n INNER JOIN refs r ON n.id = r.note_id GROUP BY n.deck_id)")
+            .order_by("d.created_at DESC")
+            .limit()
+            .offset(),
         named_params! {
-            ":kind": deck_kind,
             ":user_id": user_id,
+            ":deck_kind": deck_kind,
             ":limit": num_items,
             ":offset": offset
         },
     )?;
 
-    let stmt = "SELECT count(*)
-                FROM decks
-                WHERE id NOT IN (SELECT deck_id
-                                 FROM refs
-                                 GROUP BY deck_id)
-                AND id NOT IN (SELECT n.deck_id
-                               FROM notes n INNER JOIN refs r ON n.id = r.note_id
-                               GROUP BY n.deck_id)
-                AND kind = 'idea'
-                AND user_id = :user_id";
-    let total_items = sqlite::one(&conn, stmt, named_params! {":user_id": user_id})?;
+    let total_items = sqlite::one(
+        &conn,
+        &Qry::select_count()
+            .from_decklike()
+            .where_decklike_but_no_deck_id()
+            .and("d.id NOT IN (SELECT deck_id FROM refs GROUP BY deck_id)")
+            .and("d.id NOT IN (SELECT n.deck_id FROM notes n INNER JOIN refs r ON n.id = r.note_id GROUP BY n.deck_id)"),
+        named_params! {
+            ":user_id": user_id,
+            ":deck_kind": deck_kind,
+        })?;
 
     let res = Pagination::<SlimDeck> { items, total_items };
 
@@ -626,32 +594,32 @@ pub(crate) fn paginated_rated(
     offset: i32,
     num_items: i32,
 ) -> Result<Pagination<SlimDeck>, DbError> {
-    let stmt = "SELECT id, name, kind, created_at, graph_terminator, insignia, font, impact
-                FROM decks
-                WHERE user_id = :user_id AND kind = :kind AND impact > 0
-                ORDER BY impact desc, id desc
-                LIMIT :limit
-                OFFSET :offset";
-
     let items = sqlite::many(
         &conn,
-        stmt,
+        &Qry::select_decklike()
+            .from_decklike()
+            .where_decklike_but_no_deck_id()
+            .and("d.impact > 0")
+            .order_by("d.impact desc, d.id desc")
+            .limit()
+            .offset(),
         named_params! {
-            ":kind": deck_kind,
             ":user_id": user_id,
+            ":deck_kind": deck_kind,
             ":limit": num_items,
             ":offset": offset,
         },
     )?;
 
-    let stmt =
-        "SELECT count(*) FROM decks where user_id = :user_id AND kind = :kind AND impact > 0";
     let total_items = sqlite::one(
         &conn,
-        stmt,
+        &Qry::select_count()
+            .from_decklike()
+            .where_decklike_but_no_deck_id()
+            .and("d.impact > 0"),
         named_params! {
             ":user_id": user_id,
-            ":kind": deck_kind,
+            ":deck_kind": deck_kind,
         },
     )?;
 

@@ -18,12 +18,16 @@
 use crate::db::DbError;
 use crate::db::decks::{self, DeckBase, DeckBaseOrigin};
 use crate::db::notes as notes_db;
+use crate::db::qry::Qry;
 use crate::db::sqlite::{self, FromRow};
 use crate::interop::Key;
 use crate::interop::decks::{DeckKind, SlimDeck};
 use crate::interop::events::{Event, ProtoEvent};
 use crate::interop::font::Font;
 use rusqlite::{Row, named_params};
+
+#[allow(unused_imports)]
+use tracing::{error, info};
 
 #[derive(Debug, Clone)]
 struct EventExtra {
@@ -75,16 +79,16 @@ impl From<(DeckBase, EventExtra)> for Event {
 impl FromRow for EventExtra {
     fn from_row(row: &Row) -> rusqlite::Result<EventExtra> {
         Ok(EventExtra {
-            location_textual: row.get(0)?,
-            longitude: row.get(1)?,
-            latitude: row.get(2)?,
-            location_fuzz: row.get(3)?,
+            location_textual: row.get("location_textual")?,
+            longitude: row.get("longitude")?,
+            latitude: row.get("latitude")?,
+            location_fuzz: row.get("location_fuzz")?,
 
-            date_textual: row.get(4)?,
-            exact_date: row.get(5)?,
-            lower_date: row.get(6)?,
-            upper_date: row.get(7)?,
-            date_fuzz: row.get(8)?,
+            date_textual: row.get("date_textual")?,
+            exact_date: row.get("exact_realdate")?,
+            lower_date: row.get("lower_realdate")?,
+            upper_date: row.get("upper_realdate")?,
+            date_fuzz: row.get("date_fuzz")?,
         })
     }
 }
@@ -92,25 +96,25 @@ impl FromRow for EventExtra {
 impl FromRow for Event {
     fn from_row(row: &Row) -> rusqlite::Result<Event> {
         Ok(Event {
-            id: row.get(0)?,
-            title: row.get(1)?,
-            deck_kind: row.get(2)?,
-            created_at: row.get(3)?,
-            graph_terminator: row.get(4)?,
-            insignia: row.get(5)?,
-            font: row.get(6)?,
-            impact: row.get(7)?,
+            id: row.get("id")?,
+            title: row.get("name")?,
+            deck_kind: row.get("kind")?,
+            created_at: row.get("created_at")?,
+            graph_terminator: row.get("graph_terminator")?,
+            insignia: row.get("insignia")?,
+            font: row.get("font")?,
+            impact: row.get("impact")?,
 
-            location_textual: row.get(8)?,
-            longitude: row.get(9)?,
-            latitude: row.get(10)?,
-            location_fuzz: row.get(11)?,
+            location_textual: row.get("location_textual")?,
+            longitude: row.get("longitude")?,
+            latitude: row.get("latitude")?,
+            location_fuzz: row.get("location_fuzz")?,
 
-            date_textual: row.get(12)?,
-            exact_date: row.get(13)?,
-            lower_date: row.get(14)?,
-            upper_date: row.get(15)?,
-            date_fuzz: row.get(16)?,
+            date_textual: row.get("date_textual")?,
+            exact_date: row.get("exact_realdate")?,
+            lower_date: row.get("lower_realdate")?,
+            upper_date: row.get("upper_realdate")?,
+            date_fuzz: row.get("date_fuzz")?,
 
             notes: vec![],
             arrivals: vec![],
@@ -171,14 +175,11 @@ pub(crate) fn get_or_create(
 
 pub(crate) fn all(conn: &rusqlite::Connection, user_id: Key) -> Result<Vec<SlimDeck>, DbError> {
     // todo: sort this by the event date in event_extras
-    let stmt = "SELECT id, name, kind, created_at, graph_terminator, insignia, font, impact
-                FROM decks
-                WHERE user_id = :user_id AND kind = :deck_kind
-                ORDER BY created_at DESC";
+    let stmt = Qry::query_decklike_all_ordered("d.created_at DESC");
 
     sqlite::many(
         &conn,
-        stmt,
+        &stmt,
         named_params! {":user_id": user_id, ":deck_kind": DeckKind::Event},
     )
 }
@@ -188,18 +189,16 @@ pub(crate) fn get(
     user_id: Key,
     event_id: Key,
 ) -> Result<Option<Event>, DbError> {
-    let stmt = "SELECT decks.id, decks.name, decks.kind, decks.created_at, decks.graph_terminator, decks.insignia, decks.font, decks.impact,
-                       points.location_textual, points.longitude,
-                       points.latitude, points.location_fuzz,
-                       points.date_textual, date(points.exact_realdate),
-                       date(points.lower_realdate), date(points.upper_realdate),
-                       points.date_fuzz
-                FROM decks LEFT JOIN points ON points.deck_id = decks.id
-                WHERE user_id = :user_id AND decks.id = :deck_id AND decks.kind = :deck_kind";
-
     let mut event: Option<Event> = sqlite::one_optional(
         &conn,
-        stmt,
+        &Qry::select_decklike()
+              .comma("points.location_textual as location_textual, points.longitude as longitude,
+                      points.latitude as latitude, points.location_fuzz as location_fuzz,
+                      points.date_textual as date_textual, date(points.exact_realdate) as exact_realdate,
+                      date(points.lower_realdate) as lower_realdate, date(points.upper_realdate) as upper_realdate,
+                      points.date_fuzz as date_fuzz")
+              .from_decklike().left_join("points ON points.deck_id = d.id")
+              .where_decklike(),
         named_params! {":user_id": user_id, ":deck_id": event_id, ":deck_kind": DeckKind::Event},
     )?;
 
