@@ -16,6 +16,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::db::DbError;
+use crate::db::qry::Qry;
 use crate::db::sqlite::{self, FromRow};
 use crate::interop::Key;
 use crate::interop::decks::{DeckKind, RefKind, SlimDeck};
@@ -133,12 +134,12 @@ pub(crate) fn get(
     user_id: Key,
     deck_id: Key,
 ) -> Result<ConnectivityData, DbError> {
-    let stmt = "SELECT id, name, kind, created_at, graph_terminator, insignia, font, impact
-                FROM decks
-                WHERE user_id = :user_id AND id = :deck_id";
+    let stmt = Qry::select_decklike()
+        .from_decklike()
+        .where_clause("d.user_id = :user_id AND d.id = :deck_id");
     let source_deck: SlimDeck = sqlite::one(
         conn,
-        stmt,
+        &stmt,
         named_params! {":user_id": user_id, ":deck_id": deck_id},
     )?;
 
@@ -177,21 +178,19 @@ pub(crate) fn get(
 fn neighbours(conn: &Connection, user_id: Key, deck_id: Key) -> Result<Vec<Connectivity>, DbError> {
     // 'incoming query' union 'outgoing query'
     //
-    sqlite::many(
-        conn,
-        "SELECT 0 as direction, r.kind as ref_kind, d.id as deck_id, d.name as name, d.kind as deck_kind, d.created_at as created_at, d.graph_terminator as graph_terminator, d.insignia as insignia, d.font as font, d.impact as impact
-         FROM refs r, notes n, decks d
-         WHERE r.deck_id = :deck_id
-               AND n.id = r.note_id
-               AND d.id = n.deck_id
-               AND d.user_id = :user_id
-         UNION
-         SELECT 1 as direction, r.kind as ref_kind, d.id as deck_id, d.name as name, d.kind as deck_kind, d.created_at as created_at, d.graph_terminator as graph_terminator, d.insignia as insignia, d.font as font, d.impact as impact
-         FROM notes n, refs r, decks d
-         WHERE n.deck_id = :deck_id
-               AND r.note_id = n.id
-               AND d.id = r.deck_id
-               AND d.user_id = :user_id",
-        named_params!{":user_id": user_id, ":deck_id": deck_id}
-    )
+    let stmt = Qry::select("0 as direction, r.kind as ref_kind, d.id as deck_id, d.name as name, d.kind as deck_kind, d.created_at as created_at, d.graph_terminator as graph_terminator, d.insignia as insignia, d.font as font, d.impact as impact")
+        .from("refs r, notes n, decks d")
+        .where_clause("r.deck_id = :deck_id")
+        .and("n.id = r.note_id")
+        .and("d.id = n.deck_id")
+        .and("d.user_id = :user_id")
+        .union()
+        .select("1 as direction, r.kind as ref_kind, d.id as deck_id, d.name as name, d.kind as deck_kind, d.created_at as created_at, d.graph_terminator as graph_terminator, d.insignia as insignia, d.font as font, d.impact as impact")
+        .from("notes n, refs r, decks d")
+        .where_clause("n.deck_id = :deck_id")
+        .and("r.note_id = n.id")
+        .and("d.id = r.deck_id")
+        .and("d.user_id = :user_id");
+
+    sqlite::many(conn, &stmt, named_params! {":user_id": user_id, ":deck_id": deck_id})
 }

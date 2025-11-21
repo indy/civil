@@ -18,7 +18,7 @@
 use rusqlite::{Connection, named_params};
 use tracing::info;
 
-use crate::db::{DbError, sqlite};
+use crate::db::{DbError, qry::Qry, sqlite};
 use crate::interop::Key;
 use crate::interop::decks::DeckKind;
 
@@ -27,7 +27,10 @@ pub(crate) fn get_num_decks(
     user_id: Key,
     deck_kind: DeckKind,
 ) -> crate::Result<i32> {
-    let stmt = "SELECT count(*) as count FROM decks WHERE kind=:deck_kind AND user_id = :user_id";
+    let stmt = Qry::select_count()
+        .from("decks")
+        .where_clause("kind = :deck_kind")
+        .and("user_id = :user_id");
 
     sqlite::one(
         conn,
@@ -38,27 +41,31 @@ pub(crate) fn get_num_decks(
 }
 
 pub(crate) fn get_num_refs(conn: &Connection, user_id: Key) -> crate::Result<i32> {
-    let stmt = "SELECT count(*) AS count
-                FROM refs r LEFT JOIN decks d ON d.id = r.deck_id
-                WHERE d.user_id = :user_id";
-    sqlite::one(conn, stmt, named_params! {":user_id": user_id}).map_err(Into::into)
+    let stmt = Qry::select_count()
+        .from("refs r LEFT JOIN decks d ON d.id = r.deck_id")
+        .where_clause("d.user_id = :user_id");
+    sqlite::one(conn, &stmt, named_params! {":user_id": user_id}).map_err(Into::into)
 }
 
 pub(crate) fn get_num_cards(conn: &Connection, user_id: Key) -> crate::Result<i32> {
-    let stmt = "SELECT count(*) AS count FROM cards WHERE user_id = :user_id";
-    sqlite::one(conn, stmt, named_params! {":user_id": user_id}).map_err(Into::into)
+    let stmt = Qry::select_count()
+        .from("cards")
+        .where_clause("user_id = :user_id");
+    sqlite::one(conn, &stmt, named_params! {":user_id": user_id}).map_err(Into::into)
 }
 
 pub(crate) fn get_num_card_ratings(conn: &Connection, user_id: Key) -> crate::Result<i32> {
-    let stmt = "SELECT count(*) AS count
-                FROM card_ratings cr LEFT JOIN cards c ON c.id = cr.card_id
-                WHERE c.user_id = :user_id";
-    sqlite::one(conn, stmt, named_params! {":user_id": user_id}).map_err(Into::into)
+    let stmt = Qry::select_count()
+        .from("card_ratings cr LEFT JOIN cards c ON c.id = cr.card_id")
+        .where_clause("c.user_id = :user_id");
+    sqlite::one(conn, &stmt, named_params! {":user_id": user_id}).map_err(Into::into)
 }
 
 pub(crate) fn get_num_images(conn: &Connection, user_id: Key) -> crate::Result<i32> {
-    let stmt = "SELECT count(*) AS count FROM images WHERE user_id = :user_id";
-    sqlite::one(conn, stmt, named_params! {":user_id": user_id}).map_err(Into::into)
+    let stmt = Qry::select_count()
+        .from("images")
+        .where_clause("user_id = :user_id");
+    sqlite::one(conn, &stmt, named_params! {":user_id": user_id}).map_err(Into::into)
 }
 
 pub(crate) fn get_num_notes_in_decks(
@@ -66,9 +73,10 @@ pub(crate) fn get_num_notes_in_decks(
     user_id: Key,
     deck_kind: DeckKind,
 ) -> crate::Result<i32> {
-    let stmt = "SELECT COUNT(*) AS count
-                FROM notes n LEFT JOIN decks d ON d.id = n.deck_id
-                WHERE d.kind = :deck_kind AND n.user_id = :user_id";
+    let stmt = Qry::select_count()
+        .from("notes n LEFT JOIN decks d ON d.id = n.deck_id")
+        .where_clause("d.kind = :deck_kind")
+        .and("n.user_id = :user_id");
 
     sqlite::one(
         conn,
@@ -83,9 +91,10 @@ pub(crate) fn get_num_points_in_decks(
     user_id: Key,
     deck_kind: DeckKind,
 ) -> crate::Result<i32> {
-    let stmt = "SELECT COUNT(*) AS count
-                FROM points p LEFT JOIN decks d ON d.id = p.deck_id
-                WHERE d.kind = :deck_kind AND d.user_id = :user_id";
+    let stmt = Qry::select_count()
+        .from("points p LEFT JOIN decks d ON d.id = p.deck_id")
+        .where_clause("d.kind = :deck_kind")
+        .and("d.user_id = :user_id");
 
     sqlite::one(
         conn,
@@ -101,12 +110,14 @@ pub(crate) fn get_num_refs_between(
     deck_from: DeckKind,
     deck_to: DeckKind,
 ) -> crate::Result<i32> {
-    let stmt = "SELECT COUNT(*) AS count
-                FROM refs r
-                LEFT JOIN decks deck_to ON deck_to.id = r.deck_id
-                LEFT JOIN notes n ON n.id = r.note_id
-                LEFT JOIN decks deck_from ON n.deck_id = deck_from.id
-                WHERE deck_from.user_id = :user_id AND deck_from.kind = :deck_kind_from AND deck_to.kind = :deck_kind_to";
+    let stmt = Qry::select_count()
+        .from("refs r")
+        .left_join("decks deck_to ON deck_to.id = r.deck_id")
+        .left_join("notes n ON n.id = r.note_id")
+        .left_join("decks deck_from ON n.deck_id = deck_from.id")
+        .where_clause("deck_from.user_id = :user_id")
+        .and("deck_from.kind = :deck_kind_from")
+        .and("deck_to.kind = :deck_kind_to");
 
     sqlite::one(
         conn,
@@ -130,9 +141,9 @@ pub fn generate_stats(conn: &Connection, user_id: Key) -> crate::Result<()> {
 
     let id: Key = sqlite::one(
         conn,
-        "INSERT INTO stats(user_id, num_refs, num_cards, num_card_ratings, num_images)
-         VALUES(:user_id, :num_refs, :num_cards, :num_card_ratings, :num_images)
-         RETURNING id",
+        &Qry::insert("stats(user_id, num_refs, num_cards, num_card_ratings, num_images)")
+            .values("(:user_id, :num_refs, :num_cards, :num_card_ratings, :num_images)")
+            .returning("id"),
         named_params![
             ":user_id": user_id,
             ":num_refs": num_refs,
@@ -185,10 +196,11 @@ fn write_num_decks(
     deck_kind: DeckKind,
     value: i32,
 ) -> crate::Result<()> {
-    let stmt = "INSERT INTO stats_num_decks(stats_id, deck_kind, num_decks) VALUES (:stats_id, :deck_kind, :num_decks)";
+    let stmt = Qry::insert("stats_num_decks(stats_id, deck_kind, num_decks)")
+        .values("(:stats_id, :deck_kind, :num_decks)");
     sqlite::zero(
         conn,
-        stmt,
+        &stmt,
         named_params! {
             ":stats_id": stats_id,
             ":deck_kind": deck_kind,
@@ -204,10 +216,11 @@ fn write_num_notes(
     deck_kind: DeckKind,
     value: i32,
 ) -> crate::Result<()> {
-    let stmt = "INSERT INTO stats_num_notes(stats_id, deck_kind, num_notes) VALUES (:stats_id, :deck_kind, :num_notes)";
+    let stmt = Qry::insert("stats_num_notes(stats_id, deck_kind, num_notes)")
+        .values("(:stats_id, :deck_kind, :num_notes)");
     sqlite::zero(
         conn,
-        stmt,
+        &stmt,
         named_params! {
             ":stats_id": stats_id,
             ":deck_kind": deck_kind,
@@ -223,10 +236,11 @@ fn write_num_points(
     deck_kind: DeckKind,
     value: i32,
 ) -> crate::Result<()> {
-    let stmt = "INSERT INTO stats_num_points(stats_id, deck_kind, num_points) VALUES (:stats_id, :deck_kind, :num_points)";
+    let stmt = Qry::insert("stats_num_points(stats_id, deck_kind, num_points)")
+        .values("(:stats_id, :deck_kind, :num_points)");
     sqlite::zero(
         conn,
-        stmt,
+        &stmt,
         named_params! {
             ":stats_id": stats_id,
             ":deck_kind": deck_kind,
@@ -243,10 +257,11 @@ fn write_num_refs(
     to_deck_kind: DeckKind,
     value: i32,
 ) -> crate::Result<()> {
-    let stmt = "INSERT INTO stats_num_refs(stats_id, from_deck_kind, to_deck_kind, num_refs) VALUES (:stats_id, :from, :to, :num_refs)";
+    let stmt = Qry::insert("stats_num_refs(stats_id, from_deck_kind, to_deck_kind, num_refs)")
+        .values("(:stats_id, :from, :to, :num_refs)");
     sqlite::zero(
         conn,
-        stmt,
+        &stmt,
         named_params! {
             ":stats_id": stats_id,
             ":from": from_deck_kind,

@@ -139,12 +139,26 @@ impl Qry {
         self.add(" OFFSET :offset ")
     }
 
+    pub fn insert(part: &str) -> Self {
+        Self {
+            s: "INSERT INTO ".to_owned(),
+        }
+        .add(part)
+    }
+
     pub fn insert_into(self, part: &str) -> Self {
         self.prefix_add(" INSERT INTO ", part)
     }
 
     pub fn values(self, part: &str) -> Self {
         self.prefix_add(" VALUES ", part)
+    }
+
+    pub fn delete_from(part: &str) -> Self {
+        Self {
+            s: "DELETE FROM ".to_owned(),
+        }
+        .add(part)
     }
 
     pub fn returning(self, part: &str) -> Self {
@@ -158,9 +172,7 @@ impl Qry {
     }
 
     pub fn query_decklike_generic() -> Qry {
-        Qry::select_decklike()
-            .from_decklike()
-            .where_decklike()
+        Qry::select_decklike().from_decklike().where_decklike()
     }
 
     pub fn query_decklike_all_ordered(order_clause: &str) -> Qry {
