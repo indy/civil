@@ -358,7 +358,7 @@ pub fn migration_check(db_name: &str) -> crate::Result<()> {
                    FOREIGN KEY (point_id) REFERENCES points (id) ON DELETE CASCADE ON UPDATE NO ACTION
                );
 
-               CREATE TABLE IF NOT EXISTS references (
+               CREATE TABLE IF NOT EXISTS notes_decks (
                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 
                    kind TEXT NOT NULL, -- 'ref', 'ref_to_parent', 'ref_to_child', 'ref_in_contrast', 'ref_critical'
