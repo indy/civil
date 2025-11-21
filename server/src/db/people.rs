@@ -254,12 +254,14 @@ fn paginated_date_period(
 
     let total_items = sqlite::one(
         &conn,
-        &Qry::select_count()
-            .from_nested(&Qry::select("COALESCE(date(p.exact_realdate), date(p.lower_realdate)) AS birth_date")
-                         .from_decklike().join("points p ON p.deck_id = d.id")
-                         .where_decklike_but_no_deck_id()
-                         .and("p.kind = 'point_begin'")
-                         .and("birth_date >= :from_date AND birth_date < :until_date")),
+        &Qry::select_count().from_nested(
+            &Qry::select("COALESCE(date(p.exact_realdate), date(p.lower_realdate)) AS birth_date")
+                .from_decklike()
+                .join("points p ON p.deck_id = d.id")
+                .where_decklike_but_no_deck_id()
+                .and("p.kind = 'point_begin'")
+                .and("birth_date >= :from_date AND birth_date < :until_date"),
+        ),
         named_params! {":user_id": user_id, ":deck_kind": DeckKind::Person, ":from_date": from_date, ":until_date": until_date},
     )?;
 

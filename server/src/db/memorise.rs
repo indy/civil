@@ -16,13 +16,13 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::db::DbError;
+use crate::db::qry::Qry;
 use crate::db::sqlite::{self, FromRow};
 use crate::interop::Key;
 use crate::interop::decks::SlimDeck;
 use crate::interop::memorise::{Card, CardUpcomingReview, FlashCard, ProtoCard};
 use chrono::Utc;
 use rusqlite::{Row, named_params};
-use crate::db::qry::Qry;
 
 #[allow(unused_imports)]
 use tracing::info;
@@ -140,7 +140,8 @@ pub(crate) fn all_flashcards_for_deck_additional_query(
 
     sqlite::many(
         &conn,
-        &memorise_query_common_select().comma("notes_fts.rank as rank")
+        &memorise_query_common_select()
+            .comma("notes_fts.rank as rank")
             .from("notes_fts")
             .left_join("notes n ON n.id = notes_fts.rowid")
             .left_join("decks d ON d.id = n.deck_id")
@@ -163,7 +164,8 @@ pub(crate) fn all_flashcards_for_search_query(
 ) -> Result<Vec<FlashCard>, DbError> {
     sqlite::many(
         &conn,
-        &memorise_query_common_select().comma("notes_fts.rank as rank")
+        &memorise_query_common_select()
+            .comma("notes_fts.rank as rank")
             .from("notes_fts")
             .left_join("notes n ON n.id = notes_fts.rowid")
             .left_join("decks d ON d.id = n.deck_id")
@@ -304,7 +306,6 @@ pub(crate) fn delete_flashcard(
     Ok(())
 }
 
-
 fn get_card_select() -> Qry {
     Qry::select("c.id as id, c.note_id as note_id, c.prompt as prompt, n.content as note_content, d.id as deck_id,
                 d.name as deck_name, d.kind as deck_kind, d.created_at as deck_created_at, d.graph_terminator as deck_graph_terminator,
@@ -314,7 +315,6 @@ fn get_card_select() -> Qry {
         .join("decks d ON d.id = n.deck_id")
         .where_clause("c.user_id = :user_id")
 }
-
 
 pub(crate) fn get_cards(
     conn: &rusqlite::Connection,

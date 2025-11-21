@@ -122,6 +122,26 @@ fn year_as_date_string(year: i32) -> String {
     res
 }
 
+fn query_points_common() -> Qry {
+    Qry::select("p.id as id")
+        .comma("p.kind as kind")
+        .comma("p.title as title")
+        .comma("p.font as font")
+        .comma("p.location_textual as location_textual")
+        .comma("p.date_textual as date_textual")
+        .comma("coalesce(date(p.exact_realdate), date(p.lower_realdate)) as date")
+        .comma("d.id as deck_id")
+        .comma("d.name as deck_name")
+        .comma("d.kind as deck_kind")
+        .comma("d.insignia as deck_insignia")
+        .comma("d.font as deck_font")
+        .comma("d.impact as deck_impact")
+        .comma("coalesce(p.exact_realdate, p.lower_realdate) as sortdate")
+        .from("points p")
+        .join("decks d ON p.deck_id = d.id")
+        .where_clause("d.user_id = :user_id")
+}
+
 pub(crate) fn all_points_within_interval(
     conn: &mut rusqlite::Connection,
     user_id: Key,
@@ -131,32 +151,13 @@ pub(crate) fn all_points_within_interval(
     let lower_year = year_as_date_string(lower);
     let upper_year = year_as_date_string(upper + 1);
 
-    let stmt = Qry::select("p.id as id")
-        .comma("p.kind as kind")
-        .comma("p.title as title")
-        .comma("p.font as font")
-        .comma("p.location_textual as location_textual")
-        .comma("p.date_textual as date_textual")
-        .comma("coalesce(date(p.exact_realdate), date(p.lower_realdate)) as date")
-        .comma("d.id as deck_id")
-        .comma("d.name as deck_name")
-        .comma("d.kind as deck_kind")
-        .comma("d.insignia as deck_insignia")
-        .comma("d.font as deck_font")
-        .comma("d.impact as deck_impact")
-        .comma("coalesce(p.exact_realdate, p.lower_realdate) as sortdate")
-        .from("points p")
-        .comma("decks d")
-        .where_clause("date(coalesce(p.exact_realdate, p.upper_realdate)) >= :lower_year")
-        .and("date(coalesce(p.exact_realdate, p.lower_realdate)) < :upper_year")
-        .and("p.deck_id = d.id")
-        .and("d.impact > 0")
-        .and("d.user_id = :user_id")
-        .order_by("sortdate");
-
     sqlite::many(
         &conn,
-        &stmt,
+        &query_points_common()
+            .and("date(coalesce(p.exact_realdate, p.upper_realdate)) >= :lower_year")
+            .and("date(coalesce(p.exact_realdate, p.lower_realdate)) < :upper_year")
+            .and("d.impact > 0")
+            .order_by("sortdate"),
         named_params! {":user_id": user_id, ":lower_year": lower_year, ":upper_year": upper_year},
     )
 }
@@ -166,55 +167,20 @@ pub(crate) fn all_points_during_life(
     user_id: Key,
     deck_id: Key,
 ) -> Result<Vec<Point>, DbError> {
-    // a union of two queries:
-    // 1. all the points associated with a person (may include posthumous points)
-    // 2. all the points between the person's birth and death (if not dead then up until the present day)
-    //
-    let base_select = Qry::select("p.id as id")
-        .comma("p.kind as kind")
-        .comma("p.title as title")
-        .comma("p.font as font")
-        .comma("p.location_textual as location_textual")
-        .comma("p.date_textual as date_textual")
-        .comma("coalesce(date(p.exact_realdate), date(p.lower_realdate)) as date")
-        .comma("d.id as deck_id")
-        .comma("d.name as deck_name")
-        .comma("d.kind as deck_kind")
-        .comma("d.insignia as deck_insignia")
-        .comma("d.font as deck_font")
-        .comma("d.impact as deck_impact")
-        .comma("coalesce(p.exact_realdate, p.lower_realdate) as sortdate");
+    // all the points associated with a person (may include posthumous points)
+    let all_for_person = query_points_common().and("d.id = :deck_id");
 
-    let stmt = base_select
-        .clone()
-        .from("points p")
-        .comma("decks d")
-        .where_clause("d.id = :deck_id")
-        .and("d.user_id = :user_id")
-        .and("p.deck_id = d.id")
-        .union()
-        .select("p.id as id")
-        .comma("p.kind as kind")
-        .comma("p.title as title")
-        .comma("p.font as font")
-        .comma("p.location_textual as location_textual")
-        .comma("p.date_textual as date_textual")
-        .comma("coalesce(date(p.exact_realdate), date(p.lower_realdate)) as date")
-        .comma("d.id as deck_id")
-        .comma("d.name as deck_name")
-        .comma("d.kind as deck_kind")
-        .comma("d.insignia as deck_insignia")
-        .comma("d.font as deck_font")
-        .comma("d.impact as deck_impact")
-        .comma("coalesce(p.exact_realdate, p.lower_realdate) as sortdate")
-        .from("points p")
-        .comma("decks d")
-        .where_clause("coalesce(p.exact_realdate, p.upper_realdate) >= (select coalesce(point_born.exact_realdate, point_born.lower_realdate) as born from points point_born where point_born.deck_id = :deck_id and point_born.kind = 'point_begin')")
+    // all the points between the person's birth and death (if not dead then up until the present day)
+    let all_during_life = query_points_common()
+        .and("coalesce(p.exact_realdate, p.upper_realdate) >= (select coalesce(point_born.exact_realdate, point_born.lower_realdate) as born from points point_born where point_born.deck_id = :deck_id and point_born.kind = 'point_begin')")
         .and("coalesce(p.exact_realdate, p.lower_realdate) <= coalesce((select coalesce(point_died.exact_realdate, point_died.upper_realdate) as died from points point_died where point_died.deck_id = :deck_id and point_died.kind = 'point_end'), CURRENT_DATE)")
-        .and("p.deck_id = d.id")
         .and("d.id <> :deck_id")
-        .and("d.impact > 0")
-        .and("d.user_id = :user_id")
+        .and("d.impact > 0");
+
+    // a union of the above two queries:
+    let stmt = all_for_person
+        .union()
+        .add(&all_during_life)
         .order_by("sortdate");
 
     sqlite::many(
@@ -233,7 +199,7 @@ pub(crate) fn create(
         &conn,
         &Qry::insert("points(deck_id, title, kind, location_textual, longitude, latitude, location_fuzz, date_textual, exact_realdate, lower_realdate, upper_realdate, date_fuzz)")
             .values(
-                "(:deck_id, :title, :kind, :location_textual, :longitude, :latitude, :location_fuzz, :date_textual, julianday(:exact_realdate), julianday(:lower_realdate), julianday(:upper_realdate), :date_fuzz)",
+                ":deck_id, :title, :kind, :location_textual, :longitude, :latitude, :location_fuzz, :date_textual, julianday(:exact_realdate), julianday(:lower_realdate), julianday(:upper_realdate), :date_fuzz",
             ),
         named_params!{
             ":deck_id": deck_id,

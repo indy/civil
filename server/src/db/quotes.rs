@@ -93,7 +93,7 @@ pub(crate) fn get_or_create(
     sqlite::zero(
         &tx,
         &Qry::insert("notes(user_id, deck_id, kind, content)")
-            .values("(:user_id, :deck_id, :kind, :content)"),
+            .values(":user_id, :deck_id, :kind, :content"),
         named_params! {":user_id": user_id, ":deck_id": deck.id, ":kind": NoteKind::Note, ":content": content},
     )?;
 

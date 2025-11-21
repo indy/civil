@@ -185,12 +185,16 @@ fn neighbours(conn: &Connection, user_id: Key, deck_id: Key) -> Result<Vec<Conne
         .and("d.id = n.deck_id")
         .and("d.user_id = :user_id")
         .union()
-        .select("1 as direction, r.kind as ref_kind, d.id as deck_id, d.name as name, d.kind as deck_kind, d.created_at as created_at, d.graph_terminator as graph_terminator, d.insignia as insignia, d.font as font, d.impact as impact")
-        .from("notes n, refs r, decks d")
-        .where_clause("n.deck_id = :deck_id")
-        .and("r.note_id = n.id")
-        .and("d.id = r.deck_id")
-        .and("d.user_id = :user_id");
+        .add(&Qry::select("1 as direction, r.kind as ref_kind, d.id as deck_id, d.name as name, d.kind as deck_kind, d.created_at as created_at, d.graph_terminator as graph_terminator, d.insignia as insignia, d.font as font, d.impact as impact")
+             .from("notes n, refs r, decks d")
+             .where_clause("n.deck_id = :deck_id")
+             .and("r.note_id = n.id")
+             .and("d.id = r.deck_id")
+             .and("d.user_id = :user_id"));
 
-    sqlite::many(conn, &stmt, named_params! {":user_id": user_id, ":deck_id": deck_id})
+    sqlite::many(
+        conn,
+        &stmt,
+        named_params! {":user_id": user_id, ":deck_id": deck_id},
+    )
 }

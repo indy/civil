@@ -40,7 +40,7 @@ pub(crate) fn create_bookmark(
     user_id: Key,
     deck_id: Key,
 ) -> Result<(), DbError> {
-    let stmt = Qry::insert("bookmarks(user_id, deck_id)").values("(:user_id, :deck_id)");
+    let stmt = Qry::insert("bookmarks(user_id, deck_id)").values(":user_id, :deck_id");
     sqlite::zero(
         &conn,
         &stmt,
@@ -55,7 +55,7 @@ pub(crate) fn create_multiple_bookmarks(
 ) -> Result<(), DbError> {
     let tx = conn.transaction()?;
 
-    let stmt = Qry::insert("bookmarks(user_id, deck_id)").values("(:user_id, :deck_id)");
+    let stmt = Qry::insert("bookmarks(user_id, deck_id)").values(":user_id, :deck_id");
     for deck_id in deck_ids {
         sqlite::zero(
             &tx,

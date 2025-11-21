@@ -79,11 +79,8 @@ impl Qry {
         self.add(" FROM decks d ")
     }
 
-    pub fn from_nested(mut self, part: &str) -> Self {
-        self.s.push_str(" FROM (");
-        self.s.push_str(part);
-        self.s.push_str(") ");
-        self
+    pub fn from_nested(self, part: &str) -> Self {
+        self.prefix_add_bracketed(" FROM ", part)
     }
 
     pub fn join(self, part: &str) -> Self {
@@ -151,7 +148,7 @@ impl Qry {
     }
 
     pub fn values(self, part: &str) -> Self {
-        self.prefix_add(" VALUES ", part)
+        self.prefix_add_bracketed(" VALUES ", part)
     }
 
     pub fn delete_from(part: &str) -> Self {
@@ -190,6 +187,14 @@ impl Qry {
     fn prefix_add(mut self, prefix: &str, text: &str) -> Self {
         self.s.push_str(prefix);
         self.s.push_str(text);
+        self
+    }
+
+    fn prefix_add_bracketed(mut self, prefix: &str, text: &str) -> Self {
+        self.s.push_str(prefix);
+        self.s.push_str("(");
+        self.s.push_str(text);
+        self.s.push_str(")");
         self
     }
 }

@@ -159,7 +159,8 @@ pub(crate) fn edit(
         &Qry::select("deck_id, source, author, short_description, published_date")
             .from("article_extras")
             .where_clause("deck_id = :deck_id"),
-        named_params! {":deck_id": article_id})?;
+        named_params! {":deck_id": article_id},
+    )?;
 
     const TWITTER_INSIGNIA_BIT: i32 = 1;
     const BOOK_INSIGNIA_BIT: i32 = 2;
@@ -248,8 +249,10 @@ pub(crate) fn get_or_create(
         decks::DeckBaseOrigin::Created => sqlite::one(
             &tx,
             &Qry::new("")
-                .insert_into("article_extras(deck_id, source, author, short_description, published_date)")
-                .values("(:deck_id, :source, :author, :short_description, :published_date)")
+                .insert_into(
+                    "article_extras(deck_id, source, author, short_description, published_date)",
+                )
+                .values(":deck_id, :source, :author, :short_description, :published_date")
                 .returning("deck_id, source, author, short_description, published_date"),
             named_params! {
                 ":deck_id": deck.id,

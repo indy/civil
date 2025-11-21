@@ -405,7 +405,9 @@ pub(crate) fn insignia_filter_any(
 
     let total_items = sqlite::one(
         &conn,
-        &Qry::select_count().from_decklike().where_clause("d.user_id = :user_id AND d.insignia & :insignia;"),
+        &Qry::select_count()
+            .from_decklike()
+            .where_clause("d.user_id = :user_id AND d.insignia & :insignia;"),
         named_params! {":user_id": user_id, ":insignia": insignia},
     )?;
 

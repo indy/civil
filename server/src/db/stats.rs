@@ -142,7 +142,7 @@ pub fn generate_stats(conn: &Connection, user_id: Key) -> crate::Result<()> {
     let id: Key = sqlite::one(
         conn,
         &Qry::insert("stats(user_id, num_refs, num_cards, num_card_ratings, num_images)")
-            .values("(:user_id, :num_refs, :num_cards, :num_card_ratings, :num_images)")
+            .values(":user_id, :num_refs, :num_cards, :num_card_ratings, :num_images")
             .returning("id"),
         named_params![
             ":user_id": user_id,
@@ -197,7 +197,7 @@ fn write_num_decks(
     value: i32,
 ) -> crate::Result<()> {
     let stmt = Qry::insert("stats_num_decks(stats_id, deck_kind, num_decks)")
-        .values("(:stats_id, :deck_kind, :num_decks)");
+        .values(":stats_id, :deck_kind, :num_decks");
     sqlite::zero(
         conn,
         &stmt,
@@ -217,7 +217,7 @@ fn write_num_notes(
     value: i32,
 ) -> crate::Result<()> {
     let stmt = Qry::insert("stats_num_notes(stats_id, deck_kind, num_notes)")
-        .values("(:stats_id, :deck_kind, :num_notes)");
+        .values(":stats_id, :deck_kind, :num_notes");
     sqlite::zero(
         conn,
         &stmt,
@@ -237,7 +237,7 @@ fn write_num_points(
     value: i32,
 ) -> crate::Result<()> {
     let stmt = Qry::insert("stats_num_points(stats_id, deck_kind, num_points)")
-        .values("(:stats_id, :deck_kind, :num_points)");
+        .values(":stats_id, :deck_kind, :num_points");
     sqlite::zero(
         conn,
         &stmt,
@@ -258,7 +258,7 @@ fn write_num_refs(
     value: i32,
 ) -> crate::Result<()> {
     let stmt = Qry::insert("stats_num_refs(stats_id, from_deck_kind, to_deck_kind, num_refs)")
-        .values("(:stats_id, :from, :to, :num_refs)");
+        .values(":stats_id, :from, :to, :num_refs");
     sqlite::zero(
         conn,
         &stmt,
