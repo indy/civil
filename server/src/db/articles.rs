@@ -154,11 +154,12 @@ pub(crate) fn edit(
         article.impact,
     )?;
 
-    let stmt = "SELECT deck_id, source, author, short_description, published_date
-                FROM article_extras
-                WHERE deck_id = :deck_id";
-    let article_extras_exists: Vec<ArticleExtra> =
-        sqlite::many(&tx, stmt, named_params! {":deck_id": article_id})?;
+    let article_extras_exists: Vec<ArticleExtra> = sqlite::many(
+        &tx,
+        &Qry::select("deck_id, source, author, short_description, published_date")
+            .from("article_extras")
+            .where_clause("deck_id = :deck_id"),
+        named_params! {":deck_id": article_id})?;
 
     const TWITTER_INSIGNIA_BIT: i32 = 1;
     const BOOK_INSIGNIA_BIT: i32 = 2;
@@ -246,9 +247,10 @@ pub(crate) fn get_or_create(
     let article_extras = match origin {
         decks::DeckBaseOrigin::Created => sqlite::one(
             &tx,
-            "INSERT INTO article_extras(deck_id, source, author, short_description, published_date)
-                 VALUES (:deck_id, :source, :author, :short_description, :published_date)
-                 RETURNING deck_id, source, author, short_description, published_date",
+            &Qry::new("")
+                .insert_into("article_extras(deck_id, source, author, short_description, published_date)")
+                .values("(:deck_id, :source, :author, :short_description, :published_date)")
+                .returning("deck_id, source, author, short_description, published_date"),
             named_params! {
                 ":deck_id": deck.id,
                 ":source": source,

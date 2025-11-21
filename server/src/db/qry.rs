@@ -94,6 +94,14 @@ impl Qry {
         self.prefix_add(" LEFT JOIN ", part)
     }
 
+    pub fn full_join(self, part: &str) -> Self {
+        self.prefix_add(" FULL JOIN ", part)
+    }
+
+    pub fn inner_join(self, part: &str) -> Self {
+        self.prefix_add(" INNER JOIN ", part)
+    }
+
     pub fn where_clause(self, part: &str) -> Self {
         // 'where' is a reserved word in Rust
         self.prefix_add(" WHERE ", part)
@@ -129,6 +137,18 @@ impl Qry {
 
     pub fn offset(self) -> Self {
         self.add(" OFFSET :offset ")
+    }
+
+    pub fn insert_into(self, part: &str) -> Self {
+        self.prefix_add(" INSERT INTO ", part)
+    }
+
+    pub fn values(self, part: &str) -> Self {
+        self.prefix_add(" VALUES ", part)
+    }
+
+    pub fn returning(self, part: &str) -> Self {
+        self.prefix_add(" RETURNING ", part)
     }
 
     pub fn query_count_decklike() -> Qry {

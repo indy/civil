@@ -22,6 +22,7 @@ use crate::interop::decks::SlimDeck;
 use crate::interop::memorise::{Card, CardUpcomingReview, FlashCard, ProtoCard};
 use chrono::Utc;
 use rusqlite::{Row, named_params};
+use crate::db::qry::Qry;
 
 #[allow(unused_imports)]
 use tracing::info;
@@ -77,16 +78,22 @@ impl FromRow for Card {
     }
 }
 
+fn memorise_query_common_select() -> Qry {
+    Qry::select("c.id as id, c.note_id as note_id, c.prompt as prompt, c.next_test_date as next_test_date,
+                c.easiness_factor as easiness_factor, c.interval as interval, c.repetition as repetition")
+}
+
 pub(crate) fn all_flashcards_for_deck(
     conn: &rusqlite::Connection,
     deck_id: Key,
 ) -> Result<Vec<FlashCard>, DbError> {
     sqlite::many(
         &conn,
-        "SELECT c.id as id, c.note_id as note_id, c.prompt as prompt, c.next_test_date as next_test_date,
-                c.easiness_factor as easiness_factor, c.interval as interval, c.repetition as repetition
-         FROM cards c, decks d, notes n
-         WHERE d.id = :deck_id AND n.deck_id = d.id AND c.note_id = n.id",
+        &memorise_query_common_select()
+            .from("cards c")
+            .join("notes n ON c.note_id = n.id")
+            .join("decks d ON n.deck_id = d.id")
+            .where_clause("d.id = :deck_id"),
         named_params! {":deck_id": deck_id},
     )
 }
@@ -97,10 +104,10 @@ pub(crate) fn all_flashcards_for_note(
 ) -> Result<Vec<FlashCard>, DbError> {
     sqlite::many(
         &conn,
-        "SELECT c.id as id, c.note_id as note_id, c.prompt as prompt, c.next_test_date as next_test_date,
-                c.easiness_factor as easiness_factor, c.interval as interval, c.repetition as repetition
-         FROM cards c, notes n
-         WHERE n.id = :note_id AND c.note_id = n.id",
+        &memorise_query_common_select()
+            .from("cards c")
+            .join("notes n ON c.note_id = n.id")
+            .where_clause("n.id = :note_id"),
         named_params! {":note_id": note_id},
     )
 }
@@ -111,13 +118,12 @@ pub(crate) fn all_flashcards_for_deck_arrivals(
 ) -> Result<Vec<FlashCard>, DbError> {
     sqlite::many(
         &conn,
-        "SELECT   c.id as id, c.note_id as note_id, c.prompt as prompt, c.next_test_date as next_test_date,
-                  c.easiness_factor as easiness_factor, c.interval as interval, c.repetition as repetition
-         FROM     refs r
-                  FULL JOIN notes n on r.note_id = n.id
-                  FULL JOIN decks owner_deck on n.deck_id = owner_deck.id
-                  INNER JOIN cards c on c.note_id = n.id
-         WHERE    r.deck_id = :deck_id",
+        &memorise_query_common_select()
+            .from("refs r")
+            .full_join("notes n ON r.note_id = n.id")
+            .full_join("decks owner_deck on n.deck_id = owner_deck.id")
+            .inner_join("cards c on c.note_id = n.id")
+            .where_clause("r.deck_id = :deck_id"),
         named_params! {":deck_id": deck_id},
     )
 }
@@ -134,21 +140,19 @@ pub(crate) fn all_flashcards_for_deck_additional_query(
 
     sqlite::many(
         &conn,
-        "SELECT c.id as id, c.note_id as note_id, c.prompt as prompt, c.next_test_date as next_test_date,
-                c.easiness_factor as easiness_factor, c.interval as interval, c.repetition as repetition,
-                notes_fts.rank as rank
-         FROM notes_fts
-              LEFT JOIN notes n ON n.id = notes_fts.rowid
-              LEFT JOIN decks d ON d.id = n.deck_id
-              LEFT JOIN dialogue_messages dm ON dm.note_id = n.id
-              INNER JOIN cards c on c.note_id = n.id
-         WHERE notes_fts match :sane_name
-               AND d.user_id = :user_id
-               AND d.id <> :deck_id
-               AND (dm.role IS null OR dm.role <> 'system')
-         ORDER BY rank ASC
-         LIMIT 100",
-        named_params! {":user_id": user_id, ":sane_name": sane_name, ":deck_id": deck_id},
+        &memorise_query_common_select().comma("notes_fts.rank as rank")
+            .from("notes_fts")
+            .left_join("notes n ON n.id = notes_fts.rowid")
+            .left_join("decks d ON d.id = n.deck_id")
+            .left_join("dialogue_messages dm ON dm.note_id = n.id")
+            .inner_join("cards c on c.note_id = n.id")
+            .where_clause("notes_fts match :sane_name")
+            .and("d.user_id = :user_id")
+            .and("d.id <> :deck_id")
+            .and("(dm.role IS null OR dm.role <> 'system')")
+            .order_by("rank ASC")
+            .limit(),
+        named_params! {":user_id": user_id, ":sane_name": sane_name, ":deck_id": deck_id, ":limit": 100},
     )
 }
 
@@ -159,20 +163,18 @@ pub(crate) fn all_flashcards_for_search_query(
 ) -> Result<Vec<FlashCard>, DbError> {
     sqlite::many(
         &conn,
-        "SELECT c.id as id, c.note_id as note_id, c.prompt as prompt, c.next_test_date as next_test_date,
-                   c.easiness_factor as easiness_factor, c.interval as interval, c.repetition as repetition,
-                   notes_fts.rank as rank
-         FROM notes_fts
-              LEFT JOIN notes n ON n.id = notes_fts.rowid
-              LEFT JOIN decks d ON d.id = n.deck_id
-              LEFT JOIN dialogue_messages dm ON dm.note_id = n.id
-              INNER JOIN cards c on c.note_id = n.id
-         WHERE notes_fts match :query
-               AND d.user_id = :user_id
-               AND (dm.role IS null OR dm.role <> 'system')
-         ORDER BY rank ASC
-         LIMIT 100",
-        named_params! {":user_id": user_id, ":query": query},
+        &memorise_query_common_select().comma("notes_fts.rank as rank")
+            .from("notes_fts")
+            .left_join("notes n ON n.id = notes_fts.rowid")
+            .left_join("decks d ON d.id = n.deck_id")
+            .left_join("dialogue_messages dm ON dm.note_id = n.id")
+            .inner_join("cards c on c.note_id = n.id")
+            .where_clause("notes_fts match :query")
+            .and("d.user_id = :user_id")
+            .and("(dm.role IS null OR dm.role <> 'system')")
+            .order_by("rank ASC")
+            .limit(),
+        named_params! {":user_id": user_id, ":query": query, ":limit": 100},
     )
 }
 
@@ -302,21 +304,26 @@ pub(crate) fn delete_flashcard(
     Ok(())
 }
 
+
+fn get_card_select() -> Qry {
+    Qry::select("c.id as id, c.note_id as note_id, c.prompt as prompt, n.content as note_content, d.id as deck_id,
+                d.name as deck_name, d.kind as deck_kind, d.created_at as deck_created_at, d.graph_terminator as deck_graph_terminator,
+                d.insignia as deck_insignia, d.font as deck_font, d.impact as deck_impact")
+    .from("cards c")
+        .join("notes n ON n.id = c.note_id")
+        .join("decks d ON d.id = n.deck_id")
+        .where_clause("c.user_id = :user_id")
+}
+
+
 pub(crate) fn get_cards(
     conn: &rusqlite::Connection,
     user_id: Key,
     due: chrono::NaiveDateTime,
 ) -> Result<Vec<Card>, DbError> {
-    info!("get_cards");
-
     sqlite::many(
         &conn,
-        "SELECT c.id as id, c.note_id as note_id, c.prompt as prompt, n.content as note_content, d.id as deck_id,
-                d.name as deck_name, d.kind as deck_kind, d.created_at as deck_created_at, d.graph_terminator as deck_graph_terminator,
-                d.insignia as deck_insignia, d.font as deck_font, d.impact as deck_impact
-         FROM cards c, decks d, notes n
-         WHERE d.id = n.deck_id AND n.id = c.note_id AND c.user_id = :user_id
-               AND c.next_test_date < :next_test_date",
+        &get_card_select().and("c.next_test_date < :next_test_date"),
         named_params! {":user_id": user_id, ":next_test_date": due},
     )
 }
@@ -325,18 +332,10 @@ pub(crate) fn get_practice_card(
     conn: &rusqlite::Connection,
     user_id: Key,
 ) -> Result<Card, DbError> {
-    info!("get_practice_card");
-
     sqlite::one(
         &conn,
-        "SELECT c.id as id, c.note_id as note_id, c.prompt as prompt, n.content as note_content, d.id as deck_id,
-                d.name as deck_name, d.kind as deck_kind, d.created_at as deck_created_at, d.graph_terminator as deck_graph_terminator,
-                d.insignia as deck_insignia, d.font as deck_font, d.impact as deck_impact
-         FROM cards c, decks d, notes n
-         WHERE d.id = n.deck_id AND n.id = c.note_id and c.user_id = :user_id
-         ORDER BY random()
-         LIMIT 1",
-        named_params! {":user_id": user_id},
+        &get_card_select().order_by("random()").limit(),
+        named_params! {":user_id": user_id, ":limit": 1},
     )
 }
 
