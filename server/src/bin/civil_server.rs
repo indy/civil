@@ -23,7 +23,7 @@ use actix_web::{App, HttpServer, http, web};
 use civil_server::{self, ServerConfig, server_api};
 use rusqlite::Connection;
 use std::env;
-use tracing::{error, info};
+use tracing::info;
 
 const SIGNING_KEY_SIZE: usize = 64;
 
@@ -47,7 +47,7 @@ async fn main() -> civil_server::Result<()> {
     let port = civil_server::env_var_string_or("PORT", "3002");
     let www_path = civil_server::env_var_string_or("WWW_PATH", "www");
     let user_content_path = civil_server::env_var_string_or("USER_CONTENT_PATH", "user-content");
-    let cookie_secure = civil_server::env_var_bool_or("COOKIE_OVER_HTTPS_ONLY", false);
+    let cookie_secure = civil_server::env_var_bool_or("COOKIE_OVER_HTTPS_ONLY", true);
 
     info!("SQLITE_DB: {}", sqlite_db);
     info!("PORT: {}", port);
@@ -56,7 +56,7 @@ async fn main() -> civil_server::Result<()> {
     info!("COOKIE_OVER_HTTPS_ONLY: {}", cookie_secure);
 
     let registration_magic_word = civil_server::env_var_string("REGISTRATION_MAGIC_WORD")?;
-    let session_signing_key = env::var("SESSION_SIGNING_KEY")?;
+    let session_signing_key = parse_session_signing_key(&env::var("SESSION_SIGNING_KEY")?)?;
 
     civil_server::db::sqlite_migrations::migration_check(&sqlite_db)?;
 
@@ -70,12 +70,8 @@ async fn main() -> civil_server::Result<()> {
     let ai = civil_server::ai::AI::new(openai_key)?;
 
     let server = HttpServer::new(move || {
-        let signing_key: &mut [u8] = &mut [0; SIGNING_KEY_SIZE];
-        read_signing_key(signing_key, &session_signing_key);
-        // info!("signing key: {:?}", signing_key);
-
         let session_store =
-            SessionMiddleware::builder(CookieSessionStore::default(), Key::from(signing_key))
+            SessionMiddleware::builder(CookieSessionStore::default(), session_signing_key.clone())
                 .cookie_secure(cookie_secure)
                 .cookie_same_site(SameSite::Strict)
                 .session_lifecycle(
@@ -116,62 +112,31 @@ async fn main() -> civil_server::Result<()> {
     Ok(())
 }
 
-fn read_signing_key(signing_key: &mut [u8], session_signing_key: &str) {
-    // check string against twice the SIGNING_KEY_SIZE since we
-    // need 2 characters to represent all byte values (00 -> ff)
-    //
+fn parse_session_signing_key(session_signing_key: &str) -> civil_server::Result<Key> {
     if session_signing_key.len() != (SIGNING_KEY_SIZE * 2) {
-        error!(
-            "SESSION_SIGNING_KEY in .env has to be {} characters long (currently: {})",
-            SIGNING_KEY_SIZE * 2,
-            session_signing_key.len()
-        );
+        return Err(civil_server::Error::InvalidSessionSigningKeyLength {
+            expected: SIGNING_KEY_SIZE * 2,
+            found: session_signing_key.len(),
+        });
     }
 
-    let mut b = session_signing_key.bytes();
+    let mut signing_key = [0u8; SIGNING_KEY_SIZE];
 
-    for elem in signing_key.iter_mut().take(SIGNING_KEY_SIZE) {
-        let ascii_hex_0 = b.next().unwrap();
-        let ascii_hex_1 = b.next().unwrap();
+    for (i, chunk) in session_signing_key.as_bytes().chunks_exact(2).enumerate() {
+        let high = hex_digit(chunk[0])?;
+        let low = hex_digit(chunk[1])?;
 
-        let d0 = ascii_hex_digit_to_dec(ascii_hex_0);
-        let d1 = ascii_hex_digit_to_dec(ascii_hex_1);
-
-        *elem = (d0 * 16) + d1;
+        signing_key[i] = (high << 4) | low;
     }
+
+    Ok(Key::from(signing_key))
 }
 
-fn ascii_hex_digit_to_dec(ascii_hex: u8) -> u8 {
-    //
-    // |-----+-------+-----|
-    // | hex | ascii | dec |
-    // |-----+-------+-----|
-    // |   0 |    48 |   0 |
-    // |   1 |    49 |   1 |
-    // |   2 |    50 |   2 |
-    // |   3 |    51 |   3 |
-    // |   4 |    52 |   4 |
-    // |   5 |    53 |   5 |
-    // |   6 |    54 |   6 |
-    // |   7 |    55 |   7 |
-    // |   8 |    56 |   8 |
-    // |   9 |    57 |   9 |
-    // |   a |    97 |  10 |
-    // |   b |    98 |  11 |
-    // |   c |    99 |  12 |
-    // |   d |   100 |  13 |
-    // |   e |   101 |  14 |
-    // |   f |   102 |  15 |
-    // |-----+-------+-----|
-    //
-
-    if (b'0'..=b'9').contains(&ascii_hex) {
-        ascii_hex - b'0'
-    } else if (b'a'..=b'f').contains(&ascii_hex) {
-        ascii_hex - b'a' + 10
-    } else if (b'A'..=b'F').contains(&ascii_hex) {
-        ascii_hex - b'A' + 10
-    } else {
-        0
+fn hex_digit(digit: u8) -> civil_server::Result<u8> {
+    match digit {
+        b'0'..=b'9' => Ok(digit - b'0'),
+        b'a'..=b'f' => Ok(digit - b'a' + 10),
+        b'A'..=b'F' => Ok(digit - b'A' + 10),
+        _ => Err(civil_server::Error::InvalidSessionSigningKeyFormat),
     }
 }

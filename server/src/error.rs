@@ -61,6 +61,10 @@ pub enum Error {
     SessionGetError(#[from] actix_session::SessionGetError),
     #[error(transparent)]
     SessionInsertError(#[from] actix_session::SessionInsertError),
+    #[error("SESSION_SIGNING_KEY must be {expected} hex characters, found {found}")]
+    InvalidSessionSigningKeyLength { expected: usize, found: usize },
+    #[error("SESSION_SIGNING_KEY contains invalid hex characters")]
+    InvalidSessionSigningKeyFormat,
     #[error("string conversion to enum")]
     StringConversionToEnum,
     #[error(transparent)]
