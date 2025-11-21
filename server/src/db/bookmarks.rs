@@ -40,10 +40,10 @@ pub(crate) fn create_bookmark(
     user_id: Key,
     deck_id: Key,
 ) -> Result<(), DbError> {
-    let stmt = "INSERT INTO bookmarks(user_id, deck_id) VALUES (:user_id, :deck_id)";
+    let stmt = Qry::insert("bookmarks(user_id, deck_id)").values("(:user_id, :deck_id)");
     sqlite::zero(
         &conn,
-        stmt,
+        &stmt,
         named_params! {":user_id": user_id, ":deck_id": deck_id},
     )
 }
@@ -55,11 +55,11 @@ pub(crate) fn create_multiple_bookmarks(
 ) -> Result<(), DbError> {
     let tx = conn.transaction()?;
 
-    let stmt = "INSERT INTO bookmarks(user_id, deck_id) VALUES (:user_id, :deck_id)";
+    let stmt = Qry::insert("bookmarks(user_id, deck_id)").values("(:user_id, :deck_id)");
     for deck_id in deck_ids {
         sqlite::zero(
             &tx,
-            stmt,
+            &stmt,
             named_params! {":user_id": user_id, ":deck_id": deck_id},
         )?;
     }
@@ -89,10 +89,12 @@ pub(crate) fn delete_bookmark(
     user_id: Key,
     bookmark_id: Key,
 ) -> Result<(), DbError> {
-    let stmt = "DELETE FROM bookmarks WHERE user_id = :user_id and id = :bookmark_id";
+    let stmt = Qry::delete_from("bookmarks")
+        .where_clause("user_id = :user_id")
+        .and("id = :bookmark_id");
     sqlite::zero(
         &conn,
-        stmt,
+        &stmt,
         named_params! {":user_id": user_id, ":bookmark_id": bookmark_id},
     )
 }
