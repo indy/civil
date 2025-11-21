@@ -129,7 +129,7 @@ fn parse_session_signing_key(session_signing_key: &str) -> civil_server::Result<
         signing_key[i] = (high << 4) | low;
     }
 
-    Ok(Key::from(signing_key))
+    Ok(Key::from(&signing_key))
 }
 
 fn hex_digit(digit: u8) -> civil_server::Result<u8> {
